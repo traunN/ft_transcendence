@@ -1,0 +1,76 @@
+
+ body {
+	background-color: #000;
+	color: #fff;
+ }
+
+.board {
+	position: relative;
+	width: 800px;
+	height: 600px;
+	border: 1px solid #fff;
+ }
+
+ .player_1_score{
+	position: absolute;
+	left: 10%;
+	top: 10px;
+	transform: translateX(-50%);
+	font-size: 40px;
+ }
+
+ .player_2_score{
+	position: absolute;
+	right: 10%;
+	top: 10px;
+	transform: translateX(50%);
+	font-size: 40px;
+ }
+
+ .paddle, .ball {
+	position: absolute;
+ }
+
+ .col-6 {
+	margin: 0 15px;
+ }
+
+ .paddle_1 {
+	width: 20px;
+	height: 100px;
+	background-color: #fff;
+	left: 0;
+ }
+ 
+ .paddle_2 {
+	width: 20px;
+	height: 100px;
+	background-color: #fff;
+	right: 0;
+ }
+ 
+ .container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+ }
+ 
+.message{
+	font-size: 30px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.ball {
+	width: 20px;
+	height: 20px;
+	background-color: #fff;
+	border-radius: 50%;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+  }
