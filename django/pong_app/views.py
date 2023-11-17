@@ -3,28 +3,22 @@ from django.db import connection
 from pong_app.models import PongGameState
 
 def homePage(request):
-    return render(request, 'homePage.html')
+	return render(request, 'homePage.html')
 
 def login(request):
-    return render(request, 'login.html')
+	return render(request, 'login.html')
 
 def pongGame(request):
-    game_state, created = PongGameState.objects.get_or_create(pk=1)
+	return render(request, 'pongGame.html')
 
-    if request.method == 'POST':
-        if 'up' in request.POST and game_state.paddle_position > 0:
-            game_state.paddle_position -= 10
-        elif 'down' in request.POST and game_state.paddle_position < 500:
-            game_state.paddle_position += 10
-        game_state.save()
-
-    return render(request, 'pong_elements/index.html', {'game_state': game_state})
+def favicon(request):
+	return render(request, 'favicon.ico')
 
 def testDBConnection(request):
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        connection.close()
-        return render(request, 'success.html')
-    except Exception as error:
-        return render(request, 'error.html')
+	try:
+		with connection.cursor() as cursor:
+			cursor.execute("SELECT 1")
+		connection.close()
+		return render(request, 'success.html')
+	except Exception as error:
+		return render(request, 'error.html')

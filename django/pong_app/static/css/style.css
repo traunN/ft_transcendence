@@ -1,66 +1,68 @@
-
- body {
+body {
 	background-color: #000;
 	color: #fff;
- }
+}
 
 .board {
 	position: relative;
 	width: 800px;
 	height: 600px;
 	border: 1px solid #fff;
- }
+}
 
- .player_1_score{
+.player_1_score {
 	position: absolute;
 	left: 10%;
 	top: 10px;
 	transform: translateX(-50%);
 	font-size: 40px;
- }
+}
 
- .player_2_score{
+.player_2_score {
 	position: absolute;
 	right: 10%;
 	top: 10px;
 	transform: translateX(50%);
 	font-size: 40px;
- }
+}
 
- .paddle, .ball {
+.paddle,
+.ball {
 	position: absolute;
- }
+}
 
- .col-6 {
+.col-6 {
 	margin: 0 15px;
- }
+}
 
- .paddle_1 {
+.paddle_1 {
 	width: 20px;
 	height: 100px;
 	background-color: #fff;
 	left: 0;
- }
- 
- .paddle_2 {
+	/* top: 50%; */
+}
+
+.paddle_2 {
 	width: 20px;
 	height: 100px;
 	background-color: #fff;
 	right: 0;
- }
- 
- .container {
+	/* top: 50%; */
+}
+
+.container {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 100vh;
- }
- 
-.message{
+}
+
+.message {
 	font-size: 30px;
 	position: absolute;
 	left: 50%;
-	top: 50%;
+	top: 10%;
 	transform: translate(-50%, -50%);
 }
 
@@ -73,4 +75,33 @@
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-  }
+}
+
+.black-btn {
+	background-color: #000;
+	/* Black */
+	color: #fff;
+	/* White */
+	border: 2px solid #fff;
+	padding: 10px 20px;
+	border-radius: 25px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.black-btn:hover {
+	background-color: #fff;
+	/* White */
+	color: #000;
+	/* Black */
+	transform: scale(1.1);
+}
+
+.goBackBtn {
+	position: fixed;
+	top: 20px;
+	left: 20px;
+	width: 150px;
+	height: 50px;
+	font-size: 12px;
+}
