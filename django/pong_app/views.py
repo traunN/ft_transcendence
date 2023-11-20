@@ -11,6 +11,9 @@ def login(request):
 def pongGame(request):
 	return render(request, 'pongGame.html')
 
+def leaderboard(request):
+	return render(request, 'leaderboard.html')
+
 def favicon(request):
 	return render(request, 'favicon.ico')
 

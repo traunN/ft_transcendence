@@ -13,7 +13,7 @@
 </head>
 
 <body>
-	<button id="goBackBtn" class="goBackBtn black-btn" onclick="goBack()">Go Back</button>
+	{% include 'sidebar.html' %}
 	<div class="container">
 		<div class="row">
 			<div class="col">
@@ -33,8 +33,8 @@
 	</div>
 	<script type="text/javascript" src="../static/js/main.js"></script>
 	<script>
-		function goBack() {
-			window.history.back();
+		function goHome() {
+			window.location.href = "/homePage/";
 		}
 	</script>
 </body>

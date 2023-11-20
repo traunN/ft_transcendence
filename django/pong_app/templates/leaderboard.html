@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pong Leaderboard</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
+</head>
+
+<body>
+	{% include 'sidebar.html' %}
+	<div class="container">
+		<h1 class="text-white">Pong Leaderboard</h1>
+		<table class="table table-hover table-dark">
+			<thead>
+				<tr>
+					<th scope="col">#</th>
+					<th scope="col">Player Name</th>
+					<th scope="col">Score</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- Add rows for each player here -->
+				<tr>
+					<th scope="row">1</th>
+					<td>Player 1</td>
+					<td>100</td>
+				</tr>
+				<tr>
+					<th scope="row">2</th>
+					<td>Player 2</td>
+					<td>90</td>
+				</tr>
+				<!-- ... -->
+			</tbody>
+		</table>
+	</div>
+	<script>
+		function goHome() {
+			window.location.href = "/homePage/";
+		}
+	</script>
+</body>
+
+</html>
