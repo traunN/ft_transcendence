@@ -121,21 +121,17 @@ body {
 	background-color: #000;
 }
 
-.nav-item > .nav-link {
-	color: #000;
-	/* default color */
+.nav-link {
+	color: #fff;
 	transition: color 0.3s ease;
-	/* transition effect */
 }
 
-.nav-item > .nav-link:hover {
-	color: #f00;
-	/* hover color */
+.nav-item .nav-link:hover {
+    color: #f00 !important;
 }
 
-.nav-item > .nav-link.active {
-	color: #0f0;
-	/* selected color */
+.nav-item .nav-link.active {
+    color: #f00 !important;
 }
 
 .top-50 {
@@ -144,4 +140,4 @@ body {
 
 html, body {
 	overflow: hidden;
- }
+}

@@ -17,6 +17,12 @@ def leaderboard(request):
 def favicon(request):
 	return render(request, 'favicon.ico')
 
+def profil(request):
+	return render(request, 'profil.html')
+
+def settings(request):
+	return render(request, 'settings.html')
+
 def testDBConnection(request):
 	try:
 		with connection.cursor() as cursor:

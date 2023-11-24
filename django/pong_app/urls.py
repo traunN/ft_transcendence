@@ -9,4 +9,6 @@ urlpatterns = [
     path('pongGame/', views.pongGame, name='pongGame'),
 	path('leaderboard/', views.leaderboard, name='leaderboard'),
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
+	path('profil/', views.profil, name='profil'),
+	path('settings/', views.settings, name='settings'),
 ]
