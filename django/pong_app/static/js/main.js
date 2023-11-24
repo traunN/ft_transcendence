@@ -12,17 +12,20 @@ document.addEventListener('DOMContentLoaded', function () {
 	const keys = {
 		ArrowUp: false,
 		ArrowDown: false,
-		w: false,
-		s: false,
+		KeyW: false,
+		KeyS: false,
 		Enter: false
 	};
 
-	let paddleSpeed = 7;
+	let paddleSpeed = 5;
 	let ballSpeedX = 4;
 	let ballSpeedY = 4;
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;
 	let animationFrameId;
+	let time = 30;
+	let timer;
+
 
 	function updateBallPosition() {
 		const currentLeft = parseInt(getComputedStyle(ball).left);
@@ -35,28 +38,44 @@ document.addEventListener('DOMContentLoaded', function () {
 		ball.style.top = `${currentTop + ballSpeedY}px`;
 
 		// Check for right paddle collision
-		if (currentLeft + ball.clientWidth / 2 > paddle2.offsetLeft && currentTop + ball.clientHeight / 2 > paddle2Top && currentTop + ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight) {
+		if (currentLeft + ball.clientWidth / 2 > paddle2.offsetLeft &&
+			currentTop + ball.clientHeight / 2 > paddle2Top &&
+			currentTop - ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight) {
 			// Calculate the angle based on the paddle hit position
-			const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight / 2) ? -Math.PI / 4 : Math.PI / 4; // Adjust the angle multiplier as needed
-		   
+			const bounceAngle =
+				currentTop + ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight / 2
+					? -Math.PI / 4
+					: Math.PI / 4; // Adjust the angle multiplier as needed
+
 			ballSpeedX = -ballSpeedX;
 			ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-		   
+
 			ball.style.left = `${paddle2.offsetLeft - ball.clientWidth}px`;
+			paddle2.classList.add('bg-danger'); // Change the paddle's color to red
+
+			setTimeout(function() {
+				paddle2.classList.remove('bg-danger'); // Remove the color change after 500ms
+			}, 500);
 		}
-		
 		// Check for left paddle collision
-		if (currentLeft - ball.clientWidth / 2 < paddle1.offsetLeft + paddle1.clientWidth && currentTop + ball.clientHeight / 2 > paddle1Top && currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight) {
-		// Calculate the angle based on the paddle hit position
-			const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight / 2) ? -Math.PI / 4 : Math.PI / 4; // Adjust the angle multiplier as needed
-			
+		if (currentLeft - ball.clientWidth / 2 < paddle1.offsetLeft + paddle1.clientWidth &&
+			currentTop + ball.clientHeight / 2 > paddle1Top &&
+			currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight) {
+			// Calculate the angle based on the paddle hit position
+			const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight / 2) 
+				? -Math.PI / 4 
+				: Math.PI / 4; // Adjust the angle multiplier as needed
+
 			ballSpeedX = -ballSpeedX;
 			ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-			
+
 			ball.style.left = `${paddle1.offsetLeft + paddle1.clientWidth + ball.clientWidth}px`;
+			paddle1.classList.add('bg-danger'); // Change the paddle's color to red
+
+			setTimeout(function() {
+				paddle1.classList.remove('bg-danger'); // Remove the color change after 500ms
+			}, 500);
 		}
-
-
 
 		if (currentTop + ball.clientHeight / 2 > board.clientHeight) {
 			ball.style.top = `${board.clientHeight - ball.clientHeight}px`;
@@ -102,22 +121,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	document.addEventListener('keydown', function (event) {
-		if (event.key in keys) {
-			keys[event.key] = true;
+		if (event.code in keys) {
+			if (event.code === 'Enter') {
+				keys.Enter = true;
+				startGame();
+			}
+			keys[event.code] = true;
 		}
 	});
 
 	// Listen for keyup events
 	document.addEventListener('keyup', function (event) {
-		if (event.key in keys) {
-			keys[event.key] = false;
+		if (event.code in keys) {
+			keys[event.code] = false;
 		}
 	});
 	
 
 	function gameLoop() {
-		const paddleSpeed = 5; // Adjust this value to change the speed of the paddles
-
 		if (keys.ArrowUp) {
 			// Move the second paddle up
 			const top = parseInt(paddle2.style.top) || 0;
@@ -128,30 +149,53 @@ document.addEventListener('DOMContentLoaded', function () {
 			const top = parseInt(paddle2.style.top) || 0;
 			paddle2.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle2.clientHeight)}px`;
 		}
-		if (keys.w) {
+		if (keys.KeyW) {
 			// Move the first paddle up
 			const top = parseInt(paddle1.style.top) || 0;
 			paddle1.style.top = `${Math.max(top - paddleSpeed, 0)}px`;
 		}
-		if (keys.s) {
+		if (keys.KeyS) {
 			// Move the first paddle down
 			const top = parseInt(paddle1.style.top) || 0;
 			paddle1.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle1.clientHeight)}px`;
 		}
-		if (keys.Enter) {
-			startGame();
-		}
 		updateBallPosition();
 		animationFrameId = requestAnimationFrame(gameLoop);
+		if (player1ScoreValue == 3) {
+			message.textContent = 'Player 1 Wins!';
+			isGameRunning = false;
+			startGameBtn.style.display = 'block';
+			stopGame();
+			resetRound();
+		}
+		else if (player2ScoreValue == 3) {
+			message.textContent = 'Player 2 Wins!';
+			isGameRunning = false;
+			startGameBtn.style.display = 'block';
+			stopGame();
+			resetRound();
+		}
 	}
 
 	function stopGame() {
-		
+		clearInterval(timer);
 		cancelAnimationFrame(animationFrameId);
+		player1ScoreValue = 0;
+		player2ScoreValue = 0;
+	}
+
+	function gameTimer() {
+		time = 30;
+		timer = setInterval(function () {
+			time--;
+			message.textContent = `Time Remaining: ${time}`;
+			if (time <= 0) {
+				clearInterval(timer);
+			}
+		}, 1000);
 	}
 
 	function startGame() {
-		// Hide message
 		if (isGameRunning) {
 			return;
 		}
@@ -160,23 +204,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		isGameRunning = true;
 		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
-		function gameTimer() {
-			let time = 30;
-			const timer = setInterval(function () {
-				time--;
-				message.textContent = `Time Remaining: ${time}`;
-				if (time <= 0) {
-					clearInterval(timer);
-				}
-			}, 1000);
-		}
 		gameTimer();
 		// Start the game loop
-		
 		gameLoop();
 		setTimeout(function () {
 			clearInterval(gameLoop);
-			message.textContent = 'Game Over';
+			if (player1ScoreValue > player2ScoreValue) {
+				message.textContent = 'Player 1 Wins!';
+			}
+			else if (player2ScoreValue > player1ScoreValue) {
+				message.textContent = 'Player 2 Wins!';
+			}
+			else {
+				message.textContent = 'Tie Game!';
+			}
 			isGameRunning = false;
 			startGameBtn.style.display = 'block';
 			stopGame();
