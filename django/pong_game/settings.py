@@ -80,9 +80,9 @@ WSGI_APPLICATION = 'pong_game.wsgi.application'
 DATABASES = {
   'default': {
       'ENGINE': 'django.db.backends.postgresql',
-      'NAME': 'postgres',
-      'USER': 'transcendence_user',
-      'PASSWORD': 'transcendence_pass',
+      'NAME': os.environ.get('DATABASE_NAME', 'postgres'),
+      'USER': os.environ.get('DATABASE_USER', 'transcendence_user'),
+      'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'transcendence_password'),
       'HOST': 'postgres',
       'PORT': '5432',
   }
