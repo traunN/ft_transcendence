@@ -14,10 +14,14 @@ stop:
 rmvolume:
 	docker volume rm $(shell docker volume ls -qf dangling=true)
 
+rmi:
+	docker rmi $(shell docker images -q)
+
 rmall:
 	docker stop $(shell docker ps -a -q)
 	docker rm $(shell docker ps -a -q)
 	$(MAKE) rmvolume
+	$(MAKE) rmi
 
 logs:
 	docker compose logs

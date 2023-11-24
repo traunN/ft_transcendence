@@ -13,7 +13,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+# SECRET_KEY = os.getenv('SECRET_KEY')
+
+SECRET_KEY = os.environ.get("SECRET_KEY", 'my_default_secret_key')
+
+# SECRET_KEY = 'django-insecure-g-$(e79yo&zy!65wxdwy4yf$)*s33eu-g*u#4h5&z_@o-^7b$$'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,7 +26,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-g-$(e79yo&zy!65wxdwy4yf$)*s33eu-g*u#4h5&z_@o-^7b$$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -77,11 +80,11 @@ WSGI_APPLICATION = 'pong_game.wsgi.application'
 DATABASES = {
   'default': {
       'ENGINE': 'django.db.backends.postgresql',
-      'NAME': os.getenv('DATABASE_NAME'),
-      'USER': os.getenv('DATABASE_USER'),
-      'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-      'HOST': os.getenv('DATABASE_NAME'),
-      'PORT': os.getenv('DATABASE_PORT'),
+      'NAME': 'postgres',
+      'USER': 'transcendence_user',
+      'PASSWORD': 'transcendence_pass',
+      'HOST': 'postgres',
+      'PORT': '5432',
   }
 }
 
