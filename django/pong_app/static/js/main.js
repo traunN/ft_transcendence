@@ -9,6 +9,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
 
+	const keys = {
+		ArrowUp: false,
+		ArrowDown: false,
+		w: false,
+		s: false,
+		Enter: false
+	};
+
 	let paddleSpeed = 7;
 	let ballSpeedX = 4;
 	let ballSpeedY = 4;
@@ -94,49 +102,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	document.addEventListener('keydown', function (event) {
-		switch (event.key) {
-			case 'ArrowUp':
-				let newPaddle2Top = parseInt(paddle2.style.top) - paddleSpeed;
-				if (newPaddle2Top >= 0) {
-					paddle2.style.top = `${newPaddle2Top}px`;
-				}
-				else{
-					paddle2.style.top = `${0}px`;
-				}
-				break;
-			case 'ArrowDown':
-				let newPaddle2Bottom = parseInt(paddle2.style.top) + paddleSpeed + paddle2.clientHeight;
-				if (newPaddle2Bottom <= board.clientHeight) {
-					paddle2.style.top = `${parseInt(paddle2.style.top) + paddleSpeed}px`;
-				}
-				else {
-					paddle2.style.top = `${board.clientHeight - paddle2.clientHeight}px`;
-				}
-				break;
-			case 'w':
-				let newPaddle1Top = parseInt(paddle1.style.top) - paddleSpeed;
-				if (newPaddle1Top >= 0) {
-					paddle1.style.top = `${newPaddle1Top}px`;
-				}
-				else{
-					paddle1.style.top = `${0}px`;
-				}
-				break;
-			case 's':
-				let newPaddle1Bottom = parseInt(paddle1.style.top) + paddleSpeed + paddle1.clientHeight;
-				if (newPaddle1Bottom <= board.clientHeight) {
-					paddle1.style.top = `${parseInt(paddle1.style.top) + paddleSpeed}px`;
-				}
-				else {
-					paddle1.style.top = `${board.clientHeight - paddle1.clientHeight}px`;
-				}
-				break;
-			case 'Enter':
-				startGame();
-				break;
+		if (event.key in keys) {
+			keys[event.key] = true;
+		}
+	});
+
+	// Listen for keyup events
+	document.addEventListener('keyup', function (event) {
+		if (event.key in keys) {
+			keys[event.key] = false;
 		}
 	});
 	
+
+	function gameLoop() {
+		const paddleSpeed = 5; // Adjust this value to change the speed of the paddles
+
+		if (keys.ArrowUp) {
+			// Move the second paddle up
+			const top = parseInt(paddle2.style.top) || 0;
+			paddle2.style.top = `${Math.max(top - paddleSpeed, 0)}px`;
+		}
+		if (keys.ArrowDown) {
+			// Move the second paddle down
+			const top = parseInt(paddle2.style.top) || 0;
+			paddle2.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle2.clientHeight)}px`;
+		}
+		if (keys.w) {
+			// Move the first paddle up
+			const top = parseInt(paddle1.style.top) || 0;
+			paddle1.style.top = `${Math.max(top - paddleSpeed, 0)}px`;
+		}
+		if (keys.s) {
+			// Move the first paddle down
+			const top = parseInt(paddle1.style.top) || 0;
+			paddle1.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle1.clientHeight)}px`;
+		}
+		if (keys.Enter) {
+			startGame();
+		}
+		updateBallPosition();
+		animationFrameId = requestAnimationFrame(gameLoop);
+	}
 
 	function stopGame() {
 		
@@ -165,10 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 		gameTimer();
 		// Start the game loop
-		function gameLoop() {
-			updateBallPosition();
-			animationFrameId = requestAnimationFrame(gameLoop);
-		}
+		
 		gameLoop();
 		setTimeout(function () {
 			clearInterval(gameLoop);
