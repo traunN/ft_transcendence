@@ -106,10 +106,42 @@ body {
 	font-size: 12px;
 }
 
-.sidebar a {
+.topbar-sticky {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+}
+
+.topbar a {
 	color: white !important;
- }
+}
+
+.nav-item {
+	background-color: #000;
+}
+
+.nav-item > .nav-link {
+	color: #000;
+	/* default color */
+	transition: color 0.3s ease;
+	/* transition effect */
+}
+
+.nav-item > .nav-link:hover {
+	color: #f00;
+	/* hover color */
+}
+
+.nav-item > .nav-link.active {
+	color: #0f0;
+	/* selected color */
+}
 
 .top-50 {
 	top: 50% !important;
 }
+
+html, body {
+	overflow: hidden;
+ }

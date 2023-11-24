@@ -17,4 +17,4 @@ class	Score(models.Model):
 	points = models.IntegerField()
 
 class	PongGameState(models.Model):
-    paddle_position = models.IntegerField(default=0)
+	paddle_position = models.IntegerField(default=0)
