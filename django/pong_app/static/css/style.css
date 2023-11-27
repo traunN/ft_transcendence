@@ -141,3 +141,10 @@ body {
 html, body {
 	overflow: hidden;
 }
+
+
+#userImage {
+	width: 50px; /* adjust this to your desired width */
+	height: 50px; /* adjust this to your desired height */
+	object-fit: cover; /* or 'contain' if you want to maintain the aspect ratio */
+}
