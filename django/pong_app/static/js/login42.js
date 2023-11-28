@@ -6,12 +6,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	if (user) {
-		// User is logged in, set state accordingly
+		console.log(user);
 		isLogged = true;
 		loginLogout.innerHTML = 'Logout';
-		userName.innerHTML = user.login;
-		userImage.src = user.image.link;
-		userImage.style.display = 'block';
+		if(window.location.href != 'http://localhost:8000/profil/'){
+			// User is logged in, set state accordingly
+			userName.innerHTML = user.login;
+			userImage.src = user.image.link;
+			userImage.style.display = 'block';
+		}
+		else 
+		{
+			userName.innerHTML = '';
+			userImage.src = '';
+			userImage.style.display = 'none';
+		}
 	}
 	else{
 		userName.innerHTML = '';
@@ -70,13 +79,13 @@ document.addEventListener('DOMContentLoaded', function () {
 				userXhr.send();
 			}
 		};
-		var data = 'grant_type=authorization_code&client_id=' + clientId + '&client_secret=' + clientSecret + '&code=' + code + '&redirect_uri=' + redirectUri;
-		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		xhr.send(data);
-		// if login success set bool
-		isLogged = true;
-		loginLogout.innerHTML = 'Logout';
-
+		if (!user) {
+			var data = 'grant_type=authorization_code&client_id=' + clientId + '&client_secret=' + clientSecret + '&code=' + code + '&redirect_uri=' + redirectUri;
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			xhr.send(data);
+			isLogged = true;
+			loginLogout.innerHTML = 'Logout';
+		}
 	}
 	else {
 		console.log('no code');
