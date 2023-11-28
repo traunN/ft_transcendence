@@ -9,18 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log(user);
 		isLogged = true;
 		loginLogout.innerHTML = 'Logout';
-		if(window.location.href != 'http://localhost:8000/profil/'){
-			// User is logged in, set state accordingly
-			userName.innerHTML = user.login;
-			userImage.src = user.image.link;
-			userImage.style.display = 'block';
-		}
-		else 
-		{
-			userName.innerHTML = '';
-			userImage.src = '';
-			userImage.style.display = 'none';
-		}
+		userName.innerHTML = user.login;
+		userImage.src = user.image.link;
+		userImage.style.display = 'block';
 	}
 	else{
 		userName.innerHTML = '';
