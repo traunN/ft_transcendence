@@ -31,3 +31,4 @@ class User(models.Model):
 	wallet = models.IntegerField();
 	correctionPoint = models.IntegerField();
 	location = models.CharField(max_length=50);
+	idName = models.CharField(max_length=50);
