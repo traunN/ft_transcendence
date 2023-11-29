@@ -1,9 +1,9 @@
 from django.db import models
 
 class	Player(models.Model):
-	firstName = models.CharField(max_length=20);
-	name = models.CharField(max_length=20);
-	idName = models.CharField(max_length=20);
+	firstName = models.CharField(max_length=50);
+	name = models.CharField(max_length=50);
+	idName = models.CharField(max_length=50);
 
 class	Game(models.Model):
 	date = models.DateField();
@@ -21,13 +21,13 @@ class	PongGameState(models.Model):
 
 
 class User(models.Model):
-	login = models.CharField(max_length=20);
-	email = models.CharField(max_length=20);
-	firstName = models.CharField(max_length=20);
-	lastName = models.CharField(max_length=20);
+	login = models.CharField(max_length=50);
+	email = models.CharField(max_length=50);
+	firstName = models.CharField(max_length=50);
+	lastName = models.CharField(max_length=50);
 	image = models.ImageField(upload_to='images/', default='images/None/No-img.jpg');
-	campus = models.CharField(max_length=20);
+	campus = models.CharField(max_length=50);
 	level = models.IntegerField();
 	wallet = models.IntegerField();
 	correctionPoint = models.IntegerField();
-	location = models.CharField(max_length=20);
+	location = models.CharField(max_length=50);

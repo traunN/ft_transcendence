@@ -73,33 +73,32 @@ document.addEventListener('DOMContentLoaded', function () {
 						userName.innerHTML = user.login;
 						userImage.src = user.image.link;
 						userImage.style.display = 'block';
+						var xhrSaveProfile = new XMLHttpRequest();
+						xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
+						xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
+		
+						xhrSaveProfile.onload = function () {
+							if (xhrSaveProfile.status === 200) {
+								console.log('User profile saved successfully');
+							} else {
+								console.error('Failed to save user profile');
+							}
+						};
+						xhrSaveProfile.send(JSON.stringify({
+							login: user.login,
+							email: user.email,
+							firstName: user.first_name,
+							lastName: user.last_name,
+							image: user.image.link,
+							campus: user.campus[0].name,
+							level: user.cursus_users[0].level,
+							wallet: user.wallet,
+							correctionPoint: user.correction_point,
+							location: user.location
+						}));
 					}
 				};
 				userXhr.send();
-				var xhrSaveProfile = new XMLHttpRequest();
-				xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
-				xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
-
-				xhrSaveProfile.onload = function () {
-					if (xhrSaveProfile.status === 200) {
-						console.log('User profile saved successfully');
-					} else {
-						console.error('Failed to save user profile');
-					}
-				};
-				
-				xhrSaveProfile.send(JSON.stringify({
-					login: user.login,
-					email: user.email,
-					firstName: user.first_name,
-					lastName: user.last_name,
-					image: user.image.link,
-					campus: user.campus[0].name,
-					level: user.cursus_users[0].level,
-					wallet: user.wallet,
-					correctionPoint: user.correction_point,
-					location: user.location
-				}));
 				loginLogout.innerHTML = 'Logout';
 			}
 		};

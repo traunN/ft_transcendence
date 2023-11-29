@@ -4,6 +4,7 @@ from pong_app.models import PongGameState
 from django.views.decorators.csrf import csrf_exempt
 from pong_app.models import User
 from django.http import JsonResponse
+import json
 
 def homePage(request):
 	return render(request, 'homePage.html')
