@@ -1,9 +1,12 @@
 from django.shortcuts import render
+from django.views import View
 from django.db import connection
 from pong_app.models import PongGameState
 from django.views.decorators.csrf import csrf_exempt
 from pong_app.models import User
 from django.http import JsonResponse
+from django.core import serializers
+from django.forms.models import model_to_dict
 import json
 
 def homePage(request):
@@ -21,8 +24,18 @@ def leaderboard(request):
 def favicon(request):
 	return render(request, 'favicon.ico')
 
-def profil(request):
-	return render(request, 'profil.html')
+def error(request):
+	return render(request, 'error.html')
+
+def profil(request, user_id=None):
+	if user_id is None:
+		user_id = request.user.id
+	try:
+		user = User.objects.get(idName=user_id)
+		return render(request, 'profil.html', {'user': user})
+	except User.DoesNotExist:
+		return render(request, 'profil.html', {'user': None})
+
 
 def settings(request):
 	return render(request, 'settings.html')
@@ -71,3 +84,12 @@ def save_user_profile(request):
 			return JsonResponse({'message': 'User profile saved successfully'}, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def get_user(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		user_dict = model_to_dict(user)
+		user_dict['image'] = user.image.url
+		return JsonResponse({'user': user_dict}, safe=False)
+	except User.DoesNotExist:
+		return JsonResponse({'error': 'User not found'}, status=404)
