@@ -39,19 +39,35 @@ def testDBConnection(request):
 @csrf_exempt
 def save_user_profile(request):
 	if request.method == 'POST':
-		data = json.loads(request.body)
-		user = User.objects.create(
-			login=data['login'],
-			email=data['email'],
-			firstName=data['firstName'],
-			lastName=data['lastName'],
-			image=data['image'],
-			campus=data['campus'],
-			level=data['level'],
-			wallet=data['wallet'],
-			correctionPoint=data['correctionPoint'],
-			location=data['location']
-		)
-		return JsonResponse({'message': 'User profile saved successfully'}, status=200)
+		if not request.body:
+			return JsonResponse({'error': 'Request body is empty'}, status=400)
+		try:
+			data = json.loads(request.body)
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+
+		expected_keys = ['login', 'email', 'firstName', 'lastName', 'image', 'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName']
+		if not all(key in data for key in expected_keys):
+			return JsonResponse({'error': 'Missing data in request body'}, status=400)
+
+		user_id = data['idName']
+		try:
+			user = User.objects.get(idName=user_id)
+			return JsonResponse({'message': 'User already exists'}, status=200)
+		except User.DoesNotExist:
+			user = User.objects.create(
+				login=data['login'],
+				email=data['email'],
+				firstName=data['firstName'],
+				lastName=data['lastName'],
+				image=data['image'],
+				campus=data['campus'],
+				level=data['level'],
+				wallet=data['wallet'],
+				correctionPoint=data['correctionPoint'],
+				location=data['location'],
+				idName=data['idName']
+			)
+			return JsonResponse({'message': 'User profile saved successfully'}, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)

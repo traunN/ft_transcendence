@@ -70,18 +70,13 @@ document.addEventListener('DOMContentLoaded', function () {
 							users.push(user);
 							sessionStorage.setItem('users', JSON.stringify(users));
 						}
-						userName.innerHTML = user.login;
-						userImage.src = user.image.link;
-						userImage.style.display = 'block';
 						var xhrSaveProfile = new XMLHttpRequest();
 						xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
 						xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
 		
 						xhrSaveProfile.onload = function () {
 							if (xhrSaveProfile.status === 200) {
-								console.log('User profile saved successfully');
-							} else {
-								console.error('Failed to save user profile');
+								console.log('Login successful!');
 							}
 						};
 						xhrSaveProfile.send(JSON.stringify({
@@ -94,8 +89,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							level: user.cursus_users[0].level,
 							wallet: user.wallet,
 							correctionPoint: user.correction_point,
-							location: user.location
+							location: user.location,
+							idName: user.id
 						}));
+						userName.innerHTML = user.login;
+						userImage.src = user.image.link;
+						userImage.style.display = 'block';
 					}
 				};
 				userXhr.send();
