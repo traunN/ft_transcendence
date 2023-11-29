@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		userFirstName.textContent = 'First name: ' + user.first_name;
 		userLastName.textContent = 'Last name: ' + user.last_name;
 		usercampusProfil.textContent = 'Campus: ' + user.campus[0].name;
-		userLevel.textContent = 'Level: ' + user.cursus_users[0].level;
+		userLevel.textContent = 'Level: ' + user.cursus_users[1].level;
 		userWallet.textContent = 'Wallet: ' + user.wallet;
 		userCorrectionPoint.textContent = 'Correction point: ' + user.correction_point;
 		userLocation.textContent = 'Location: ' + user.location;

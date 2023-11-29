@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib import admin
 from django.views.generic import RedirectView
 from . import views
 from .views import save_user_profile
@@ -12,5 +13,7 @@ urlpatterns = [
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
 	path('profil/', views.profil, name='profil'),
 	path('settings/', views.settings, name='settings'),
+	path('chat/', views.chat, name='chat'),
+	#path("chat/", include("pong_app.urls")),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 ]

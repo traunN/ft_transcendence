@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			ballSpeedX = -ballSpeedX;
 			ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-
+			
 			ball.style.left = `${paddle2.offsetLeft - ball.clientWidth}px`;
 			paddle2.classList.add('bg-danger'); // Change the paddle's color to red
 

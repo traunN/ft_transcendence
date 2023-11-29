@@ -27,6 +27,9 @@ def profil(request):
 def settings(request):
 	return render(request, 'settings.html')
 
+def chat(request):
+	return render(request, 'chat.html')
+
 def testDBConnection(request):
 	try:
 		with connection.cursor() as cursor:
