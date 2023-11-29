@@ -18,3 +18,16 @@ class	Score(models.Model):
 
 class	PongGameState(models.Model):
 	paddle_position = models.IntegerField(default=0)
+
+
+class User(models.Model):
+	login = models.CharField(max_length=20);
+	email = models.CharField(max_length=20);
+	firstName = models.CharField(max_length=20);
+	lastName = models.CharField(max_length=20);
+	image = models.ImageField(upload_to='images/', default='images/None/No-img.jpg');
+	campus = models.CharField(max_length=20);
+	level = models.IntegerField();
+	wallet = models.IntegerField();
+	correctionPoint = models.IntegerField();
+	location = models.CharField(max_length=20);

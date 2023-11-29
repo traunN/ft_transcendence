@@ -1,24 +1,33 @@
 document.addEventListener('DOMContentLoaded', function () {
 	var isLogged = false;
+	var existingUser = false;
 	var loginLogout = document.getElementById('Login_Logout');
 	var userName = document.getElementById('userName');
 	var userImage = document.getElementById('userImage');
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
+	var users = JSON.parse(sessionStorage.getItem('users')) || [];
+
 	if (user) {
-		console.log(user);
+		for (var i = 0; i < users.length; i++) {
+			if (users[i].login === user.login) {
+				existingUser = true;
+				break;
+			}
+		}
+	}
+	if (user) {
 		isLogged = true;
 		loginLogout.innerHTML = 'Logout';
 		userName.innerHTML = user.login;
 		userImage.src = user.image.link;
 		userImage.style.display = 'block';
 	}
-	else{
+	else {
 		userName.innerHTML = '';
 		userImage.src = '';
 		userImage.style.display = 'none';
 	}
-
 
 	document.getElementById("Login_Logout").addEventListener("click", function () {
 		if (isLogged) {
@@ -42,8 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
 		var clientSecret = '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';
 		var redirectUri = 'http://localhost:8000/homePage/';
-		// var url = 'https://api.intra.42.fr/oauth/token';
-
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', 'https://api.intra.42.fr/oauth/token', true);
 		xhr.onreadystatechange = function () {
@@ -59,15 +66,41 @@ document.addEventListener('DOMContentLoaded', function () {
 						var user = JSON.parse(this.responseText);
 						console.log(user)
 						sessionStorage.setItem('user', JSON.stringify(user));
-						// show username on top right
+						if (!existingUser) {
+							users.push(user);
+							sessionStorage.setItem('users', JSON.stringify(users));
+						}
 						userName.innerHTML = user.login;
-						// show user image on top right
-						console.log(user.image.link);
 						userImage.src = user.image.link;
 						userImage.style.display = 'block';
 					}
 				};
 				userXhr.send();
+				var xhrSaveProfile = new XMLHttpRequest();
+				xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
+				xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
+
+				xhrSaveProfile.onload = function () {
+					if (xhrSaveProfile.status === 200) {
+						console.log('User profile saved successfully');
+					} else {
+						console.error('Failed to save user profile');
+					}
+				};
+				
+				xhrSaveProfile.send(JSON.stringify({
+					login: user.login,
+					email: user.email,
+					firstName: user.first_name,
+					lastName: user.last_name,
+					image: user.image.link,
+					campus: user.campus[0].name,
+					level: user.cursus_users[0].level,
+					wallet: user.wallet,
+					correctionPoint: user.correction_point,
+					location: user.location
+				}));
+				loginLogout.innerHTML = 'Logout';
 			}
 		};
 		if (!user) {
@@ -75,8 +108,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 			xhr.send(data);
 			isLogged = true;
-			loginLogout.innerHTML = 'Logout';
+			loginLogout.innerHTML = 'Login with 42';
 		}
+		else
+			console.log('user already logged in');
 	}
 	else {
 		console.log('no code');
