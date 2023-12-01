@@ -16,7 +16,7 @@ urlpatterns = [
 	path('profil/<int:user_id>/', views.profil, name='profil'),
 	path('settings/', views.settings, name='settings'),
 	path('chat/', views.chat, name='chat'),
-	#path("chat/", include("pong_app.urls")),
+	path('chat/<str:room_name>/', views.room, name='room'),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),
 ]

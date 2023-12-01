@@ -14,12 +14,25 @@ from channels.auth import AuthMiddlewareStack
 import pong_game.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pong_game.settings')
+django_asgi_app = get_asgi_application()
+"""
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(URLRouter(chat.routing.websocket_urlpatterns))
+        ),
+    }
+)
+"""
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
-        URLRouter(
-            pong_game.routing.websocket_urlpatterns
-        )
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": AuthMiddlewareStack(
+            URLRouter(
+                pong_game.routing.websocket_urlpatterns
+            )
+        ),
+    }
+)

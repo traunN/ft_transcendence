@@ -7,6 +7,8 @@ networks:
 volumes:
   postgres_data:
     driver: local
+  redis_data:
+    driver: local
   static_volume:
     driver: local
     name: static_volume
@@ -74,3 +76,13 @@ services:
       - "8080:8080"
     networks:
       - transcendence
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "7270:7270"
+    environment:
+      - REDIS_PASSWORD=test
+      - REDIS_PORT=7270
+      - REDIS_DATABASES=16
