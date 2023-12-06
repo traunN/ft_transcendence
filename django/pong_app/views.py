@@ -62,7 +62,7 @@ def save_user_profile(request):
 		except json.JSONDecodeError:
 			return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
 
-		expected_keys = ['login', 'email', 'firstName', 'lastName', 'image', 'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName']
+		expected_keys = ['login', 'email', 'firstName', 'lastName', 'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName']
 		if not all(key in data for key in expected_keys):
 			return JsonResponse({'error': 'Missing data in request body'}, status=400)
 
@@ -76,7 +76,7 @@ def save_user_profile(request):
 				email=data['email'],
 				firstName=data['firstName'],
 				lastName=data['lastName'],
-				image=data['image'],
+				# image=data['image'],
 				campus=data['campus'],
 				level=data['level'],
 				wallet=data['wallet'],
@@ -92,7 +92,14 @@ def get_user(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		user_dict = model_to_dict(user)
-		user_dict['image'] = user.image.url
+		return JsonResponse({'user': user_dict}, safe=False)
+	except User.DoesNotExist:
+		return JsonResponse({'error': 'User not found'}, status=404)
+
+def get_user_by_login(request, login):
+	try:
+		user = User.objects.get(login=login)
+		user_dict = model_to_dict(user)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)

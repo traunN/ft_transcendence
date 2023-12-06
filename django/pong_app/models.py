@@ -25,7 +25,7 @@ class User(models.Model):
 	email = models.CharField(max_length=50);
 	firstName = models.CharField(max_length=50);
 	lastName = models.CharField(max_length=50);
-	image = models.ImageField(upload_to='profiles/');
+	# image = models.CharField(max_length=50);
 	campus = models.CharField(max_length=50);
 	level = models.IntegerField();
 	wallet = models.IntegerField();

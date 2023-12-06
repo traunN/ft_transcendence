@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				userXhr.onreadystatechange = function () {
 					if (this.readyState === 4 && this.status === 200) {
 						var user = JSON.parse(this.responseText);
-						console.log(user)
 						sessionStorage.setItem('user', JSON.stringify(user));
 						if (!existingUser) {
 							users.push(user);

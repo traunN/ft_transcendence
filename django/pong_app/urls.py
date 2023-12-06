@@ -15,13 +15,10 @@ urlpatterns = [
 	path('leaderboard/', views.leaderboard, name='leaderboard'),
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
 	path('profile/', views.profile, name='profile'),
-	path('profile/<int:user_id>/', views.profile, name='profile'),
 	path('settings/', views.settings, name='settings'),
 	path('chat/', views.chat, name='chat'),
 	#path("chat/", include("pong_app.urls")),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),
+	path('get_user_by_login/<str:login>/', views.get_user_by_login, name='get_user_by_login'),
 ]
-
-if settings.DEBUG:
-		urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
