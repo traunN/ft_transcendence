@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib import admin
 from django.views.generic import RedirectView
 from . import views
 from .views import save_user_profile
@@ -16,6 +17,8 @@ urlpatterns = [
 	path('profile/', views.profile, name='profile'),
 	path('profile/<int:user_id>/', views.profile, name='profile'),
 	path('settings/', views.settings, name='settings'),
+	path('chat/', views.chat, name='chat'),
+	#path("chat/", include("pong_app.urls")),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),
 ]
