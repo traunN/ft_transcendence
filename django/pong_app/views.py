@@ -27,14 +27,14 @@ def favicon(request):
 def error(request):
 	return render(request, 'error.html')
 
-def profil(request, user_id=None):
+def profile(request, user_id=None):
 	if user_id is None:
 		user_id = request.user.id
 	try:
 		user = User.objects.get(idName=user_id)
-		return render(request, 'profil.html', {'user': user})
+		return render(request, 'profile.html', {'user': user})
 	except User.DoesNotExist:
-		return render(request, 'profil.html', {'user': None})
+		return render(request, 'profile.html', {'user': None})
 
 
 def settings(request):

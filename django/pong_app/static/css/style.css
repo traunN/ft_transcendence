@@ -178,14 +178,14 @@ body {
 	border-radius: 50%;
 }
 
-#userImageProfil {
+#userImageProfile {
 	width: 250px;
 	height: 250px;
 	object-fit: cover;
 	border-radius: 50%;
 }
 
-#usernameProfil {
+#usernameProfile {
 	text-transform: uppercase;
 	background-color: rgba(0, 0, 0, 0.9);
 	padding: 15px;

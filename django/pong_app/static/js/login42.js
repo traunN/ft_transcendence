@@ -112,6 +112,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			console.log('user already logged in');
 	}
 	else {
-		console.log('no code');
+		if (user)
+		{
+			console.log('already logged in');
+			console.log(user);
+		}
+		else
+			console.log('not logged in');
 	}
 });
