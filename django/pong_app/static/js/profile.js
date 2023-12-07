@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.log(data);
 			}
 			username.textContent = data.user.login;
+			username.textContent = username.textContent.charAt(0).toUpperCase() + username.textContent.slice(1);
 			userEmail.textContent = 'Email: ' + data.user.email;
 			userFirstName.textContent = 'First name: ' + data.user.firstName;
 			userLastName.textContent = 'Last name: ' + data.user.lastName;
@@ -71,6 +72,7 @@ searchUser.addEventListener('keypress', function (event) {
 				userInfo.style.display = 'block';
 				userImage.style.display = 'block';
 				username.textContent = data.user.login;
+				username.textContent = username.textContent.charAt(0).toUpperCase() + username.textContent.slice(1);
 				userEmail.textContent = 'Email: ' + data.user.email;
 				userFirstName.textContent = 'First name: ' + data.user.firstName;
 				userLastName.textContent = 'Last name: ' + data.user.lastName;

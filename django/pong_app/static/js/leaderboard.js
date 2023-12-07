@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+	// make text bold
+	document.getElementById('leaderboardHeader').style.fontWeight = 'bold';
 	fetch('/get_all_users/')
 		.then(response => response.json())
 		.then(data => {
