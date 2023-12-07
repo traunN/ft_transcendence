@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							firstName: user.first_name,
 							lastName: user.last_name,
 							campus: user.campus[0].name,
-							level: user.cursus_users[0].level,
+							level: user.cursus_users[1].level,
 							wallet: user.wallet,
 							correctionPoint: user.correction_point,
 							location: user.location,

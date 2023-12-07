@@ -13,31 +13,23 @@
 	{% include 'topbar.html' %}
 	<div class="container">
 		<h1 class="text-white">Pong Leaderboard</h1>
-		<table class="table table-hover table-dark">
+		<table class="table table-hover table-dark" id="leaderboard">
 			<thead>
 				<tr>
 					<th scope="col">#</th>
-					<th scope="col">Player Name</th>
-					<th scope="col">Score</th>
+					<th scope="col">Login</th>
+					<th scope="col">Wins</th>
+					<th scope="col">Loses</th>
+					<th scope="col">Winrate</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<th scope="row">1</th>
-					<td>Player 1</td>
-					<td>100</td>
-				</tr>
-				<tr>
-					<th scope="row">2</th>
-					<td>Player 2</td>
-					<td>90</td>
-				</tr>
 			</tbody>
 		</table>
 	</div>
 	<script type="text/javascript" src="../static/js/setActive.js"></script>
 	<script type="text/javascript" src="../static/js/login42.js"></script>
-	
+	<script type="text/javascript" src="../static/js/leaderboard.js"></script>
 </body>
 
 </html>

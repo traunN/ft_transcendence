@@ -105,3 +105,10 @@ def get_user_by_login(request, login):
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
+
+def get_all_users(request):
+	users = User.objects.all()
+	users_dict = [model_to_dict(user) for user in users]
+	for user_dict in users_dict:
+		user_dict['image'] = str(user_dict['image'])
+	return JsonResponse({'users': users_dict}, safe=False)

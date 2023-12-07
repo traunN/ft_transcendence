@@ -19,7 +19,6 @@ class	Score(models.Model):
 class	PongGameState(models.Model):
 	paddle_position = models.IntegerField(default=0)
 
-
 class User(models.Model):
 	login = models.CharField(max_length=50);
 	email = models.CharField(max_length=50);
@@ -32,3 +31,6 @@ class User(models.Model):
 	location = models.CharField(max_length=50);
 	idName = models.CharField(max_length=50);
 	image = models.ImageField(upload_to='images/', default='images/None/No-img.jpg');
+	wins = models.IntegerField(default=0);
+	loses = models.IntegerField(default=0);
+	elo = models.IntegerField(default=0);
