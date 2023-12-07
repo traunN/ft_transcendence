@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	fetch('/get_all_users/')
 		.then(response => response.json())
 		.then(data => {
+			if (data.users.length === 0) {
+				return;
+			}
 			if (data) {
 				console.log(data);
 			}
