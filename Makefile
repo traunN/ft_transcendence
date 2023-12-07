@@ -21,7 +21,6 @@ rmall:
 	docker stop $(shell docker ps -a -q)
 	docker rm $(shell docker ps -a -q)
 	$(MAKE) rmvolume
-	$(MAKE) rmi
 
 logs:
 	docker compose logs

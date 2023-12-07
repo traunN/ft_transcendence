@@ -83,13 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
 							email: user.email,
 							firstName: user.first_name,
 							lastName: user.last_name,
-							image: user.image.link,
 							campus: user.campus[0].name,
 							level: user.cursus_users[0].level,
 							wallet: user.wallet,
 							correctionPoint: user.correction_point,
 							location: user.location,
-							idName: user.id
+							idName: user.id,
+							image: user.image.link
 						}));
 						userName.innerHTML = user.login;
 						userImage.src = user.image.link;

@@ -90,30 +90,36 @@ body {
 	transform: translate(-50%, -50%);
 }
 
-.black-btn {
-	background-color: #000;
-	color: #fff;
-	border: 2px solid #fff;
-	padding: 10px 20px;
-	border-radius: 25px;
+.yellow-btn {
+	background-color: #f7ff19;
+	padding: 5px 20px;
+	border: none;
+	border-radius: 0.5rem;
 	cursor: pointer;
 	transition: all 0.3s ease;
 }
 
-.black-btn:hover {
-	background-color: #fff;
+.yellow-btn:hover {
+	background-color: #f9ff57;
 	color: #000;
 	transform: scale(1.1);
 }
 
-.goHomeBtn {
-	position: fixed;
-	top: 20px;
-	left: 20px;
-	width: 150px;
-	height: 50px;
-	font-size: 12px;
+.straight-btn {
+	background-color: #f7ff19;
+	padding: 5px 20px;
+	border: none;
+	border-radius: 0;
+	cursor: pointer;
+	transition: all 0.3s ease;
+ }
+
+.straight-btn:hover {
+	background-color: #f9ff57;
+	color: #000;
+	transform: scale(1.1);
 }
+ 
 
 .topbar-sticky {
 	display: flex;
