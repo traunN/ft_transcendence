@@ -1,4 +1,5 @@
 let isGameRunning = false;
+let socket;
 
 document.addEventListener('DOMContentLoaded', function () {
 	const board = document.querySelector('.board');
@@ -26,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	let time = 30;
 	let timer;
 
-
 	function updateBallPosition() {
 		const currentLeft = parseInt(getComputedStyle(ball).left);
 		const currentTop = parseInt(getComputedStyle(ball).top);
@@ -49,11 +49,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			ballSpeedX = -ballSpeedX;
 			ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-			
+
 			ball.style.left = `${paddle2.offsetLeft - ball.clientWidth}px`;
 			paddle2.classList.add('bg-danger'); // Change the paddle's color to red
 
-			setTimeout(function() {
+			setTimeout(function () {
 				paddle2.classList.remove('bg-danger'); // Remove the color change after 500ms
 			}, 500);
 		}
@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			currentTop + ball.clientHeight / 2 > paddle1Top &&
 			currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight) {
 			// Calculate the angle based on the paddle hit position
-			const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight / 2) 
-				? -Math.PI / 4 
+			const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight / 2)
+				? -Math.PI / 4
 				: Math.PI / 4; // Adjust the angle multiplier as needed
 
 			ballSpeedX = -ballSpeedX;
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			ball.style.left = `${paddle1.offsetLeft + paddle1.clientWidth + ball.clientWidth}px`;
 			paddle1.classList.add('bg-danger'); // Change the paddle's color to red
 
-			setTimeout(function() {
+			setTimeout(function () {
 				paddle1.classList.remove('bg-danger'); // Remove the color change after 500ms
 			}, 500);
 		}
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			keys[event.code] = false;
 		}
 	});
-	
+
 
 	function gameLoop() {
 		if (keys.ArrowUp) {
@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		cancelAnimationFrame(animationFrameId);
 		player1ScoreValue = 0;
 		player2ScoreValue = 0;
+		socket.close();
 	}
 
 	function gameTimer() {
@@ -205,7 +206,27 @@ document.addEventListener('DOMContentLoaded', function () {
 		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 		gameTimer();
-		// Start the game loop
+		// get id from sessionStorage
+		let user = JSON.parse(sessionStorage.getItem('user'));
+		let userId = user.id;
+		console.log(userId);
+		let roomName = 'room1';
+		fetch(`/join_or_create_room/${userId}/${roomName}/`)
+			.then(response => response.json())
+			.then(data => {
+				if (data.status === 'success') {
+					console.log('Successfully joined or created room');
+					if (data.start_game) {
+						// Start the game only if the server indicates it
+						console.log('Starting the game...');
+						startGame();
+					} else {
+						console.log('Waiting for another player...');
+					}
+				} else {
+					console.log('Failed to join or create room');
+				}
+			});
 		gameLoop();
 		setTimeout(function () {
 			clearInterval(gameLoop);

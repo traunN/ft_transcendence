@@ -1,13 +1,33 @@
 from django.shortcuts import render
 from django.views import View
 from django.db import connection
-# from pong_app.models import PongGameState
 from django.views.decorators.csrf import csrf_exempt
 from pong_app.models import User
 from django.http import JsonResponse
 from django.core import serializers
 from django.forms.models import model_to_dict
+from django.db.models import Q
+from .models import GameRoom, User
 import json
+
+def join_or_create_room(request, user_id, room_name):
+	room = Room.objects.filter(name=room_name).first()
+
+	if room is None:
+		room = Room(name=room_name)
+		room.save()
+
+	user = get_object_or_404(User, id=user_id)
+	room.players.add(user)
+	room.player_count += 1
+	room.save()
+
+	if room.player_count == 2:
+		room.gameState = 'playing'
+		room.save()
+		return JsonResponse({'status': 'success', 'start_game': True})
+	else:
+		return JsonResponse({'status': 'success', 'start_game': False})
 
 def homePage(request):
 	return render(request, 'homePage.html')
