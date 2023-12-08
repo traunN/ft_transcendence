@@ -10,7 +10,11 @@
 	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
-
+		main {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 	</style>
 </head>
 
@@ -18,30 +22,24 @@
 	<div class="container-fluid">
 		<div class="row">
 			{% include 'topbar.html' %}
-			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					<div class="row">
-						<div class="col-auto">
-							<h1 id="usernameProfile" class="display-3"></h1>
-							<ul id="userInfo">
-								<li id="emailProfile"></li>
-								<li id="firstNameProfile"></li>
-								<li id="lastNameProfile"></li>
-								<li id="campusProfile"></li>
-								<li id="levelProfile"></li>
-								<li id="walletProfile"></li>
-								<li id="correctionPointProfile"></li>
-								<li id="locationProfile"></li>
-							</ul>
-						</div>
-						<div class="col-auto ml-3">
-							<div class="profile-image-container">
-								<img id="userImageProfile" src="" alt="User Image" class="img-fluid profile-image">
-							</div>
-						</div>
+			<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
+				<div class="card custom-bg">
+					<img class="card-img-top" src="" alt="User Image" id="userImageProfile">
+					<div class="card-body">
+						<h1 class="card-title" id="usernameProfile"></h1>
+						<ul class="card-text" id="userInfo">
+							<li id="emailProfile"></li>
+							<li id="firstNameProfile"></li>
+							<li id="lastNameProfile"></li>
+							<li id="campusProfile"></li>
+							<li id="levelProfile"></li>
+							<li id="walletProfile"></li>
+							<li id="correctionPointProfile"></li>
+							<li id="locationProfile"></li>
+						</ul>
 					</div>
-				</div>
-				<input type="search" id="searchUser" placeholder="Search for a user">
+					<input type="search" id="searchUser" placeholder="Search for a user">
+				 </div>
 			</main>
 		</div>
 	</div>

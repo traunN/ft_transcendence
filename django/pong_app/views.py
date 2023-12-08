@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.db import connection
-from pong_app.models import PongGameState
+# from pong_app.models import PongGameState
 from django.views.decorators.csrf import csrf_exempt
 from pong_app.models import User
 from django.http import JsonResponse

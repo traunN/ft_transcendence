@@ -114,14 +114,14 @@ body {
 	transition: all 0.3s ease;
 	font-weight: bold;
 	font-size: 30px;
- }
+}
 
 .straight-btn:hover {
 	background-color: #f9ff57;
 	color: #000;
 	transform: scale(1.1);
 }
- 
+
 
 .topbar-sticky {
 	display: flex;
@@ -131,7 +131,7 @@ body {
 }
 
 .topbar a {
-	color: #AAAAAE !important;
+	color: #ecedee !important;
 }
 
 .nav-link {
@@ -194,7 +194,7 @@ body {
 }
 
 #usernameProfile {
-	background-color: #151718;
+	color: #ecedee;
 	padding: 15px;
 	border-radius: 5px;
 	font-weight: bold;
@@ -208,7 +208,7 @@ body {
 }
 
 .profile-image {
-	width: 100%	;
+	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	object-position: center;
@@ -217,7 +217,6 @@ body {
 #userInfo {
 	list-style: none;
 	padding: 0;
-	background-color: #151718;	
 	border-radius: 5px;
 	padding: 15px;
 }
@@ -237,4 +236,50 @@ input[type="search"] {
 	border: 2px solid #ccc;
 	border-radius: 4px;
 	font-size: 16px;
+}
+
+.lb-title {
+	font-size: 50px;
+	color: #f7ff19;
+	font-weight: 900;
+	text-shadow: #f7ff19;
+	font-style: italic;
+	text-align: center;
+	padding: 120px;
+}
+
+.no-border,
+.no-border th,
+.no-border td {
+	border: none;
+}
+
+thead {
+	border: none;
+}
+
+tr {
+	border: none;
+}
+
+#leaderboard td,
+#leaderboard th {
+	border: none;
+}
+
+
+#leaderboard {
+	border-collapse: collapse;
+	background-color: #151718;
+	color: #ecedee;
+}
+
+.custom-bg {
+	background-color: #151718;
+	margin-top: 50px;
+	padding: 25px;
+	border-radius: 5px;
+	justify-content: center;
+	align-items: center;
  }
+ 
