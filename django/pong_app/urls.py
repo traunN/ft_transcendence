@@ -21,5 +21,5 @@ urlpatterns = [
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),
 	path('get_user_by_login/<str:login>/', views.get_user_by_login, name='get_user_by_login'),
 	path('get_all_users/', views.get_all_users, name='get_all_users'),
-	path('join_or_create_room/<int:user_id>/<str:room_name>/', views.join_or_create_room, name='join_or_create_room'),
+	path('join_or_create_room/<int:user_id>/', views.join_or_create_room, name='join_or_create_room'),
 ]

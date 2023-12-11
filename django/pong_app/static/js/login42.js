@@ -39,10 +39,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			userImage.style.display = 'none';
 		}
 		else {
-			var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
-			var redirectUri = 'http://localhost:8000/homePage/';
-			var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
-			window.location.href = url;
+			var user = JSON.parse(sessionStorage.getItem('user'));
+			if (user) {
+				console.log('User is already logged in');
+			}
+			else {
+				var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
+				var redirectUri = 'http://localhost:8000/homePage/';
+				var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
+				window.location.href = url;
+			}
 		}
 	});
 

@@ -138,7 +138,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 
-	function gameLoop() {
+	function gameLoop(gameState) {
+		console.log('gameState:', gameState);
 		if (keys.ArrowUp) {
 			// Move the second paddle up
 			const top = parseInt(paddle2.style.top) || 0;
@@ -205,9 +206,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 		let user = JSON.parse(sessionStorage.getItem('user'));
+		if (!user.id) {
+			console.log('Please login');
+			return;
+		}
 		let userId = user.id;
-		let roomName = userId + '_room';
-		fetch(`/join_or_create_room/${userId}/${roomName}/`)
+		fetch(`/join_or_create_room/${userId}/`)
 			.then(response => {
 				if (!response.ok) {
 					throw new Error('Network response was not ok');
@@ -219,11 +223,22 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.log('Successfully joined or created room');
 					if (data.start_game) {
 						console.log('Starting the game...');
-						gameTimer();
-						gameLoop();
+						console.log('Joined room name:', data.room_name);
+						socket = new WebSocket('ws://localhost:8000/ws/game/' + data.room_name + '/');
+						socket.onopen = function(event) {
+							socket.onmessage = function(event) {
+								// Update the game state on the client side
+								gameState = JSON.parse(event.data).message;
+								// Update the game state in the game loop
+								console.log('gameState:', gameState);
+								gameTimer();
+								gameLoop(gameState);
+							};
+						 };
+						// gameLoop();
 					} else {
 						console.log('Waiting for another player...');
-						console.log('Room name:', roomName);
+						console.log('Room name:', data.room_name);
 					}
 				}
 				else {

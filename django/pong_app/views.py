@@ -10,25 +10,38 @@ from django.db.models import Q
 from .models import GameRoom, User
 import json
 
-def join_or_create_room(request, user_id, room_name):
+def join_or_create_room(request, user_id):
 	try:
-		room = GameRoom.objects.filter(name=room_name).first()
-		if room is None:
-			room = GameRoom(name=room_name)
+		rooms = GameRoom.objects.filter(player_count__lt=2)
+		if not rooms.exists():
+			room = GameRoom(name=str(user_id) + '_room')
 			room.save()
+		else:
+			room = rooms.first()
+
 		user = User.objects.get(idName=user_id)
 		room.players.add(user)
 		room.player_count += 1
 		room.save()
+
 		if room.player_count == 2:
 			room.gameState = 'playing'
 			room.save()
-			return JsonResponse({'status': 'success', 'start_game': True})
-		else:	
-			return JsonResponse({'status': 'success', 'start_game': False})
+			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
+		else: 
+			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
 	except Exception as e:
-		print(f'Error: {e}')
 		return JsonResponse({'status': 'error', 'message': str(e)})
+
+async def update_user_info(self, user_id, wins, loses, elo):
+	try:
+		user = User.objects.get(idName=user_id)
+		user.wins = wins
+		user.loses = loses
+		user.elo = elo
+		user.save()
+	except Exception as e:
+		print(e)
 
 def homePage(request):
 	return render(request, 'homePage.html')
