@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		cancelAnimationFrame(animationFrameId);
 		player1ScoreValue = 0;
 		player2ScoreValue = 0;
-		socket.close();
 	}
 
 	function gameTimer() {
@@ -205,30 +204,37 @@ document.addEventListener('DOMContentLoaded', function () {
 		isGameRunning = true;
 		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
-		gameTimer();
-		// get id from sessionStorage
 		let user = JSON.parse(sessionStorage.getItem('user'));
 		let userId = user.id;
-		console.log(userId);
-		let roomName = 'room1';
+		let roomName = userId + '_room';
 		fetch(`/join_or_create_room/${userId}/${roomName}/`)
-			.then(response => response.json())
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('Successfully joined or created room');
 					if (data.start_game) {
-						// Start the game only if the server indicates it
 						console.log('Starting the game...');
-						startGame();
+						gameTimer();
+						gameLoop();
 					} else {
 						console.log('Waiting for another player...');
+						console.log('Room name:', roomName);
 					}
-				} else {
-					console.log('Failed to join or create room');
 				}
+				else {
+					console.log('Failed to join or create room', data);
+					return;
+				}
+			})
+			.catch(error => {
+				console.error('There has been a problem with your fetch operation:', error);
 			});
-		gameLoop();
-		setTimeout(function () {
+			setTimeout(function () {
 			clearInterval(gameLoop);
 			if (player1ScoreValue > player2ScoreValue) {
 				message.textContent = 'Player 1 Wins!';
@@ -245,8 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			resetRound();
 		}, 30000);
 	}
-
-	// Initial setup
 	paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 	paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 	resetRound();
