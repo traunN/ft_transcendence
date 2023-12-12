@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.core import serializers
 from django.forms.models import model_to_dict
 from django.db.models import Q
-from .models import GameRoom, User
+from .models import GameRoom, User, RoomPlayer
 import json
 
 def join_or_create_room(request, user_id):
@@ -20,7 +20,13 @@ def join_or_create_room(request, user_id):
 			room = rooms.first()
 
 		user = User.objects.get(idName=user_id)
-		room.players.add(user)
+		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
+		if created:
+			room_player.count = 1
+		else:
+			room_player.count += 1
+		room_player.save()
+
 		room.player_count += 1
 		room.save()
 
@@ -42,6 +48,30 @@ async def update_user_info(self, user_id, wins, loses, elo):
 		user.save()
 	except Exception as e:
 		print(e)
+
+def cancel_room(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		room = GameRoom.objects.filter(players=user).first()
+		if room is not None:
+			room_player = RoomPlayer.objects.get(user=user, room=room)
+			if room_player.count > 1:
+				room_player.count -= 1
+				room_player.save()
+			else:
+				room_player.delete()
+			room.player_count -= 1
+			room.save()
+
+			if room.player_count == 0:
+				room.delete()
+
+			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
+		else:
+			return JsonResponse({'status': 'error', 'message': 'No room found for the user'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
 
 def homePage(request):
 	return render(request, 'homePage.html')

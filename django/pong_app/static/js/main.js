@@ -1,5 +1,6 @@
 let isGameRunning = false;
 let socket;
+let userId;
 
 document.addEventListener('DOMContentLoaded', function () {
 	const board = document.querySelector('.board');
@@ -9,6 +10,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	const player1Score = document.querySelector('.player_1_score');
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
+	let user = JSON.parse(sessionStorage.getItem('user'));
+	if (user.id) {
+		userId = user.id;
+	}
 
 	const keys = {
 		ArrowUp: false,
@@ -196,6 +201,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		}, 1000);
 	}
 
+
+
 	function startGame() {
 		if (isGameRunning) {
 			return;
@@ -205,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		isGameRunning = true;
 		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
-		let user = JSON.parse(sessionStorage.getItem('user'));
 		if (!user.id) {
 			console.log('Please login');
 			return;
@@ -224,21 +230,21 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (data.start_game) {
 						console.log('Starting the game...');
 						console.log('Joined room name:', data.room_name);
+						window.room_name = data.room_name;
 						socket = new WebSocket('ws://localhost:8000/ws/game/' + data.room_name + '/');
-						socket.onopen = function(event) {
-							socket.onmessage = function(event) {
-								// Update the game state on the client side
+						socket.onopen = function (event) {
+							socket.onmessage = function (event) {
 								gameState = JSON.parse(event.data).message;
-								// Update the game state in the game loop
 								console.log('gameState:', gameState);
 								gameTimer();
 								gameLoop(gameState);
 							};
-						 };
+						};
 						// gameLoop();
 					} else {
 						console.log('Waiting for another player...');
-						console.log('Room name:', data.room_name);
+						console.log('Created room:', data.room_name);
+						window.room_name = data.room_name;
 					}
 				}
 				else {
@@ -249,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => {
 				console.error('There has been a problem with your fetch operation:', error);
 			});
-			setTimeout(function () {
+		setTimeout(function () {
 			clearInterval(gameLoop);
 			if (player1ScoreValue > player2ScoreValue) {
 				message.textContent = 'Player 1 Wins!';
@@ -266,6 +272,47 @@ document.addEventListener('DOMContentLoaded', function () {
 			resetRound();
 		}, 30000);
 	}
+
+	function getCookie(name) {
+		if (document.cookie && typeof document.cookie === 'string') {
+			const cookieValue = document.cookie
+				.split('; ')
+				.find(row => row.startsWith(name + '='))
+				?.split('=')[1];
+			return cookieValue ? decodeURIComponent(cookieValue) : null;
+		} else {
+			console.error('Document cookie is not a valid string:', document.cookie);
+			return null;
+		}
+	}
+	
+
+	window.onbeforeunload = function () {
+		fetch(`/cancel_room/${userId}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data.status === 'success') {
+					console.log('Successfully cancelled room');
+				} else {
+					console.log('Failed to cancel room', data);
+				}
+			})
+			.catch(error => {
+				console.error('There has been a problem with your fetch operation:', error);
+			});
+	}
+
 	paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
 	paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 	resetRound();
