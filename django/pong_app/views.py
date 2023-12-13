@@ -49,6 +49,16 @@ async def update_user_info(self, user_id, wins, loses, elo):
 	except Exception as e:
 		print(e)
 
+def broadcast_to_room(room_name, message):
+	channel_layer = get_channel_layer()
+	async_to_sync(channel_layer.group_send)(
+		f'game_{room_name}',
+		{
+			'type': 'broadcast_message',
+			'message': message,
+		}
+	)
+
 def cancel_room(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
