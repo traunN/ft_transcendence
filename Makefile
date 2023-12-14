@@ -1,4 +1,4 @@
-.PHONY: build start stop rmvolume rmi rmall logs all
+.PHONY: build start stop rmvolume rmi rmall logs all djangologs restart re
 
 all: build start
 
@@ -23,6 +23,9 @@ rmall:
 
 logs:
 	docker compose logs
+
+djangologs:
+	docker compose logs django
 
 restart:
 	$(MAKE) stop

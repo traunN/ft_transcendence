@@ -21,9 +21,11 @@ class GameRoom(models.Model):
 	players = models.ManyToManyField(User, through='RoomPlayer')
 	gameState = models.CharField(max_length=200)
 	player_count = models.IntegerField(default=0)
+	ball_position = models.CharField(max_length=200)
+	paddle1_position = models.CharField(max_length=200)
+	paddle2_position = models.CharField(max_length=200)
 	
 class RoomPlayer(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	room = models.ForeignKey(GameRoom, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)
-

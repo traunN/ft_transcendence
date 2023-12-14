@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		Enter: false
 	};
 
-	let paddleSpeed = 5;
 	let ballSpeedX = 4;
 	let ballSpeedY = 4;
 	let player1ScoreValue = 0;
@@ -31,87 +30,30 @@ document.addEventListener('DOMContentLoaded', function () {
 	let animationFrameId;
 	let time = 30;
 	let timer;
+	let previousX = 0;
+	let previousY = 0;
 
 	function update_ball_position(updated_ball_position) {
-		// Update the ball's position on the frontend
-		ball.style.left = `${updated_ball_position.x}px`;
-		ball.style.top = `${updated_ball_position.y}px`;
+		const ballPositionObj = JSON.parse(updated_ball_position);
+		const x = ballPositionObj.x;
+		const y = ballPositionObj.y;
+		const newX = x + (x - previousX) * 0.1;
+		const newY = y + (y - previousY) * 0.1;
+		previousX = x;
+		previousY = y;
+		ball.style.left = `${newX}px`;
+		ball.style.top = `${newY}px`;
 	}
-	// function update_ball_position(updated_ball_position) {
 
-	// 	ball.style.left = `${updated_ball_position.x}px`;
-	// ball.style.top = `${updated_ball_position.y}px`;
-	// const currentLeft = parseInt(getComputedStyle(ball).left);
-	// const currentTop = parseInt(getComputedStyle(ball).top);
-	// const paddle1Top = parseInt(getComputedStyle(paddle1).top);
-	// const paddle2Top = parseInt(getComputedStyle(paddle2).top);
-
-	// // Update ball position based on speed
-	// ball.style.left = `${currentLeft + ballSpeedX}px`;
-	// ball.style.top = `${currentTop + ballSpeedY}px`;
-
-	// // Check for right paddle collision
-	// if (currentLeft + ball.clientWidth / 2 > paddle2.offsetLeft &&
-	// 	currentTop + ball.clientHeight / 2 > paddle2Top &&
-	// 	currentTop - ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight) {
-	// 	// Calculate the angle based on the paddle hit position
-	// 	const bounceAngle =
-	// 		currentTop + ball.clientHeight / 2 < paddle2Top + paddle2.clientHeight / 2
-	// 			? -Math.PI / 4
-	// 			: Math.PI / 4; // Adjust the angle multiplier as needed
-
-	// 	ballSpeedX = -ballSpeedX;
-	// 	ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-
-	// 	ball.style.left = `${paddle2.offsetLeft - ball.clientWidth}px`;
-	// 	paddle2.classList.add('bg-danger'); // Change the paddle's color to red
-
-	// 	setTimeout(function () {
-	// 		paddle2.classList.remove('bg-danger'); // Remove the color change after 500ms
-	// 	}, 500);
-	// }
-	// // Check for left paddle collision
-	// if (currentLeft - ball.clientWidth / 2 < paddle1.offsetLeft + paddle1.clientWidth &&
-	// 	currentTop + ball.clientHeight / 2 > paddle1Top &&
-	// 	currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight) {
-	// 	// Calculate the angle based on the paddle hit position
-	// 	const bounceAngle = (currentTop + ball.clientHeight / 2 < paddle1Top + paddle1.clientHeight / 2)
-	// 		? -Math.PI / 4
-	// 		: Math.PI / 4; // Adjust the angle multiplier as needed
-
-	// 	ballSpeedX = -ballSpeedX;
-	// 	ballSpeedY = Math.sign(ballSpeedY) * Math.abs(ballSpeedX) * Math.sin(bounceAngle);
-
-	// 	ball.style.left = `${paddle1.offsetLeft + paddle1.clientWidth + ball.clientWidth}px`;
-	// 	paddle1.classList.add('bg-danger'); // Change the paddle's color to red
-
-	// 	setTimeout(function () {
-	// 		paddle1.classList.remove('bg-danger'); // Remove the color change after 500ms
-	// 	}, 500);
-	// }
-
-	// if (currentTop + ball.clientHeight / 2 > board.clientHeight) {
-	// 	ball.style.top = `${board.clientHeight - ball.clientHeight}px`;
-	// 	ballSpeedY = -ballSpeedY;
-	// } else if (currentTop - ball.clientHeight / 2 < 0) {
-	// 	ball.style.top = `${10}px`;
-	// 	ballSpeedY = -ballSpeedY;
-	// }
-
-	// // Check for scoring
-	// if (currentLeft <= 0) {
-	// 	player2ScoreValue++;
-	// 	resetRound();
-	// } else if (currentLeft >= board.clientWidth - ball.clientWidth) {
-	// 	player1ScoreValue++;
-	// 	resetRound();
-	// }
-
-	// // Update scores
-	// player1Score.textContent = player1ScoreValue;
-	// player2Score.textContent = player2ScoreValue;
-	// }
-
+	function update_paddle_position(updated_paddle_position) {
+		const paddlePositionObj = JSON.parse(updated_paddle_position);
+		if (paddlePositionObj.player === 1) {
+			paddle1.style.top = `${paddlePositionObj.y}px`;
+		} else if (paddlePositionObj.player === 2) {
+			paddle2.style.top = `${paddlePositionObj.y}px`;
+		}
+	 }
+	
 	function resetRound() {
 		// Reset ball position
 		ball.style.left = `${board.clientWidth / 2 - ball.clientWidth / 2}px`;
@@ -140,6 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				startGame();
 			}
 			keys[event.code] = true;
+			if (event.code === 'ArrowUp') {
+				// send move paddle up with a paddle position to server
+				socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle_position': JSON.stringify({'x': 0, 'y': -10})}));
+				console.log('paddle_update up');
+			 }
 		}
 	});
 
@@ -153,63 +100,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	function gameLoop(gameState) {
 		socket.onmessage = function (event) {
-			// print the data that was sent from the server
 			const messageData = JSON.parse(event.data);
-	
 			if (messageData.message === 'start_game') {
-				// Handle the initial game state
 				const initialState = messageData.initial_state;
 				gameTimer();
 				gameLoop(initialState);
-			} 
-			else if (messageData.type === 'ball_update') {
-				// Handle the initial game state
-				const updatedBallPosition = messageData.ball_position;
-				console.log(updatedBallPosition); // Log the received data
-				update_ball_position(updatedBallPosition);
+			}
+			else if (messageData.message === 'ball_update') {
+				const updated_ball_position = messageData.ball_position;
+				update_ball_position(updated_ball_position);
+			}
+			else if (messageData.message === 'paddle_update') {
+				const updated_paddle_position = messageData.paddle_position;
+				update_paddle_position(updated_paddle_position);
 			}
 			else {
-				// Handle other game messages
 				const gameState = messageData.message;
-				console.log(gameState); // Log the gameState when available
 			}
 		};
-		if (keys.ArrowUp) {
-			socket.send(JSON.stringify({
-				'message': 'move_paddle_up'
-			}));
-			// const top = parseInt(paddle2.style.top) || 0;
-			// paddle2.style.top = `${Math.max(top - paddleSpeed, 0)}px`;
-		}
-		if (keys.ArrowDown) {
-			
-			// Move the second paddle down
-			// const top = parseInt(paddle2.style.top) || 0;
-			// paddle2.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle2.clientHeight)}px`;
-		}
-		if (keys.KeyW) {
-			// const top = parseInt(paddle1.style.top) || 0;
-			// paddle1.style.top = `${Math.max(top - paddleSpeed, 0)}px`;
-		}
-		if (keys.KeyS) {
-			// const top = parseInt(paddle1.style.top) || 0;
-			// paddle1.style.top = `${Math.min(top + paddleSpeed, board.clientHeight - paddle1.clientHeight)}px`;
-		}
-		animationFrameId = requestAnimationFrame(gameLoop);
-		if (player1ScoreValue == 3) {
-			message.textContent = 'Player 1 Wins!';
+		socket.onclose = function (event) {
 			isGameRunning = false;
-			startGameBtn.style.display = 'block';
-			stopGame();
-			resetRound();
-		}
-		else if (player2ScoreValue == 3) {
-			message.textContent = 'Player 2 Wins!';
-			isGameRunning = false;
-			startGameBtn.style.display = 'block';
-			stopGame();
-			resetRound();
-		}
+		};
 	}
 
 	function stopGame() {
@@ -261,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						console.log('Joined room name:', data.room_name);
 						window.room_name = data.room_name;
 						// check if both players are in the same room
-						socket.onopen = function (event) {
+						socket.onopen = async function (event) {
 							socket.send(JSON.stringify({ 'message': 'start_game' }));
 							socket.onmessage = function (event) {
 								const messageData = JSON.parse(event.data);
@@ -273,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								} else {
 									// Handle other game messages
 									gameState = messageData.message;
-									gameLoop(gameState);
+									// gameLoop(gameState);
 								}
 
 							};

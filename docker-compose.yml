@@ -38,6 +38,7 @@ services:
     volumes:
       - static_volume:/usr/src/app/pong_app/static
       - templates_volume:/usr/src/app/pong_app/templates
+    stop_signal: SIGINT
 
   nginx:
     build:

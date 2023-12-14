@@ -98,25 +98,22 @@ LOGGING = {
    'version': 1,
    'disable_existing_loggers': False,
    'handlers': {
-       'file': {
-           'level': 'DEBUG',
-           'class': 'logging.FileHandler',
-           'filename': 'debug.log',
+       'console': {
+           'class': 'logging.StreamHandler',
        },
    },
    'root': {
-       'handlers': ['file'],
+       'handlers': ['console'],
        'level': 'DEBUG',
    },
    'loggers': {
        'myproject.consumers': {
-           'handlers': ['file'],
+           'handlers': ['console'],
            'level': 'DEBUG',
            'propagate': False,
        },
    },
 }
-
 
 
 # Password validation
