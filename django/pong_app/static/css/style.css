@@ -41,7 +41,7 @@ body {
 	font-size: 40px;
 }
 
-.paddle,
+
 .ball {
 	position: absolute;
 }
@@ -50,17 +50,22 @@ body {
 	margin: 0 15px;
 }
 
-.paddle_1 {
-	width: 20px;
+.paddle_1,
+.paddle_2 {
 	height: 100px;
+	width: 20px;
+	/* You can adjust the width as needed */
 	background-color: #fff;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.paddle_1 {
 	left: 0;
 }
 
 .paddle_2 {
-	width: 20px;
-	height: 100px;
-	background-color: #fff;
 	right: 0;
 }
 

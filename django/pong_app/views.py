@@ -21,6 +21,8 @@ def join_or_create_room(request, user_id):
 
 		user = User.objects.get(idName=user_id)
 		room.ball_position = '0,0'
+		room.paddle1_position = '0,0'
+		room.paddle2_position = '0,0'
 		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
 		if created:
 			room_player.count = 1

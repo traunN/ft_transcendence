@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	let timer;
 	let previousX = 0;
 	let previousY = 0;
+	let paddle1Y = 300;
+	let paddle2Y = 300;
+	let interpolationFactor = 0.1;
+	let targetPaddle1Y = paddle1Y;
+	let targetPaddle2Y = paddle2Y;
 
 	function update_ball_position(updated_ball_position) {
 		const ballPositionObj = JSON.parse(updated_ball_position);
@@ -45,14 +50,19 @@ document.addEventListener('DOMContentLoaded', function () {
 		ball.style.top = `${newY}px`;
 	}
 
-	function update_paddle_position(updated_paddle_position) {
+	function update_paddle1_position(updated_paddle_position) {
 		const paddlePositionObj = JSON.parse(updated_paddle_position);
-		if (paddlePositionObj.player === 1) {
-			paddle1.style.top = `${paddlePositionObj.y}px`;
-		} else if (paddlePositionObj.player === 2) {
-			paddle2.style.top = `${paddlePositionObj.y}px`;
-		}
-	 }
+		const y = paddlePositionObj.y;
+		targetPaddle1Y = y;
+		paddle1.style.top = `${y}px`;
+	}
+
+	function update_paddle2_position(updated_paddle_position) {
+		const paddlePositionObj = JSON.parse(updated_paddle_position);
+		const y = paddlePositionObj.y;
+		targetPaddle2Y = y;
+		paddle2.style.top = `${y}px`;
+	}
 	
 	function resetRound() {
 		// Reset ball position
@@ -82,11 +92,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				startGame();
 			}
 			keys[event.code] = true;
-			if (event.code === 'ArrowUp') {
-				// send move paddle up with a paddle position to server
-				socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle_position': JSON.stringify({'x': 0, 'y': -10})}));
-				console.log('paddle_update up');
-			 }
 		}
 	});
 
@@ -96,6 +101,49 @@ document.addEventListener('DOMContentLoaded', function () {
 			keys[event.code] = false;
 		}
 	});
+
+	function update_paddles() {
+		// Update target paddle positions based on key events
+		if (keys.ArrowUp) {
+			targetPaddle2Y -= 10;
+			if (targetPaddle2Y < 50) {
+				targetPaddle2Y = 50;
+			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+		}
+		if (keys.ArrowDown) {
+			targetPaddle2Y += 10;
+			if (targetPaddle2Y > 550) {
+				targetPaddle2Y = 550;
+			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+		}
+		if (keys.KeyW) {
+			targetPaddle1Y -= 10;
+			if (targetPaddle1Y < 50) {
+				targetPaddle1Y = 50;
+			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+		}
+		if (keys.KeyS) {
+			targetPaddle1Y += 10;
+			if (targetPaddle1Y > 550) {
+				targetPaddle1Y = 550;
+			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+		}
+	
+		// Interpolate the paddle positions for smoother movement
+		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
+		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
+	
+		// Update the paddle elements
+		paddle1.style.top = `${paddle1Y}px`;
+		paddle2.style.top = `${paddle2Y}px`;
+	
+		// Request the next animation frame
+		requestAnimationFrame(update_paddles);
+	}
 
 
 	function gameLoop(gameState) {
@@ -110,33 +158,81 @@ document.addEventListener('DOMContentLoaded', function () {
 				const updated_ball_position = messageData.ball_position;
 				update_ball_position(updated_ball_position);
 			}
-			else if (messageData.message === 'paddle_update') {
-				const updated_paddle_position = messageData.paddle_position;
-				update_paddle_position(updated_paddle_position);
+			else if (messageData.message === 'paddle1_update') {
+				const updated_paddle_position = messageData.paddle1_position;
+				update_paddle1_position(updated_paddle_position);
+			}
+			else if (messageData.message === 'paddle2_update') {
+				const updated_paddle_position = messageData.paddle2_position;
+				update_paddle2_position(updated_paddle_position);
+			}
+			else if (messageData.message === 'score_update') {
+				const score1 = messageData.score1;
+				const score2 = messageData.score2;
+				player1ScoreValue = score1;
+				player2ScoreValue = score2;
+				player1Score.textContent = `${player1ScoreValue}`;
+				player2Score.textContent = `${player2ScoreValue}`;
+			}
+			else if (messageData.message === 'game_over') {
+				isGameRunning = false;
+				if (player1ScoreValue > player2ScoreValue) {
+					message.textContent = 'Player 1 wins!';
+				}
+				else {
+					message.textContent = 'Player 2 wins!';
+				}
+				// stopGame();
 			}
 			else {
 				const gameState = messageData.message;
 			}
 		};
+		update_paddles();
+		
+
 		socket.onclose = function (event) {
 			isGameRunning = false;
 		};
 	}
 
 	function stopGame() {
-		clearInterval(timer);
-		cancelAnimationFrame(animationFrameId);
-		player1ScoreValue = 0;
-		player2ScoreValue = 0;
+		fetch(`/cancel_room/${userId}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data.status === 'success') {
+					socket.close();
+					console.log('Successfully cancelled room');
+				} else {
+					console.log('Failed to cancel room', data);
+				}
+			})
+			.catch(error => {
+				console.error('There has been a problem with your fetch operation:', error);
+			});
 	}
 
 	function gameTimer() {
 		time = 30;
 		timer = setInterval(function () {
 			time--;
-			message.textContent = `Time Remaining: ${time}`;
-			if (time <= 0) {
+			if (time <= 0 || !isGameRunning) {
 				clearInterval(timer);
+				stopGame();
+			}
+			if (isGameRunning) {
+				message.textContent = `Time Remaining: ${time}`;
 			}
 		}, 1000);
 	}
@@ -148,8 +244,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		message.textContent = '';
 		startGameBtn.style.display = 'none';
 		isGameRunning = true;
-		paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
-		paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 		if (!user.id) {
 			console.log('Please login');
 			return;
@@ -218,22 +312,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => {
 				console.error('There has been a problem with your fetch operation:', error);
 			});
-		setTimeout(function () {
-			clearInterval(gameLoop);
-			if (player1ScoreValue > player2ScoreValue) {
-				message.textContent = 'Player 1 Wins!';
-			}
-			else if (player2ScoreValue > player1ScoreValue) {
-				message.textContent = 'Player 2 Wins!';
-			}
-			else {
-				message.textContent = 'Tie Game!';
-			}
-			isGameRunning = false;
-			startGameBtn.style.display = 'block';
-			stopGame();
-			resetRound();
-		}, 30000);
 	}
 
 
@@ -264,7 +342,5 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 
-	paddle1.style.top = `${board.clientHeight / 2 - paddle1.clientHeight / 2}px`;
-	paddle2.style.top = `${board.clientHeight / 2 - paddle2.clientHeight / 2}px`;
 	resetRound();
 });
