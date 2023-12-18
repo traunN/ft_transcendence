@@ -23,11 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		Enter: false
 	};
 
-	let ballSpeedX = 4;
-	let ballSpeedY = 4;
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;
-	let animationFrameId;
 	let time = 30;
 	let timer;
 	let previousX = 0;
@@ -182,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				else {
 					message.textContent = 'Player 2 wins!';
 				}
-				// stopGame();
 			}
 			else {
 				const gameState = messageData.message;
@@ -260,6 +256,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (data.status === 'success') {
 					console.log('Successfully joined or created room');
 					socket = new WebSocket('ws://localhost:8000/ws/game/' + data.room_name + '/');
+					if (!socket) {
+						console.log('Failed to create socket');
+						return;
+					}
 					console.log('socket:', socket);
 					if (data.start_game) {
 						console.log('Starting the game...');
@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							socket.onmessage = function (event) {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
+									message.textContent = '';
 									// Handle the initial game state
 									const initialState = messageData.initial_state;
 									gameTimer();
@@ -280,10 +281,11 @@ document.addEventListener('DOMContentLoaded', function () {
 									gameState = messageData.message;
 									// gameLoop(gameState);
 								}
-
+								
 							};
 						};
 					} else {
+						message.textContent = 'Waiting for another player...';
 						console.log('Waiting for another player...');
 						console.log('Created room:', data.room_name);
 						window.room_name = data.room_name;
@@ -292,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
 									// Handle the initial game state
+									message.textContent = '';
 									const initialState = messageData.initial_state;
 									gameTimer();
 									gameLoop(initialState);

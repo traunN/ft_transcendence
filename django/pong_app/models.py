@@ -26,6 +26,9 @@ class GameRoom(models.Model):
 	paddle2_position = models.CharField(max_length=200)
 	score1 = models.IntegerField(default=0)
 	score2 = models.IntegerField(default=0)
+	@property
+	def users(self):
+		return [player.user for player in self.roomplayer_set.all()]
 	
 class RoomPlayer(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)

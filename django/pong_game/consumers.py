@@ -6,8 +6,6 @@ from pong_app.models import GameRoom
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
 
-logging.basicConfig(level=logging.DEBUG)
-
 class GameConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	ball_position = {'x': 0, 'y': 0}
@@ -23,6 +21,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 	score2 = 0
 	score_threshold = 5
 	game_over = False
+	users = []
+	user1 = None
+	user2 = None
 
 
 	async def ball_update(self, event):
@@ -103,17 +104,24 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 	async def game_loop(self):
 		try:
+			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
+			self.user1 = self.users[0]
+			if len(self.users) > 1:
+				self.user2 = self.users[1]
+			else:
+				self.user2 = self.user1
 			while self.isGameRunning:
 				if self.score1 >= self.score_threshold or self.score2 >= self.score_threshold:
 					self.game_over = True
 					self.gameState = 'waiting'
 					if self.score1 >= self.score_threshold:
-						user1 = (await sync_to_async(self.game_room.roomplayer_set.all)())[0].user
-						user2 = (await sync_to_async(self.game_room.roomplayer_set.all)())[1].user
-						user1.wins += 1
-						user2.loses += 1
-						await sync_to_async(user1.save)()
-						await sync_to_async(user2.save)()
+						self.user1.wins += 2
+						self.user2.loses += 1
+					else:
+						self.user2.wins += 1
+						self.user1.loses += 1
+					await sync_to_async(self.user1.save)()
+					await sync_to_async(self.user2.save)()
 					await sync_to_async(self.game_room.save)()
 					await self.channel_layer.group_send(
 						self.room_group_name,
@@ -192,19 +200,18 @@ class GameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
 		self.room_name = self.scope['url_route']['kwargs']['room_name']
 		self.room_group_name = 'game_%s' % self.room_name
-		# Join room group
 		try:
 			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
 		except GameRoom.DoesNotExist:
 			self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
 			return
-
 		await self.channel_layer.group_add(
 			self.room_group_name,
 			self.channel_name
 		)
 		await self.accept()
 		self.connected_users += 1
+
 
 	async def disconnect(self, close_code):
 		# Leave room group

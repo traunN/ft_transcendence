@@ -104,12 +104,12 @@ LOGGING = {
    },
    'root': {
        'handlers': ['console'],
-       'level': 'DEBUG',
+       'level': 'ERROR',
    },
    'loggers': {
        'myproject.consumers': {
            'handlers': ['console'],
-           'level': 'DEBUG',
+           'level': 'ERROR',
            'propagate': False,
        },
    },
