@@ -5,12 +5,13 @@ import logging
 from pong_app.models import GameRoom
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
+import random
 
 class GameConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	ball_position = {'x': 0, 'y': 0}
-	ball_speed_x = 2
-	ball_speed_y = 2
+	ball_speed_x = 2.5
+	ball_speed_y = 2.5
 	ball_radius = 10
 	paddle1_position = {'x': 0, 'y': 0}
 	paddle2_position = {'x': 0, 'y': 0}
@@ -136,6 +137,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 				self.ball_position['x'] += self.ball_speed_x
 				self.ball_position['y'] += self.ball_speed_y
 
+
 				paddle1_position = self.paddle1_position
 				paddle2_position = self.paddle2_position
 				if isinstance(paddle1_position, str):
@@ -146,15 +148,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 				if self.ball_position['x'] - self.ball_radius <= 0:
 					self.score2 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = 2
-					self.ball_speed_y = 2
+					self.ball_speed_x = random.choice([-2.5, 2.5])
+					self.ball_speed_y = random.choice([-2.5, 2.5])
 					self.game_room.score2 += 1
 					await sync_to_async(self.game_room.save)()
 				elif self.ball_position['x'] + self.ball_radius >= 800:
 					self.score1 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = 2
-					self.ball_speed_y = 2
+					self.ball_speed_x = random.choice([-2.5, 2.5])
+					self.ball_speed_y = random.choice([-2.5, 2.5])
 					self.game_room.score1 += 1
 					await sync_to_async(self.game_room.save)()
 

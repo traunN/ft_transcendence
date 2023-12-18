@@ -172,6 +172,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				player2Score.textContent = `${player2ScoreValue}`;
 			}
 			else if (messageData.message === 'game_over') {
+				setTimeout(function () {
+					location.reload();
+				}, 5000);
 				isGameRunning = false;
 				if (player1ScoreValue > player2ScoreValue) {
 					message.textContent = 'Player 1 wins!';
@@ -179,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				else {
 					message.textContent = 'Player 2 wins!';
 				}
+
 			}
 			else {
 				const gameState = messageData.message;
@@ -344,6 +348,5 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.error('There has been a problem with your fetch operation:', error);
 			});
 	}
-
 	resetRound();
 });
