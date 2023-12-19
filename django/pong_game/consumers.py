@@ -116,7 +116,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 					self.game_over = True
 					self.gameState = 'waiting'
 					if self.score1 >= self.score_threshold:
-						self.user1.wins += 2
+						self.user1.wins += 1
 						self.user2.loses += 1
 					else:
 						self.user2.wins += 1
@@ -243,11 +243,19 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.paddle1_position = {'x': 10, 'y': 300}
 			self.paddle2_position = {'x': 790, 'y': 300}
 			asyncio.create_task(self.game_loop())
+			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
+			self.user1 = self.users[0]
+			if len(self.users) > 1:
+				self.user2 = self.users[1]
+			else:
+				self.user2 = self.user1
 			await self.channel_layer.group_send(
 				self.room_group_name,
 				{
 					'type': 'game_message',
 					'message': 'start_game',
+					'user1': self.user1.login,
+					'user2': self.user2.login
 				}
 			)
 		else:
@@ -270,5 +278,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 			'paddle2_position': event['paddle2_position'] if 'paddle2_position' in event else '',
 			'game_over': self.game_over,
 			'score1': event['score1'] if 'score1' in event else '',
-			'score2': event['score2'] if 'score2' in event else ''
+			'score2': event['score2'] if 'score2' in event else '',
+			'user1': event['user1'] if 'user1' in event else '',
+			'user2': event['user2'] if 'user2' in event else ''
 		}))

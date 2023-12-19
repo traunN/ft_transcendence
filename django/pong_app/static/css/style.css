@@ -41,6 +41,17 @@ body {
 	font-size: 40px;
 }
 
+.player_1_name {
+	position: absolute;
+	left: 0;
+	display : none;
+}
+
+.player_2_name {
+	position: absolute;
+	right: 0;
+	display : none;
+}
 
 .ball {
 	position: absolute;
@@ -67,6 +78,22 @@ body {
 
 .paddle_2 {
 	right: 0;
+}
+
+.ball.skin1 {
+	background-color: #fff;
+}
+
+.ball.skin2 {
+	background-color: #278abb;
+}
+
+.paddle.skin1 {
+	background-color: #fff;
+}
+
+.paddle.skin2 {
+	background-color: #f98aff;
 }
 
 .container {
@@ -286,5 +313,4 @@ tr {
 	border-radius: 5px;
 	justify-content: center;
 	align-items: center;
- }
- 
+}

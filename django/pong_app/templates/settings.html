@@ -17,16 +17,23 @@
 			{% include 'topbar.html' %}
 			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					<h1 class="h2">SETTINGS</h1>
-					<div class="btn-toolbar mb-2 mb-md-0">
-						<div class="btn-group mr-2">
-							<button id="settingsBtn" type="button" class="btn btn-sm btn-outline-secondary">Settings</button>
-							<button id="securityBtn" type="button" class="btn btn-sm btn-outline-secondary">Security</button>
-							<button id="notificationsBtn" type="button" class="btn btn-sm btn-outline-secondary">Notifications</button>
-						</div>
-						<div class="btn-group mr-2">
-							<button id="deleteAccountBtn" type="button" class="btn btn-sm btn-outline-secondary">Delete Account</button>
+					<form id="skinSettingsForm">
+						<label for="ballSkin">Ball Skin:</label>
+						<select id="ballSkin">
+							<option value="skin1">Skin 1</option>
+							<option value="skin2">Skin 2</option>
+						</select>
+						
+						<label for="paddleSkin">Paddle Skin:</label>
+						<select id="paddleSkin">
+							<option value="skin1">Skin 1</option>
+							<option value="skin2">Skin 2</option>
+						</select>
+						
+						<input type="submit" value="Save">
+					</form>
 				</div>
+				<div id="successMessage" style="display: none;">Settings saved!</div>
 				<div class="container">
 					<div class="row">
 						<div class="col">

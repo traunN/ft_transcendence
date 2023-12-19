@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	const player1Score = document.querySelector('.player_1_score');
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
+	var ballSkin = localStorage.getItem('ballSkin') || 'defaultSkin';
+	var paddleSkin = localStorage.getItem('paddleSkin') || 'defaultSkin';
+
+	ball.classList.add(ballSkin);
+	paddle1.classList.add(paddleSkin);
+	paddle2.classList.add(paddleSkin);
 	let user = JSON.parse(sessionStorage.getItem('user'));
 	if (user.id) {
 		userId = user.id;
@@ -221,6 +227,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 
+	function displayNames(player1NameValue, player2NameValue) {
+		const player1Name = document.querySelector('.player_1_name');
+		const player2Name = document.querySelector('.player_2_name');
+		player1Name.style.display = 'block';
+		player2Name.style.display = 'block';
+		player1Name.textContent = `${player1NameValue}`;
+		player2Name.textContent = `${player2NameValue}`;
+	}
+
 	function startGame() {
 		if (isGameRunning) {
 			return;
@@ -260,6 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
 									message.textContent = '';
+									const user1 = messageData.user1;
+									const user2 = messageData.user2;
+									displayNames(user1, user2);
 									// Handle the initial game state
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
@@ -282,6 +300,9 @@ document.addEventListener('DOMContentLoaded', function () {
 								if (messageData.message === 'start_game') {
 									// Handle the initial game state
 									message.textContent = '';
+									const user1 = messageData.user1;
+									const user2 = messageData.user2;
+									displayNames(user1, user2);
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
 								} else {
