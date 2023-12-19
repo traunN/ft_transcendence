@@ -44,13 +44,13 @@ body {
 .player_1_name {
 	position: absolute;
 	left: 0;
-	display : none;
+	display: none;
 }
 
 .player_2_name {
 	position: absolute;
 	right: 0;
-	display : none;
+	display: none;
 }
 
 .ball {
@@ -68,12 +68,13 @@ body {
 	/* You can adjust the width as needed */
 	background-color: #fff;
 	position: absolute;
-	top: 50%;
+	top : 50%;
 	transform: translateY(-50%);
 }
 
 .paddle_1 {
 	left: 0;
+	transform: rotate(180deg) translateY(+50%);
 }
 
 .paddle_2 {
@@ -85,7 +86,9 @@ body {
 }
 
 .ball.skin2 {
-	background-color: #278abb;
+	background: url('https://i.ibb.co/sHfnxvG/bauble-1.png') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
 }
 
 .paddle.skin1 {
@@ -93,7 +96,71 @@ body {
 }
 
 .paddle.skin2 {
-	background-color: #f98aff;
+	background: url('https://i.ibb.co/89VMQrT/barres.jpg') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
+}
+
+.paddle.skin3 {
+	background: url('https://i.ibb.co/wCGdmBH/ours.jpg') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
+}
+
+.paddle.skin4 {
+	background: url('https://i.ibb.co/PtPXYL4/feaeaf-2.png') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
+}
+
+
+.paddle.skin5 {
+	background: url('https://i.ibb.co/qdY1CMD/vjefi0L.jpg') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
+}
+
+.board.skin1 {
+	background-color: #000;
+}
+
+.board.skin2 {
+	background-image:
+		linear-gradient(rgba(0, 0, 0, 0.7),
+			rgba(0, 0, 0, 0.5)),
+		 url('https://wallpapercave.com/wp/wp3850584.jpg');
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+select {
+	width: 140px;
+	height: 35px;
+	padding: 4px;
+	border-radius: 4px;
+	box-shadow: 2px 2px 8px #999;
+	background: #eee;
+	border: none;
+	outline: none;
+	display: inline-block;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	cursor: pointer;
+}
+
+input[type="submit"] {
+	background-color: #f7ff19;
+	border: none;
+	color: #000;
+	padding: 10px 24px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	border-radius : 5px;
+	font-size: 16px;
+	margin: 4px 8px;
+	cursor: pointer; 
 }
 
 .container {

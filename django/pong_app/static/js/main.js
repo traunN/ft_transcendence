@@ -10,12 +10,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	const player1Score = document.querySelector('.player_1_score');
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
-	var ballSkin = localStorage.getItem('ballSkin') || 'defaultSkin';
-	var paddleSkin = localStorage.getItem('paddleSkin') || 'defaultSkin';
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 
 	ball.classList.add(ballSkin);
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
+	board.classList.add(boardSkin);
 	let user = JSON.parse(sessionStorage.getItem('user'));
 	if (user.id) {
 		userId = user.id;

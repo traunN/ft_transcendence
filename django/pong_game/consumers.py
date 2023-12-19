@@ -5,6 +5,7 @@ import logging
 from pong_app.models import GameRoom
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
+from channels.db import database_sync_to_async
 import random
 
 class GameConsumer(AsyncWebsocketConsumer):
@@ -15,6 +16,10 @@ class GameConsumer(AsyncWebsocketConsumer):
 	ball_radius = 10
 	paddle1_position = {'x': 0, 'y': 0}
 	paddle2_position = {'x': 0, 'y': 0}
+	angle_of_incidence = 0
+	normalized_relative_intersect_y = 0
+	inverted_normalized_relative_intersect_y = 0
+	bounce_angle = 0
 	game_room = None
 	isGameRunning = True
 	connected_users = 0
@@ -27,13 +32,16 @@ class GameConsumer(AsyncWebsocketConsumer):
 	user2 = None
 
 
+	@database_sync_to_async
+	def get_game_room(self):
+		return GameRoom.objects.get(name=self.room_name)
+
 	async def ball_update(self, event):
 		try:
 			ball_position = event['ball_position']
 			if self.game_room is None:
 				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
 				return
-
 			self.game_room.ball_position = f"{ball_position['x']},{ball_position['y']}"
 			await sync_to_async(self.game_room.save)()
 
@@ -54,7 +62,11 @@ class GameConsumer(AsyncWebsocketConsumer):
 				return
 			paddle1_position = event['paddle1_position']
 			if isinstance(paddle1_position, str):
-				paddle1_position = json.loads(paddle1_position)
+				try:
+					paddle1_position = json.loads(paddle1_position)
+				except json.JSONDecodeError:
+					self.logger.error(f"Invalid JSON data for paddle1_position: {paddle1_position}")
+					return
 
 			if self.game_room is None:
 				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
@@ -81,7 +93,11 @@ class GameConsumer(AsyncWebsocketConsumer):
 				return
 			paddle2_position = event['paddle2_position']
 			if isinstance(paddle2_position, str):
-				paddle2_position = json.loads(paddle2_position)
+				try:
+					paddle2_position = json.loads(paddle2_position)
+				except json.JSONDecodeError:
+					self.logger.error(f"Invalid JSON data for paddle2_position: {paddle2_position}")
+					return
 
 			if self.game_room is None:
 				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
@@ -103,6 +119,10 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.logger.error(f"An error occurred while updating the paddle2 position: {e}")
 
 
+	def normalize(self, value, min, max):
+		return (value - min) / (max - min)
+
+
 	async def game_loop(self):
 		try:
 			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
@@ -112,6 +132,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 			else:
 				self.user2 = self.user1
 			while self.isGameRunning:
+				self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
 				if self.score1 >= self.score_threshold or self.score2 >= self.score_threshold:
 					self.game_over = True
 					self.gameState = 'waiting'
@@ -136,14 +157,29 @@ class GameConsumer(AsyncWebsocketConsumer):
 					return
 				self.ball_position['x'] += self.ball_speed_x
 				self.ball_position['y'] += self.ball_speed_y
+				
 
+				self.logger.error(f'gameroom paddle1_position: {self.game_room.paddle1_position}')
+				self.logger.error(f'gameroom paddle2_position: {self.game_room.paddle2_position}')
 
-				paddle1_position = self.paddle1_position
-				paddle2_position = self.paddle2_position
-				if isinstance(paddle1_position, str):
-					paddle1_position = json.loads(paddle1_position)
-				if isinstance(paddle2_position, str):
-					paddle2_position = json.loads(paddle2_position)
+				raw_paddle1_position = self.game_room.paddle1_position
+				raw_paddle2_position = self.game_room.paddle2_position
+
+				self.logger.error(f'raw_paddle1_position: {raw_paddle1_position}')
+				self.logger.error(f'raw_paddle2_position: {raw_paddle2_position}')
+
+				if not raw_paddle1_position or not raw_paddle2_position:
+					self.logger.error("Paddle positions are not set in the game room.")
+					return
+
+				try:
+					json_objects = raw_paddle1_position.split(",")
+					paddle1_positions = [json.loads(obj) for obj in json_objects]
+
+					json_objects = raw_paddle2_position.split(",")
+					paddle2_positions = [json.loads(obj) for obj in json_objects]
+				except json.JSONDecodeError as json_error:
+					self.logger.error(f"Error decoding JSON: {json_error}")
 
 				if self.ball_position['x'] - self.ball_radius <= 0:
 					self.score2 += 1
@@ -171,27 +207,36 @@ class GameConsumer(AsyncWebsocketConsumer):
 				)
 
 				if self.ball_position['x'] - self.ball_radius <= 0 or self.ball_position['x'] + self.ball_radius >= 800:
+					self.logger.error(f'collision')
 					self.ball_speed_x *= -1
 
 				if self.ball_position['y'] - self.ball_radius <= 0 or self.ball_position['y'] + self.ball_radius >= 600:
+					self.logger.error(f'collision')
 					self.ball_speed_y *= -1
 
 				if (
-					paddle1_position['x'] - 20 <= self.ball_position['x'] <= paddle1_position['x'] + 20 and
-					paddle1_position['y'] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle1_position['y'] + 50
+					paddle1_positions[0] - 20 <= self.ball_position['x'] <= paddle1_positions[0] + 20 and
+					paddle1_positions[1] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle1_positions[1] + 50
 					):
+					relative_intersect_y = (paddle1_positions[1] + 50 / 2) - self.ball_position['y']
+					normalized_relative_intersect_y = self.normalize(relative_intersect_y, 0, 100)
+					inverted_normalized_relative_intersect_y = 1 - normalized_relative_intersect_y
+					bounce_angle = inverted_normalized_relative_intersect_y * 2.5
 					self.ball_speed_x *= -1
-					if self.ball_position['y'] < paddle1_position['y'] -50 or self.ball_position['y'] > paddle1_position['y'] + 50:
-						self.ball_speed_y *= -1
+					self.ball_speed_y = bounce_angle
 
 				if (
-					paddle2_position['x'] - 20 <= self.ball_position['x'] <= paddle2_position['x'] + 20 and
-					paddle2_position['y'] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle2_position['y'] + 50
+					paddle2_positions[0] - 20 <= self.ball_position['x'] <= paddle2_positions[0] + 20 and
+					paddle2_positions[1] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle2_positions[1] + 50
 					):
+					relative_intersect_y = (paddle2_positions[1] + 50 / 2) - self.ball_position['y']
+					normalized_relative_intersect_y = self.normalize(relative_intersect_y, 0, 100)
+					inverted_normalized_relative_intersect_y = 1 - normalized_relative_intersect_y
+					bounce_angle = inverted_normalized_relative_intersect_y * 2.5
 					self.ball_speed_x *= -1
-					if self.ball_position['y'] < paddle2_position['y'] - 50 or self.ball_position['y'] > paddle2_position['y'] + 50:
-						self.ball_speed_y *= -1
+					self.ball_speed_y = bounce_angle
 
+				angle_of_incidence = 0
 
 				await self.ball_update({'ball_position': self.ball_position})
 				await asyncio.sleep(1 / 120)
@@ -238,6 +283,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 				self.paddle2_position = text_data_json['position']
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
 		elif message == 'start_game':
+			self.game_room = await self.get_game_room()
 			self.logger.debug('start_game')
 			self.ball_position = {'x': 400, 'y': 300}
 			self.paddle1_position = {'x': 10, 'y': 300}
