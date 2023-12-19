@@ -16,6 +16,7 @@ urlpatterns = [
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
 	path('profile/', views.profile, name='profile'),
 	path('settings/', views.settings, name='settings'),
+	path('tournament/', views.tournament, name='tournament'),
 	path('chat/', views.chat, name='chat'),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),

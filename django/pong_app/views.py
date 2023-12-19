@@ -117,6 +117,9 @@ def profile(request, user_id=None):
 def settings(request):
 	return render(request, 'settings.html')
 
+def tournament(request):
+	return render(request, 'tournament.html')
+
 def chat(request):
 	return render(request, 'chat.html')
 

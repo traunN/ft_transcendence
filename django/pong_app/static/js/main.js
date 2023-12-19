@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;
-	let time = 30;
-	let timer;
 	let previousX = 0;
 	let previousY = 0;
 	let paddle1Y = 300;
@@ -223,20 +221,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 
-	function gameTimer() {
-		time = 30;
-		timer = setInterval(function () {
-			time--;
-			if (time <= 0 || !isGameRunning) {
-				clearInterval(timer);
-				stopGame();
-			}
-			if (isGameRunning) {
-				message.textContent = `Time Remaining: ${time}`;
-			}
-		}, 1000);
-	}
-
 	function startGame() {
 		if (isGameRunning) {
 			return;
@@ -278,7 +262,6 @@ document.addEventListener('DOMContentLoaded', function () {
 									message.textContent = '';
 									// Handle the initial game state
 									const initialState = messageData.initial_state;
-									gameTimer();
 									gameLoop(initialState);
 								} else {
 									// Handle other game messages
@@ -300,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function () {
 									// Handle the initial game state
 									message.textContent = '';
 									const initialState = messageData.initial_state;
-									gameTimer();
 									gameLoop(initialState);
 								} else {
 									// Handle other game messages
