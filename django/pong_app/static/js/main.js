@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 
+
+	if (boardSkin === 'defaultSkin') {
+		board.classList.add('blackSkin');
+	} else {
+		board.classList.add(boardSkin);
+	}
 	ball.classList.add(ballSkin);
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
@@ -328,6 +334,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	window.onbeforeunload = function () {
+		if (!socket) {
+			return;
+		}
 		fetch(`/cancel_room/${userId}/`, {
 			method: 'POST',
 			headers: {

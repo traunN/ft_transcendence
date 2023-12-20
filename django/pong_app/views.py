@@ -65,6 +65,8 @@ def broadcast_to_room(room_name, message):
 def cancel_room(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
+		if user is None:
+			return JsonResponse({'status': 'error', 'message': 'User not found'})
 		room = GameRoom.objects.filter(players=user).first()
 		if room is not None:
 			room_player = RoomPlayer.objects.get(user=user, room=room)

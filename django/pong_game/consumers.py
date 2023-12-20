@@ -6,6 +6,7 @@ from pong_app.models import GameRoom
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
+import math
 import random
 
 class GameConsumer(AsyncWebsocketConsumer):
@@ -16,10 +17,10 @@ class GameConsumer(AsyncWebsocketConsumer):
 	ball_radius = 10
 	paddle1_position = {'x': 0, 'y': 0}
 	paddle2_position = {'x': 0, 'y': 0}
-	angle_of_incidence = 0
 	normalized_relative_intersect_y = 0
 	inverted_normalized_relative_intersect_y = 0
 	bounce_angle = 0
+	max_bounce_angle = 0
 	game_room = None
 	isGameRunning = True
 	connected_users = 0
@@ -118,11 +119,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			self.logger.error(f"An error occurred while updating the paddle2 position: {e}")
 
-
-	def normalize(self, value, min, max):
-		return (value - min) / (max - min)
-
-
 	async def game_loop(self):
 		try:
 			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
@@ -158,15 +154,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 				self.ball_position['x'] += self.ball_speed_x
 				self.ball_position['y'] += self.ball_speed_y
 				
-
-				self.logger.error(f'gameroom paddle1_position: {self.game_room.paddle1_position}')
-				self.logger.error(f'gameroom paddle2_position: {self.game_room.paddle2_position}')
-
 				raw_paddle1_position = self.game_room.paddle1_position
 				raw_paddle2_position = self.game_room.paddle2_position
-
-				self.logger.error(f'raw_paddle1_position: {raw_paddle1_position}')
-				self.logger.error(f'raw_paddle2_position: {raw_paddle2_position}')
 
 				if not raw_paddle1_position or not raw_paddle2_position:
 					self.logger.error("Paddle positions are not set in the game room.")
@@ -218,25 +207,20 @@ class GameConsumer(AsyncWebsocketConsumer):
 					paddle1_positions[0] - 20 <= self.ball_position['x'] <= paddle1_positions[0] + 20 and
 					paddle1_positions[1] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle1_positions[1] + 50
 					):
-					relative_intersect_y = (paddle1_positions[1] + 50 / 2) - self.ball_position['y']
-					normalized_relative_intersect_y = self.normalize(relative_intersect_y, 0, 100)
-					inverted_normalized_relative_intersect_y = 1 - normalized_relative_intersect_y
-					bounce_angle = inverted_normalized_relative_intersect_y * 2.5
+					self.relative_intersect_y = self.ball_position['y'] - paddle1_positions[1]
+					self.normalized_relative_intersect_y = self.relative_intersect_y / 50
+					self.bounce_angle = self.normalized_relative_intersect_y * self.max_bounce_angle
 					self.ball_speed_x *= -1
-					self.ball_speed_y = bounce_angle
-
+					self.ball_speed_y = math.sin(self.bounce_angle) * 2
 				if (
 					paddle2_positions[0] - 20 <= self.ball_position['x'] <= paddle2_positions[0] + 20 and
 					paddle2_positions[1] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle2_positions[1] + 50
 					):
-					relative_intersect_y = (paddle2_positions[1] + 50 / 2) - self.ball_position['y']
-					normalized_relative_intersect_y = self.normalize(relative_intersect_y, 0, 100)
-					inverted_normalized_relative_intersect_y = 1 - normalized_relative_intersect_y
-					bounce_angle = inverted_normalized_relative_intersect_y * 2.5
+					self.relative_intersect_y = self.ball_position['y'] - paddle2_positions[1]
+					self.normalized_relative_intersect_y = self.relative_intersect_y / 50
+					self.bounce_angle = self.normalized_relative_intersect_y * self.max_bounce_angle
 					self.ball_speed_x *= -1
-					self.ball_speed_y = bounce_angle
-
-				angle_of_incidence = 0
+					self.ball_speed_y = math.sin(self.bounce_angle) * 2
 
 				await self.ball_update({'ball_position': self.ball_position})
 				await asyncio.sleep(1 / 120)
@@ -283,11 +267,12 @@ class GameConsumer(AsyncWebsocketConsumer):
 				self.paddle2_position = text_data_json['position']
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
 		elif message == 'start_game':
-			self.game_room = await self.get_game_room()
+			self.game_room = await self.get_game_room()	
 			self.logger.debug('start_game')
 			self.ball_position = {'x': 400, 'y': 300}
 			self.paddle1_position = {'x': 10, 'y': 300}
 			self.paddle2_position = {'x': 790, 'y': 300}
+			self.max_bounce_angle = math.pi / 2
 			asyncio.create_task(self.game_loop())
 			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
 			self.user1 = self.users[0]

@@ -19,7 +19,7 @@ body {
 }
 
 .board {
-	position: relative;
+		position: relative;
 	width: 800px;
 	height: 600px;
 	border: 1px solid #fff;
@@ -118,6 +118,10 @@ body {
 	background: url('https://i.ibb.co/qdY1CMD/vjefi0L.jpg') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
+}
+
+.blackSkin {
+	background-color: #000;
 }
 
 .board.skin1 {
