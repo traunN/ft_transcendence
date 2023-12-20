@@ -34,3 +34,27 @@ class RoomPlayer(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	room = models.ForeignKey(GameRoom, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)
+
+class Tournament(models.Model):
+	name = models.CharField(max_length=200)
+	players = models.ManyToManyField(User, through='TournamentPlayer', related_name='tournament_players')
+	creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tournament_creator')
+	status = models.CharField(max_length=200)
+	@property
+	def is_full(self):
+		return self.players.count() == 8
+	@property
+	def is_started(self):
+		return self.status == 'started'
+	@property
+	def is_finished(self):
+		return self.status == 'finished'
+	@property
+	def is_available(self):
+		return not self.is_started and not self.is_finished and not self.is_full
+	count = models.IntegerField(default=0)
+
+class TournamentPlayer(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+	count = models.IntegerField(default=1)

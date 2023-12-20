@@ -17,17 +17,34 @@
 			{% include 'topbar.html' %}
 			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					<h1 class="h2">TOURNAMENT</h1>
 				</div>
 				<div class="container">
 					<div class="row">
 						<div class="col">
+							<form id="create-tournament-form">
+								<input type="text" id="tournament-name" name="tournament-name" placeholder="Tournament Name" required>
+								<button type="submit">Create Tournament</button>
+							</form>
+							<table id="tournament-list">
+								<thead>
+								  <tr>
+									<th>Tournament Name</th>
+									<th>Status</th>
+									<th>Players</th>
+								  </tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
 						</div>
 					</div>
 				</div>
 			</main>
 		</div>
 	</div>
+	<script>
+		const csrfToken = "{{ csrf_token }}";
+	</script>
 	<script type="text/javascript" src="../static/js/setActive.js"></script>
 	<script type="text/javascript" src="../static/js/login42.js"></script>
 	<script type="text/javascript" src="../static/js/tournament.js"></script>

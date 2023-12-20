@@ -7,8 +7,86 @@ from django.http import JsonResponse
 from django.core import serializers
 from django.forms.models import model_to_dict
 from django.db.models import Q
-from .models import GameRoom, User, RoomPlayer
+from django.views import generic
+from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
 import json
+from django.db.models import Count
+
+def leave_tournament(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			tournament_id = data['tournament_id']
+			user = User.objects.get(idName=user_id)
+			tournament = Tournament.objects.get(id=tournament_id)
+			tournament_player = TournamentPlayer.objects.get(user=user, tournament=tournament)
+			tournament_player.count -= 1
+			tournament.count -= 1
+			if tournament_player.count == 0:
+				tournament_player.delete()
+			else:
+				tournament_player.save()
+			if tournament.count == 0:
+				tournament.delete()
+			else:
+				tournament.save()
+			return JsonResponse({'status': 'success', 'message': 'Left tournament successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def available_tournaments(request):
+	tournaments = Tournament.objects.filter(status='available').annotate(player_count=Count('players'))
+	tournaments_dict = []
+	for tournament in tournaments:
+		tournament_dict = model_to_dict(tournament)
+		creator_id = tournament_dict.pop('creator')
+		creator = User.objects.get(id=creator_id)
+		tournament_dict['creator'] = model_to_dict(creator)
+		tournament_dict['creator']['image'] = str(tournament_dict['creator']['image'])
+		tournament_dict['players'] = [model_to_dict(player) for player in tournament.players.all()]
+		for player in tournament_dict['players']:
+			player['image'] = str(player['image'])
+		tournament_dict['count'] = tournament.player_count
+		tournaments_dict.append(tournament_dict)
+	return JsonResponse({'tournaments': tournaments_dict}, safe=False)
+
+def join_tournament(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			tournament_id = data['tournament_id']
+			user = User.objects.get(idName=user_id)
+			tournament = Tournament.objects.get(id=tournament_id)
+			tournament_player = TournamentPlayer(user=user, tournament=tournament)
+			tournament_player.count = 1
+			tournament.count += 1
+			tournament_player.save()
+			tournament.save()
+			return JsonResponse({'status': 'success', 'message': 'Joined tournament successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def create_tournament(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			tournament_name = data['tournament_name']
+			user = User.objects.get(idName=data['user_id'])
+			tournament = Tournament(name=tournament_name, creator=user)
+			tournament.status = 'available'
+			tournament.count = 1
+			tournament.save()
+			tournament_player = TournamentPlayer(user=user, tournament=tournament)
+			tournament_player.save()
+			return JsonResponse({'status': 'success', 'message': 'Tournament created successfully', 'tournament_id': tournament.id})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def join_or_create_room(request, user_id):
 	try:
@@ -121,6 +199,13 @@ def settings(request):
 
 def tournament(request):
 	return render(request, 'tournament.html')
+
+def tournament_lobby(request, tournament_id):
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		return render(request, 'tournament_lobby.html', {'tournament': tournament})
+	except Tournament.DoesNotExist:
+		return render(request, 'tournament_lobby.html', {'tournament': None})
 
 def chat(request):
 	return render(request, 'chat.html')
