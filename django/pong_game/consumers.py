@@ -313,3 +313,43 @@ class GameConsumer(AsyncWebsocketConsumer):
 			'user1': event['user1'] if 'user1' in event else '',
 			'user2': event['user2'] if 'user2' in event else ''
 		}))
+
+class TournamentLobbyConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+	async def tournament_created(self, event):
+		try:
+			tournament_id = event['tournament_id']
+			await self.send(text_data=json.dumps({
+				'type': 'tournament_created',
+				'tournament_id': tournament_id,
+			}))
+		except Exception as e:
+			print(e)
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		self.logger.debug(f"Received message: {text_data}")
+		text_data_json = json.loads(text_data)
+		if 'type' in text_data_json:
+			if text_data_json['type'] == 'tournament_created':
+				await self.channel_layer.group_send(
+					'tournament_lobby',
+					{
+						'type': 'tournament_created',
+						'tournament_id': text_data_json['tournament_id'],
+					}
+				)
+
+	
+	async def connect(self):
+		await self.channel_layer.group_add(
+			'tournament_lobby',
+			self.channel_name
+		)
+		await self.accept()
+	
+	async def disconnect(self, close_code):
+		await self.channel_layer.group_discard(
+			'tournament_lobby',
+			self.channel_name
+		)

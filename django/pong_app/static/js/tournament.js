@@ -15,6 +15,7 @@ function joinTournament(tournamentId) {
 		.then(data => {
 			console.log(data);
 			// Redirect to the tournament lobby page
+			
 			window.location.href = '/tournament_lobby/' + tournamentId;
 		})
 		.catch(error => console.error(error));
@@ -23,8 +24,38 @@ function joinTournament(tournamentId) {
 document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament.js loaded');
 
+	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament_lobby/');
+
+	// await self.channel_layer.group_send(
+	// 	'tournament_lobby',
+	// 	{
+	// 		'type': 'tournament_created',
+	// 		'tournament_id': text_data_json['tournament_id'],
+	// 		'tournament_name': text_data_json['tournament_name'],
+	// 		'creator': text_data_json['creator']
+	// 	}
+	// )
+	socket.addEventListener('open', function (event) {
+		console.log('Connected to websocket');
+	});
+	socket.addEventListener('close', function (event) {
+		console.log('Disconnected from websocket');
+	});
+	socket.onmessage = function (e) {
+		var data = JSON.parse(e.data);
+		if (data.type === 'tournament_created') {
+			// just refresh for other users
+			location.reload();
+		}
+	};
 	const form = document.getElementById('create-tournament-form');
 
+
+	// Listen for messages
+	socket.addEventListener("message", (event) => {
+		console.log("Message from server ", event.data);
+	});
+	
 	// Add an event listener for the form submission
 	form.addEventListener('submit', function (event) {
 		event.preventDefault();
@@ -56,6 +87,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				// Redirect to the tournament lobby page
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
+					// Send a message to the tournament lobby group
+					socket.send(JSON.stringify({
+						'type': 'tournament_created',
+						'tournament_id': response.tournament_id,
+					}));
+					socket.close();
 					window.location.href = '/tournament_lobby/' + response.tournament_id;
 				}
 				else {
@@ -66,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => console.error(error));
 		
 	});
+
 
 	fetch('/available_tournaments/', {
 		method: 'GET',
