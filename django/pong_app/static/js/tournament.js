@@ -86,10 +86,21 @@ document.addEventListener('DOMContentLoaded', function () {
 					var tournamentStatus = row.insertCell(1);
 					var tournamentPlayerCount = row.insertCell(2);
 					var tournamentJoin = row.insertCell(3);
-					tournamentName.innerHTML = tournaments[i].name;
+					if (tournaments[i].name.length > 20) {
+						tournamentName.innerHTML = tournaments[i].name.substring(0, 20) + '...';
+					}
+					else {
+						tournamentName.innerHTML = tournaments[i].name;
+					}
 					tournamentStatus.innerHTML = tournaments[i].status;
-					tournamentPlayerCount.innerHTML = tournaments[i].count;
-					tournamentJoin.innerHTML = '<button onclick="joinTournament(' + tournaments[i].id + ')">Join</button>';
+					tournamentPlayerCount.innerHTML = tournaments[i].count + '/4';
+					if (tournaments[i].status === 'available') {
+						tournamentJoin.innerHTML = '<button class="button-style" onclick="joinTournament(' + tournaments[i].id + ')">Join</button>';
+						tournamentStatus.style.color = '#00ff00';
+					}
+					else{
+						tournamentStatus.style.color = 'red';
+					}
 				}
 			}
 			else {

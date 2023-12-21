@@ -42,7 +42,7 @@ class Tournament(models.Model):
 	status = models.CharField(max_length=200)
 	@property
 	def is_full(self):
-		return self.players.count() == 8
+		return self.players.count() == 4
 	@property
 	def is_started(self):
 		return self.status == 'started'
