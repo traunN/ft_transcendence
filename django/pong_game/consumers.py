@@ -314,13 +314,13 @@ class GameConsumer(AsyncWebsocketConsumer):
 			'user2': event['user2'] if 'user2' in event else ''
 		}))
 
-class TournamentLobbyConsumer(AsyncWebsocketConsumer):
+class TournamentConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
-	async def tournament_created(self, event):
+	async def tournament_updated(self, event):
 		try:
 			tournament_id = event['tournament_id']
 			await self.send(text_data=json.dumps({
-				'type': 'tournament_created',
+				'type': 'tournament_updated',
 				'tournament_id': tournament_id,
 			}))
 		except Exception as e:
@@ -331,11 +331,11 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 		self.logger.debug(f"Received message: {text_data}")
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json:
-			if text_data_json['type'] == 'tournament_created':
+			if text_data_json['type'] == 'tournament_updated':
 				await self.channel_layer.group_send(
 					'tournament_lobby',
 					{
-						'type': 'tournament_created',
+						'type': 'tournament_updated',
 						'tournament_id': text_data_json['tournament_id'],
 					}
 				)

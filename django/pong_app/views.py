@@ -12,6 +12,17 @@ from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
 import json
 from django.db.models import Count
 
+def get_players_in_tournament(request, tournament_id):
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		players = tournament.players.all()
+		players_dict = [model_to_dict(player) for player in players]
+		for player_dict in players_dict:
+			player_dict['image'] = str(player_dict['image'])
+		return JsonResponse({'players': players_dict}, safe=False)
+	except Tournament.DoesNotExist:
+		return JsonResponse({'status': 'error', 'message': 'Tournament not found'})
+
 def leave_tournament(request, user_id):
 	if request.method == 'POST':
 		try:
@@ -20,26 +31,17 @@ def leave_tournament(request, user_id):
 			user = User.objects.get(idName=user_id)
 			tournament = Tournament.objects.get(id=tournament_id)
 			tournament_players = TournamentPlayer.objects.filter(user=user, tournament=tournament)
-			#get first tournament_player
 			tournament_player = tournament_players.first()
 			tournament_player.count -= 1
 			tournament.count -= 1	
-			# Save the updated objects
 			tournament_player.save()
 			tournament.save()
-
-			# Reload the objects from the database
 			tournament_player.refresh_from_db()
 			tournament.refresh_from_db()
-
-			# Delete the tournament_player object if count is 0
 			if tournament_player.count == 0:
 				tournament_player.delete()
-
-			# Delete the tournament object if count is 0
 			if tournament.count == 0:
 				tournament.delete()
-
 			return JsonResponse({'status': 'success', 'message': 'Left tournament successfully'})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
@@ -74,7 +76,7 @@ def join_tournament(request, user_id):
 			tournament.count += 1
 			tournament_player.save()
 			tournament.save()
-			return JsonResponse({'status': 'success', 'message': 'Joined tournament successfully'})
+			return JsonResponse({'status': 'success', 'message': 'Joined tournament successfully', 'tournament_id': tournament.id})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
 	else:
