@@ -36,8 +36,6 @@ def leave_tournament(request, user_id):
 			tournament.count -= 1	
 			tournament_player.save()
 			tournament.save()
-			tournament_player.refresh_from_db()
-			tournament.refresh_from_db()
 			if tournament_player.count == 0:
 				tournament_player.delete()
 			if tournament.count == 0:

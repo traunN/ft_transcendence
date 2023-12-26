@@ -318,10 +318,8 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	async def tournament_updated(self, event):
 		try:
-			tournament_id = event['tournament_id']
 			await self.send(text_data=json.dumps({
 				'type': 'tournament_updated',
-				'tournament_id': tournament_id,
 			}))
 		except Exception as e:
 			print(e)
@@ -333,23 +331,63 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 		if 'type' in text_data_json:
 			if text_data_json['type'] == 'tournament_updated':
 				await self.channel_layer.group_send(
-					'tournament_lobby',
+					'tournament_page',
 					{
 						'type': 'tournament_updated',
-						'tournament_id': text_data_json['tournament_id'],
 					}
 				)
 
 	
 	async def connect(self):
 		await self.channel_layer.group_add(
-			'tournament_lobby',
+			'tournament_page',
 			self.channel_name
 		)
 		await self.accept()
 	
 	async def disconnect(self, close_code):
 		await self.channel_layer.group_discard(
-			'tournament_lobby',
+			'tournament_page',
+			self.channel_name
+		)
+
+
+class TournamentLobbyConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+	async def tournament_lobby_updated(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'tournament_lobby_updated',
+			}))
+		except Exception as e:
+			print(e)
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		self.logger.debug(f"Received message: {text_data}")
+		text_data_json = json.loads(text_data)
+		if 'type' in text_data_json and 'tournament_id' in text_data_json:
+			if text_data_json['type'] == 'tournament_lobby_updated':
+				await self.channel_layer.group_send(
+					f'tournament_lobby_{text_data_json["tournament_id"]}',
+					{
+						'type': 'tournament_lobby_updated',
+					}
+				)
+		else:
+			self.logger.error("Invalid message received. 'type' or 'tournament_id' missing.")
+
+	
+	async def connect(self):
+		self.tournament_id = self.scope['url_route']['kwargs']['tournament_id']
+		await self.channel_layer.group_add(
+			f'tournament_lobby_{self.tournament_id}',
+			self.channel_name
+		)
+		await self.accept()
+	
+	async def disconnect(self, close_code):
+		await self.channel_layer.group_discard(
+			f'tournament_lobby_{self.tournament_id}',
 			self.channel_name
 		)

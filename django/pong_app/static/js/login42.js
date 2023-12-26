@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var code = new URLSearchParams(window.location.search).get('code');
 	if (code) {
 		var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
-		var clientSecret = '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';
+		var clientSecret = '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';
 		var redirectUri = 'http://localhost:8000/homePage/';
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', 'https://api.intra.42.fr/oauth/token', true);

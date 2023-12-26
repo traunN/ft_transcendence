@@ -5,36 +5,50 @@ document.addEventListener('DOMContentLoaded', function () {
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
 
-	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+	console.log('tournamentId: ' + tournamentId);
 
+	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+
+	const lobbysocket = new WebSocket('ws://' + window.location.host + '/ws/tournament_lobby/' + tournamentId + '/');
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}
-	// def get_players_in_tournament(request, tournament_id):
-	// 	tournament = Tournament.objects.get(id=tournament_id)
-	// 	players = tournament.players.all()
-	// 	players_json = serializers.serialize('json', players)
-	// 	return JsonResponse(players_json, safe=False)
+	
+	lobbysocket.addEventListener('open', function (event) {
+		console.log('Connected to websocket');
+		lobbysocket.send(JSON.stringify({
+			'type': 'tournament_lobby_updated',
+			'tournament_id': tournamentId,
+		}));	
+	});
+	
+	lobbysocket.onmessage = function(event) {
+		var data = JSON.parse(event.data);
+		console.log(data);
+		if (data.type === 'tournament_lobby_updated') {
+			updatePlayersList();
+		}
+	};
 
-
-	fetch('/get_players_in_tournament/' + tournamentId + '/')
-		.then(response => response.json())
-		.then(players => {
-			// parse fields from json
-			var players = JSON.parse(players);
-			// get all players one by one from the list
-			for (var i = 0; i < players.length; i++) {
-				var player = players[i];
-				// create a new list item
-				var li = document.createElement('li');
-				// set the list item's text to the player's login
-				li.innerHTML = player.fields.login;
-				console.log(player.fields.login);
-				// append the list item to the list
-				playersList.appendChild(li);
-			}
-		})
-		.catch(error => console.error('Error:', error));
+	function updatePlayersList() {
+		while (playersList.firstChild) {
+			playersList.removeChild(playersList.firstChild);
+		}
+		fetch('/get_players_in_tournament/' + tournamentId + '/')
+			.then(response => response.json())
+			.then(data => {
+				var players = data.players; // Get the array from the response
+				for (var i = 0; i < players.length; i++) {
+					var player = players[i];
+					var li = document.createElement('li');
+					li.innerHTML = player.login;
+					playersList.appendChild(li);
+				}
+			})
+			.catch(error => console.error('Error:', error));
+		// log lobbysocket
+		console.log(lobbysocket);
+	}
 
 	window.onbeforeunload = function () {
 		// Remove the user from the tournament
@@ -58,9 +72,14 @@ document.addEventListener('DOMContentLoaded', function () {
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
 					// Send a message to the tournament lobby group
-					if (isOpen(socket)) {
-						socket.send(JSON.stringify({
+					if (isOpen(pagesocket)) {
+						pagesocket.send(JSON.stringify({
 							'type': 'tournament_updated',
+						}));
+					}
+					if (isOpen(lobbysocket)) {
+						lobbysocket.send(JSON.stringify({
+							'type': 'tournament_lobby_updated',
 							'tournament_id': tournamentId,
 						}));
 					}
