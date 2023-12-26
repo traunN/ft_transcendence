@@ -15,6 +15,7 @@ class User(models.Model):
 	wins = models.IntegerField(default=0);
 	loses = models.IntegerField(default=0);
 	elo = models.IntegerField(default=0);
+	alias = models.CharField(max_length=50, default='');
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)

@@ -12,6 +12,20 @@ from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
 import json
 from django.db.models import Count
 
+
+def change_tournament_user_alias(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			user.alias = data['alias']
+			user.save()
+			return JsonResponse({'status': 'success', 'message': 'Changed tournament user alias successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 def get_players_in_tournament(request, tournament_id):
 	try:
 		tournament = Tournament.objects.get(id=tournament_id)
@@ -29,6 +43,8 @@ def leave_tournament(request, user_id):
 			data = json.loads(request.body.decode('utf-8'))
 			tournament_id = data['tournament_id']
 			user = User.objects.get(idName=user_id)
+			user.alias = ''
+			user.save()
 			tournament = Tournament.objects.get(id=tournament_id)
 			tournament_players = TournamentPlayer.objects.filter(user=user, tournament=tournament)
 			tournament_player = tournament_players.first()
