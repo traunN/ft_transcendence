@@ -4,14 +4,17 @@ from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from pong_app.models import User
 from django.http import JsonResponse
-from django.core import serializers
 from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
 from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
+import logging
 import json
 from django.db.models import Count
-
+import random
+import string
+import faker
+from django.http import HttpResponse
 
 def change_tournament_user_alias(request, user_id):
 	if request.method == 'POST':
@@ -46,8 +49,8 @@ def leave_tournament(request, user_id):
 			user.alias = ''
 			user.save()
 			tournament = Tournament.objects.get(id=tournament_id)
-			tournament_players = TournamentPlayer.objects.filter(user=user, tournament=tournament)
-			tournament_player = tournament_players.first()
+			#get first tournament player matching user and tournament
+			tournament_player = TournamentPlayer.objects.get(user=user, tournament=tournament)
 			tournament_player.count -= 1
 			tournament.count -= 1	
 			tournament_player.save()
@@ -280,6 +283,65 @@ def save_user_profile(request):
 			return JsonResponse({'message': 'User profile saved successfully'}, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def save_test_user(request):
+	user_data = generate_random_user()
+
+	# Check if the user_data is valid
+	logging.error('Saving user: ' + str(user_data))
+
+	try:
+		user = User.objects.create(
+			login=user_data['login'],
+			email=user_data['email'],
+			firstName=user_data['firstName'],
+			lastName=user_data['lastName'],
+			campus=user_data['campus'],
+			level=user_data['level'],
+			wallet=user_data['wallet'],
+			correctionPoint=user_data['correctionPoint'],
+			location=user_data['location'],
+			idName=user_data['idName'],
+			image=user_data['image']
+		)
+	except Exception as e:
+		import traceback
+		logging.error(traceback.format_exc())
+		return HttpResponse(str(e), status=500)
+
+
+	user_dict = model_to_dict(user)
+	user_dict['image'] = str(user_dict['image'])
+	user_json = json.dumps(user_dict)
+	return HttpResponse(user_json, content_type='application/json')
+
+def generate_random_user():
+	fake = faker.Faker()
+	login = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+	email = fake.email()
+	firstName = fake.first_name()
+	lastName = fake.last_name()
+	campus = random.choice(['Campus1', 'Campus2', 'Campus3'])
+	level = random.randint(1, 10)
+	wallet = round(random.uniform(10, 100), 2)
+	correctionPoint = random.randint(0, 10)
+	location = fake.city()
+	idName = ''.join(random.choices(string.digits, k=10))
+	image = 'https://cdn.intra.42.fr/users/5b610039b4ad44fb01cb2e6c530534f9/ntraun.jpg'
+	return {
+		'login': login,
+		'email': email,
+		'firstName': firstName,
+		'lastName': lastName,
+		'campus': campus,
+		'level': level,
+		'wallet': wallet,
+		'correctionPoint': correctionPoint,
+		'location': location,
+		'idName': idName,
+		'image': image
+	}
+
 
 def get_user(request, user_id):
 	try:

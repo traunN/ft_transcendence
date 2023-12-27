@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	var userId = user.id;
+	console.log('userId: ' + userId);
 	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {

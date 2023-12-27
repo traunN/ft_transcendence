@@ -20,7 +20,15 @@ document.addEventListener('DOMContentLoaded', function () {
 		isLogged = true;
 		loginLogout.innerHTML = 'Logout';
 		userName.innerHTML = user.login;
-		userImage.src = user.image.link;
+		if (user && user.image) {
+			// check if user image is an object or a string
+			if (typeof user.image === 'object')
+			{
+				userImage.src = user.image.link;
+			}
+			else
+				userImage.src = user.image;
+		}
 		userImage.style.display = 'block';
 	}
 	else {
