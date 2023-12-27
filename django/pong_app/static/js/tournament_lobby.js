@@ -179,6 +179,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							'tournament_id': tournamentId,
 						}));
 					}
+					if (isOpen(pagesocket)) {
+						pagesocket.close();
+					}
+					if (isOpen(lobbysocket)) {
+						lobbysocket.close();
+					}
 					history.back();
 				}
 				else {
@@ -191,12 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	window.addEventListener('beforeunload', function (event) {
-		if (isOpen(pagesocket)) {
-			pagesocket.close();
-		}
-		if (isOpen(lobbysocket)) {
-			lobbysocket.close();
-		}
+		
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 
@@ -228,6 +229,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							'tournament_id': tournamentId,
 						}));
 					}
+					if (isOpen(pagesocket)) {
+						pagesocket.close();
+					}
+					if (isOpen(lobbysocket)) {
+						lobbysocket.close();
+					}
 					history.back();
 				}
 				else {
@@ -236,6 +243,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			})
 			.catch(error => console.error(error));
+
+		
 	 });
 	
 });
