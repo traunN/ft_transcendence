@@ -29,43 +29,106 @@ document.addEventListener('DOMContentLoaded', function () {
 	};
 
 	function updatePlayersList() {
+		// Clear the current list
 		while (playersList.firstChild) {
 			playersList.removeChild(playersList.firstChild);
 		}
-		return fetch('/get_players_in_tournament/' + tournamentId + '/')
-			.then(response => response.json())
-			.then(data => {
+	 
+		// Use AJAX to get the updated list of players
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", '/get_players_in_tournament/' + tournamentId + '/', true);
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+				var data = JSON.parse(xhr.responseText);
 				var players = data.players;
+				
+				// Convert the players array to a Set to remove duplicates, then convert it back to an array
 				var uniquePlayers = Array.from(new Set(players.map(player => JSON.stringify(player)))).map(player => JSON.parse(player));
+				
 				for (var i = 0; i < uniquePlayers.length; i++) {
-					var player = players[i];
+					var player = uniquePlayers[i];
 					var li = document.createElement('li');
 					var readyStatusIndicator = document.createElement('span');
 					readyStatusIndicator.className = 'readyStatusIndicator';
 					if (player.is_ready) {
-						readyStatusIndicator.style.backgroundColor = '#00e500';
+					   readyStatusIndicator.style.backgroundColor = '#00e500';
 					} else {
-						readyStatusIndicator.style.backgroundColor = 'red';
+					   readyStatusIndicator.style.backgroundColor = 'red';
 					}
 					li.appendChild(readyStatusIndicator);
 					li.innerHTML += ' ' + player.login + ' <span class="aliasSpan">' + player.alias + '</span>';
 					playersList.appendChild(li);
 				}
-				document.getElementById('PlayerCount').innerHTML = 'Players: ' + players.length + ' / 4';
-				return players;
-			})
-			.catch(error => console.error('Error:', error));
-	}
-	
-	document.getElementById('startTournamentBtn').addEventListener('click', function () {
-		updatePlayersList().then(players => {
-			if (players.every(player => player.is_ready) && players.length == 4) {
-				console.log('Start tournament');
-			} else {
-				console.log('Wait for everyone to be ready');
+				document.getElementById('PlayerCount').innerHTML = 'Players: ' + uniquePlayers.length + ' / 4';
 			}
-		});
+		};
+		xhr.send();
+	}
+
+
+	document.getElementById('startTournamentBtn').addEventListener('click', function () {
+		updatePlayersList();
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", '/get_players_in_tournament/' + tournamentId + '/', true);
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+				var data = JSON.parse(xhr.responseText);
+				var players = data.players;
+				var uniquePlayers = Array.from(new Set(players.map(player => JSON.stringify(player)))).map(player => JSON.parse(player));
+				var allReady = true;
+				if (uniquePlayers.length === 4) {
+					for (var i = 0; i < uniquePlayers.length; i++) {
+						if (!uniquePlayers[i].is_ready) {
+							allReady = false;
+							break;
+						}
+					}
+					if (allReady) {
+						var tournamentId = document.getElementById('tournamentId').value;
+						const formData = new FormData();
+						formData.append('tournament_id', tournamentId);
+
+						fetch('/start_tournament/' + user.id + '/', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'X-CSRFToken': csrfToken,
+							},
+							body: JSON.stringify(Object.fromEntries(formData))
+						})
+							.then(response => response.text())
+							.then(data => {
+								console.log(data);
+								var response = JSON.parse(data);
+								if (response.status === 'success') {
+									// Send a message to the tournament lobby group
+									if (isOpen(lobbysocket)) {
+										lobbysocket.send(JSON.stringify({
+											'type': 'tournament_lobby_updated',
+											'tournament_id': tournamentId,
+										}));
+									}
+									window.location.href = '/tournament/' + tournamentId;
+								}
+								else {
+									console.log('Error starting tournament');
+									console.log(response);
+								}
+							})
+							.catch(error => console.error(error));
+					}
+					else {
+						displayError('All players must be ready to start the tournament');
+					}
+				}
+				else {
+					displayError('There must be 4 players to start the tournament');
+				}
+			}
+		};
+		xhr.send();
 	});
+
 
 	aliasInput.addEventListener('change', function (event) {
 		var alias = aliasInput.value;
@@ -104,12 +167,23 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => console.error(error));
 	});
 
+	function displayError(message) {
+		var errorElement = document.getElementById('errorMessage');
+		errorElement.textContent = message;
+		errorElement.classList.remove('hide');
+		errorElement.classList.add('error');
+		setTimeout(function() {
+			errorElement.classList.add('hide');
+		}, 5000);
+	}
+
+
 	function changePlayerReadyStatus() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 		var alias = document.getElementById('aliasInput').value;
 		if (!alias) {
-			console.log('Please enter an alias');
+			displayError('Please enter an alias');
 		}
 		const formData = new FormData();
 		formData.append('alias', alias);
@@ -197,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	window.addEventListener('beforeunload', function (event) {
-		
+
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 
@@ -244,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error(error));
 
-		
-	 });
-	
+
+	});
+
 });

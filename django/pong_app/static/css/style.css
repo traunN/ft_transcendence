@@ -19,7 +19,7 @@ body {
 }
 
 .board {
-		position: relative;
+	position: relative;
 	width: 800px;
 	height: 600px;
 	border: 1px solid #fff;
@@ -68,7 +68,7 @@ body {
 	/* You can adjust the width as needed */
 	background-color: #fff;
 	position: absolute;
-	top : 50%;
+	top: 50%;
 	transform: translateY(-50%);
 }
 
@@ -132,7 +132,7 @@ body {
 	background-image:
 		linear-gradient(rgba(0, 0, 0, 0.7),
 			rgba(0, 0, 0, 0.5)),
-		 url('https://wallpapercave.com/wp/wp3850584.jpg');
+		url('https://wallpapercave.com/wp/wp3850584.jpg');
 	background-repeat: no-repeat;
 	background-size: cover;
 }
@@ -161,10 +161,10 @@ input[type="submit"] {
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
-	border-radius : 5px;
+	border-radius: 5px;
 	font-size: 16px;
 	margin: 4px 8px;
-	cursor: pointer; 
+	cursor: pointer;
 }
 
 .container {
@@ -409,7 +409,7 @@ tr {
 	background-color: #f7ff19;
 	color: #000;
 	padding: 10px 20px;
-	width : auto;
+	width: auto;
 	border: none;
 	border-radius: 5px;
 	cursor: pointer;
@@ -421,11 +421,13 @@ tr {
 	transform: scale(1.1);
 }
 
-#create-tournament-form button[type="submit"], .button-style {
+#create-tournament-form button[type="submit"],
+.button-style {
 	float: right;
 }
 
-#tournament-list, #create-tournament-form {
+#tournament-list,
+#create-tournament-form {
 	margin-top: -300px;
 }
 
@@ -443,7 +445,8 @@ tr {
 	background-color: #323739;
 }
 
-#tournament-list th, #tournament-list td {
+#tournament-list th,
+#tournament-list td {
 	padding: 15px;
 	text-align: left;
 }
@@ -479,12 +482,12 @@ tr {
 	background-color: #151718;
 	border: 1px solid #ccc;
 	padding: 10px;
-	box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-	border-radius : 5px;
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+	border-radius: 5px;
 	justify-content: start;
 	align-items: left;
 	display: flex;
-	align-items : center;
+	align-items: center;
 }
 
 #playerList li:hover {
@@ -495,6 +498,14 @@ tr {
 	color: #f7ff19;
 	font-weight: bold;
 	margin-left: 10px;
- }
- 
+}
 
+.error {
+	color: red;
+	transition: opacity 2s linear;
+	opacity: 1;
+}
+
+.error.hide {
+	opacity: 0;
+}
