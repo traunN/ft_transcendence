@@ -460,3 +460,41 @@ tr {
 #tournament-list tbody tr {
 	background-color: #151718;
 }
+
+.readyStatusIndicator {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	display: inline-block;
+	margin-right: 10px;
+}
+
+#playerList {
+	display: grid;
+	grid-template-columns: repeat(1, 1fr);
+	gap: 10px;
+}
+
+#playerList li {
+	background-color: #151718;
+	border: 1px solid #ccc;
+	padding: 10px;
+	box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+	border-radius : 5px;
+	justify-content: start;
+	align-items: left;
+	display: flex;
+	align-items : center;
+}
+
+#playerList li:hover {
+	background-color: #090801;
+}
+
+.aliasSpan {
+	color: #f7ff19;
+	font-weight: bold;
+	margin-left: 10px;
+ }
+ 
+

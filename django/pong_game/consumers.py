@@ -12,15 +12,15 @@ import random
 class GameConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	ball_position = {'x': 0, 'y': 0}
-	ball_speed_x = 2.5
-	ball_speed_y = 2.5
+	ball_speed_x = 5
+	ball_speed_y = 5
 	ball_radius = 10
 	paddle1_position = {'x': 0, 'y': 0}
 	paddle2_position = {'x': 0, 'y': 0}
 	normalized_relative_intersect_y = 0
 	inverted_normalized_relative_intersect_y = 0
-	bounce_angle = 0
-	max_bounce_angle = 0
+	bounce_angle = 4
+	max_bounce_angle = 4
 	game_room = None
 	isGameRunning = True
 	connected_users = 0
@@ -173,15 +173,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 				if self.ball_position['x'] - self.ball_radius <= 0:
 					self.score2 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-2.5, 2.5])
-					self.ball_speed_y = random.choice([-2.5, 2.5])
+					self.ball_speed_x = random.choice([-5, 5])
+					self.ball_speed_y = random.choice([-5, 5])
 					self.game_room.score2 += 1
 					await sync_to_async(self.game_room.save)()
 				elif self.ball_position['x'] + self.ball_radius >= 800:
 					self.score1 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-2.5, 2.5])
-					self.ball_speed_y = random.choice([-2.5, 2.5])
+					self.ball_speed_x = random.choice([-5, 5])
+					self.ball_speed_y = random.choice([-5, 5])
 					self.game_room.score1 += 1
 					await sync_to_async(self.game_room.save)()
 
@@ -211,7 +211,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 					self.normalized_relative_intersect_y = self.relative_intersect_y / 50
 					self.bounce_angle = self.normalized_relative_intersect_y * self.max_bounce_angle
 					self.ball_speed_x *= -1
-					self.ball_speed_y = math.sin(self.bounce_angle) * 2
+					self.ball_speed_y = math.sin(self.bounce_angle) * 4
 				if (
 					paddle2_positions[0] - 20 <= self.ball_position['x'] <= paddle2_positions[0] + 20 and
 					paddle2_positions[1] - 50 - self.ball_radius <= self.ball_position['y'] <= paddle2_positions[1] + 50
@@ -220,10 +220,10 @@ class GameConsumer(AsyncWebsocketConsumer):
 					self.normalized_relative_intersect_y = self.relative_intersect_y / 50
 					self.bounce_angle = self.normalized_relative_intersect_y * self.max_bounce_angle
 					self.ball_speed_x *= -1
-					self.ball_speed_y = math.sin(self.bounce_angle) * 2
+					self.ball_speed_y = math.sin(self.bounce_angle) * 4
 
 				await self.ball_update({'ball_position': self.ball_position})
-				await asyncio.sleep(1 / 120)
+				await asyncio.sleep(1 / 60)
 		except Exception as e:
 			self.logger.error(f"An error occurred while running the game loop: {e}")
 
@@ -297,11 +297,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 					'message': message
 				}
 			)
-	# Receive message from room group
 	async def game_message(self, event):
 		message = event['message']
-
-		# Send message to WebSocket
 		await self.send(text_data=json.dumps({
 			'message': message,
 			'ball_position': event['ball_position'] if 'ball_position' in event else '',

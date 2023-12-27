@@ -57,5 +57,6 @@ class Tournament(models.Model):
 
 class TournamentPlayer(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	is_ready = models.BooleanField(default=False)
 	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)

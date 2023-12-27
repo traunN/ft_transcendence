@@ -32,4 +32,5 @@ urlpatterns = [
 	path('leave_tournament/<int:user_id>/', views.leave_tournament, name='leave_tournament'),
 	path('get_players_in_tournament/<int:tournament_id>/', views.get_players_in_tournament, name='get_players_in_tournament'),
 	path('change_tournament_user_alias/<int:user_id>/', views.change_tournament_user_alias, name='change_tournament_user_alias'),
+	path('set_player_ready/', views.set_player_ready, name='set_player_ready'),
 ]

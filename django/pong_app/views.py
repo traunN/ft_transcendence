@@ -16,6 +16,25 @@ import string
 import faker
 from django.http import HttpResponse
 
+def set_player_ready(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=data['user_id'])
+			tournament = Tournament.objects.get(id=data['tournament_id'])
+			player = TournamentPlayer.objects.get(user=user, tournament=tournament)
+			if user.alias != '':
+				player.is_ready = True
+			if user.alias == '':
+				player.is_ready = False
+			player.save()
+			return JsonResponse({'status': 'success', 'message': 'Player set as ready successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+
 def change_tournament_user_alias(request, user_id):
 	if request.method == 'POST':
 		try:
@@ -30,15 +49,18 @@ def change_tournament_user_alias(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def get_players_in_tournament(request, tournament_id):
-	try:
-		tournament = Tournament.objects.get(id=tournament_id)
-		players = tournament.players.all()
-		players_dict = [model_to_dict(player) for player in players]
-		for player_dict in players_dict:
-			player_dict['image'] = str(player_dict['image'])
-		return JsonResponse({'players': players_dict}, safe=False)
-	except Tournament.DoesNotExist:
-		return JsonResponse({'status': 'error', 'message': 'Tournament not found'})
+	tournament = Tournament.objects.get(id=tournament_id)
+	players = TournamentPlayer.objects.filter(tournament=tournament)
+	player_data = []
+	for player in players:
+		player_data.append({
+			'id': player.user.id,
+			'login': player.user.login,
+			'alias': player.user.alias,
+			'is_ready': player.is_ready  # Include 'is_ready' status
+		})
+	return JsonResponse({'players': player_data})
+
 
 def leave_tournament(request, user_id):
 	if request.method == 'POST':

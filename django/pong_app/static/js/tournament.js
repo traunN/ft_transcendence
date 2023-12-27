@@ -7,12 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}
-	socket.addEventListener('open', function (event) {
-		console.log('Connected to websocket');
-	});
-	socket.addEventListener('close', function (event) {
-		console.log('Disconnected from websocket');
-	});
 	socket.onmessage = function (e) {
 		var data = JSON.parse(e.data);
 		if (data.type === 'tournament_updated') {
@@ -21,12 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	};
 	const form = document.getElementById('create-tournament-form');
-
-
-	// Listen for messages
-	socket.addEventListener("message", (event) => {
-		console.log("Message from server ", event.data);
-	});
 
 	// Add an event listener for the form submission
 	form.addEventListener('submit', function (event) {
@@ -63,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (isOpen(socket)) {
 						socket.send(JSON.stringify({
 							'type': 'tournament_updated',
-							'tournament_id': response.tournament_id,
 						}));
 					}
 					window.location.href = '/tournament_lobby/' + response.tournament_id;
@@ -104,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (isOpen(socket)) {
 						socket.send(JSON.stringify({
 							'type': 'tournament_updated',
-							'tournament_id': response.tournament_id,
 						}));
 					}
 					window.location.href = '/tournament_lobby/' + response.tournament_id;

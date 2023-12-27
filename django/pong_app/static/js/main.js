@@ -27,9 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	let user = JSON.parse(sessionStorage.getItem('user'));
 	if (user.id) {
 		userId = user.id;
-		console.log('userId:', userId);
 	}
-
 	const keys = {
 		ArrowUp: false,
 		ArrowDown: false,
@@ -52,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		const ballPositionObj = JSON.parse(updated_ball_position);
 		const x = ballPositionObj.x;
 		const y = ballPositionObj.y;
-		const newX = x + (x - previousX) * 0.1;
-		const newY = y + (y - previousY) * 0.1;
+		const newX = x + (x - previousX) * interpolationFactor;
+		const newY = y + (y - previousY) * interpolationFactor;
 		previousX = x;
 		previousY = y;
 		ball.style.left = `${newX}px`;
@@ -74,23 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		paddle2.style.top = `${y}px`;
 	}
 	
-	function resetRound() {
-		// Reset ball position
-		ball.style.left = `${board.clientWidth / 2 - ball.clientWidth / 2}px`;
-		ball.style.top = `${board.clientHeight / 2 - ball.clientHeight / 2}px`;
-		if (Math.random() > 0.5) {
-			ballSpeedX = 4;
-		}
-		else {
-			ballSpeedX = -4;
-		}
-		if (Math.random() > 0.5) {
-			ballSpeedY = 4;
-		}
-		else {
-			ballSpeedY = -4;
-		}
-	}
 
 	document.getElementById("startGameBtn").addEventListener("click", startGame);
 
@@ -162,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (messageData.message === 'start_game') {
 				const initialState = messageData.initial_state;
 				gameTimer();
-				gameLoop(initialState);
+				setInterval(gameLoop, 1000 / 60, initialState);
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
@@ -175,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			else if (messageData.message === 'paddle2_update') {
 				const updated_paddle_position = messageData.paddle2_position;
 				update_paddle2_position(updated_paddle_position);
+
 			}
 			else if (messageData.message === 'score_update') {
 				const score1 = messageData.score1;
@@ -201,9 +183,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				const gameState = messageData.message;
 			}
 		};
-		update_paddles();
 		
-
+		update_paddles();
 		socket.onclose = function (event) {
 			isGameRunning = false;
 		};
@@ -272,7 +253,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						console.log('Failed to create socket');
 						return;
 					}
-					console.log('socket:', socket);
 					if (data.start_game) {
 						console.log('Starting the game...');
 						console.log('Joined room name:', data.room_name);
@@ -363,5 +343,4 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.error('There has been a problem with your fetch operation:', error);
 			});
 	}
-	resetRound();
 });
