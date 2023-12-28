@@ -196,11 +196,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 				)
 
 				if self.ball_position['x'] - self.ball_radius <= 0 or self.ball_position['x'] + self.ball_radius >= 800:
-					self.logger.error(f'collision')
 					self.ball_speed_x *= -1
 
 				if self.ball_position['y'] - self.ball_radius <= 0 or self.ball_position['y'] + self.ball_radius >= 600:
-					self.logger.error(f'collision')
 					self.ball_speed_y *= -1
 
 				if (
@@ -268,7 +266,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
 		elif message == 'start_game':
 			self.game_room = await self.get_game_room()	
-			self.logger.debug('start_game')
 			self.ball_position = {'x': 400, 'y': 300}
 			self.paddle1_position = {'x': 10, 'y': 300}
 			self.paddle2_position = {'x': 790, 'y': 300}
@@ -323,7 +320,6 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 
 	# Receive message from WebSocket
 	async def receive(self, text_data):
-		self.logger.debug(f"Received message: {text_data}")
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json:
 			if text_data_json['type'] == 'tournament_updated':
@@ -359,9 +355,18 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
+	async def tournament_lobby_game_started(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'tournament_lobby_game_started',
+				'room_name1': event['room_name1'],
+				'room_name2': event['room_name2'],
+			}))
+		except Exception as e:
+			print(e)
+
 	# Receive message from WebSocket
 	async def receive(self, text_data):
-		self.logger.debug(f"Received message: {text_data}")
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json and 'tournament_id' in text_data_json:
 			if text_data_json['type'] == 'tournament_lobby_updated':
@@ -371,10 +376,18 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 						'type': 'tournament_lobby_updated',
 					}
 				)
+			elif text_data_json['type'] == 'tournament_lobby_game_started':
+				await self.channel_layer.group_send(
+					f'tournament_lobby_{text_data_json["tournament_id"]}',
+					{
+						'type': 'tournament_lobby_game_started',
+						'room_name1': text_data_json['room_name1'],
+						'room_name2': text_data_json['room_name2'],
+					}
+				)
 		else:
 			self.logger.error("Invalid message received. 'type' or 'tournament_id' missing.")
 
-	
 	async def connect(self):
 		self.tournament_id = self.scope['url_route']['kwargs']['tournament_id']
 		await self.channel_layer.group_add(
@@ -388,3 +401,58 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 			f'tournament_lobby_{self.tournament_id}',
 			self.channel_name
 		)
+
+
+class TournamentGameConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+	connected_users = 0
+	tournament_id = None
+	room_name = None
+	room_group_name = None
+	game_room = None
+
+	async def connect(self):
+		#log tournament id and room name
+		self.logger.info(f"Connecting to tournament game with id '{self.scope['url_route']['kwargs']['tournament_id']}' and room name '{self.scope['url_route']['kwargs']['room_name']}'")
+		self.tournament_id = self.scope['url_route']['kwargs']['tournament_id']
+		self.room_name = self.scope['url_route']['kwargs']['room_name']
+		self.room_group_name = f'tournament_game_{self.tournament_id}_{self.room_name.replace("|", "-")}'
+		try:
+			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
+		except GameRoom.DoesNotExist:
+			self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
+			return
+		await self.channel_layer.group_add(
+			self.room_group_name,
+			self.channel_name
+		)
+		await self.accept()
+		self.connected_users += 1
+
+	async def disconnect(self, close_code):
+		# Leave room group
+		await self.channel_layer.group_discard(
+			self.room_group_name,	
+			self.channel_name
+		)
+		self.connected_users -= 1
+		if self.connected_users <= 0:
+			await sync_to_async(self.game_room.delete)()
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		text_data_json = json.loads(text_data)
+		message = text_data_json['message']
+		await self.channel_layer.group_send(
+			self.room_group_name,
+			{
+				'type': 'game_message',
+				'message': message
+			}
+		)
+	
+	async def game_message(self, event):
+		message = event['message']
+		await self.send(text_data=json.dumps({
+			'message': message,
+		}))

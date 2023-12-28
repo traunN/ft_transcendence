@@ -16,6 +16,7 @@ class User(models.Model):
 	loses = models.IntegerField(default=0);
 	elo = models.IntegerField(default=0);
 	alias = models.CharField(max_length=50, default='');
+	tournamentWins = models.IntegerField(default=0);
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)
@@ -60,3 +61,18 @@ class TournamentPlayer(models.Model):
 	is_ready = models.BooleanField(default=False)
 	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)
+
+class TournamentGame(models.Model):
+	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+	room = models.ForeignKey(GameRoom, on_delete=models.CASCADE)
+	@property
+	def users(self):
+		return [player.user for player in self.room.roomplayer_set.all()]
+	@property
+	def is_finished(self):
+		return self.room.gameState == 'finished'
+	@property
+	def winner(self):
+		if self.room.score1 > self.room.score2:
+			return self.users[0]
+		return self.users[1]

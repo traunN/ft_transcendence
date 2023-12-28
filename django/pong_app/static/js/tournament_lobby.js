@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
+	let gameStarted = false;
+	var roomName1;
+	var roomName2;
+	let is_in_room1 = false;
 
-
-	console.log('tournamentId: ' + tournamentId);
 
 	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
 
@@ -26,6 +28,65 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (data.type === 'tournament_lobby_updated') {
 			updatePlayersList();
 		}
+		else if (data.type === 'tournament_lobby_game_started') {
+			gameStarted = true;
+			console.log('Game started');
+			if (isOpen(pagesocket)) {
+				pagesocket.send(JSON.stringify({
+					'type': 'tournament_updated',
+				}));
+			}
+			// get room1 and room2 name
+			roomName1 = data.room_name1;
+			roomName2 = data.room_name2;
+			if (isOpen(pagesocket)) {
+				pagesocket.close();
+			}
+			if (isOpen(lobbysocket)) {
+				lobbysocket.close();
+			}
+			if (user.id == roomName1.split('|')[0] || user.id == roomName1.split('|')[1])
+				is_in_room1 = true;
+			else
+				is_in_room1 = false;
+			
+			if (is_in_room1)
+			{
+				fetch('/create_tournament_game/' + tournamentId + '/' + roomName1 + '/')
+					.then(response => response.text())
+					.then(data => {
+						console.log(data);
+						var response = JSON.parse(data);
+						if (response.status === 'success') {
+							console.log('tournament game room created');
+							window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+						}
+						else {
+							console.log('Error creating tournament game room');
+							console.log(response);
+						}
+					})
+					.catch(error => console.error(error));
+			}
+			else
+			{
+				fetch('/create_tournament_game/' + tournamentId + '/' + roomName + '/')
+					.then(response => response.text())
+					.then(data => {
+						console.log(data);
+						var response = JSON.parse(data);
+						if (response.status === 'success') {
+							console.log('tournament game room created');
+							window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+						}
+						else {
+							console.log('Error creating tournament game room');
+							console.log(response);
+						}
+					})
+					.catch(error => console.error(error));
+			}
+		}
 	};
 
 	function updatePlayersList() {
@@ -33,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		while (playersList.firstChild) {
 			playersList.removeChild(playersList.firstChild);
 		}
-	 
 		// Use AJAX to get the updated list of players
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", '/get_players_in_tournament/' + tournamentId + '/', true);
@@ -65,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		xhr.send();
 	}
 
-
 	document.getElementById('startTournamentBtn').addEventListener('click', function () {
 		updatePlayersList();
 		var xhr = new XMLHttpRequest();
@@ -84,38 +143,17 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}
 					if (allReady) {
-						var tournamentId = document.getElementById('tournamentId').value;
-						const formData = new FormData();
-						formData.append('tournament_id', tournamentId);
-
-						fetch('/start_tournament/' + user.id + '/', {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-								'X-CSRFToken': csrfToken,
-							},
-							body: JSON.stringify(Object.fromEntries(formData))
-						})
-							.then(response => response.text())
-							.then(data => {
-								console.log(data);
-								var response = JSON.parse(data);
-								if (response.status === 'success') {
-									// Send a message to the tournament lobby group
-									if (isOpen(lobbysocket)) {
-										lobbysocket.send(JSON.stringify({
-											'type': 'tournament_lobby_updated',
-											'tournament_id': tournamentId,
-										}));
-									}
-									window.location.href = '/tournament/' + tournamentId;
-								}
-								else {
-									console.log('Error starting tournament');
-									console.log(response);
-								}
-							})
-							.catch(error => console.error(error));
+						gameStarted = true;
+						roomName1 = uniquePlayers[0].idName + '|' + uniquePlayers[1].idName;
+						roomName2 = uniquePlayers[2].idName + '|' + uniquePlayers[3].idName;
+						if (isOpen(lobbysocket)) {
+							lobbysocket.send(JSON.stringify({
+								'type': 'tournament_lobby_game_started',
+								'tournament_id': tournamentId,
+								'room_name1': roomName1,
+								'room_name2': roomName2,
+							}));
+						}
 					}
 					else {
 						displayError('All players must be ready to start the tournament');
@@ -222,9 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// leave button
 	document.getElementById('leaveTournamentBtn').addEventListener('click', function () {
-		var user = JSON.parse(sessionStorage.getItem('user'));
-		var tournamentId = document.getElementById('tournamentId').value;
-
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
 
@@ -259,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (isOpen(lobbysocket)) {
 						lobbysocket.close();
 					}
-					history.back();
+					window.location.href = '/tournament/';
 				}
 				else {
 					console.log('Error leaving tournament');
@@ -271,54 +306,50 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	window.addEventListener('beforeunload', function (event) {
-
-		var user = JSON.parse(sessionStorage.getItem('user'));
-		var tournamentId = document.getElementById('tournamentId').value;
-
-		const formData = new FormData();
-		formData.append('tournament_id', tournamentId);
-
-		fetch('/leave_tournament/' + user.id + '/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-			body: JSON.stringify(Object.fromEntries(formData))
-		})
-			.then(response => response.text())
-			.then(data => {
-				console.log(data);
-				var response = JSON.parse(data);
-				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
-					if (isOpen(pagesocket)) {
-						pagesocket.send(JSON.stringify({
-							'type': 'tournament_updated',
-						}));
-					}
-					if (isOpen(lobbysocket)) {
-						lobbysocket.send(JSON.stringify({
-							'type': 'tournament_lobby_updated',
-							'tournament_id': tournamentId,
-						}));
-					}
-					if (isOpen(pagesocket)) {
-						pagesocket.close();
-					}
-					if (isOpen(lobbysocket)) {
-						lobbysocket.close();
-					}
-					history.back();
-				}
-				else {
-					console.log('Error leaving tournament');
-					console.log(response);
-				}
+		if (!gameStarted){
+			const formData = new FormData();
+			formData.append('tournament_id', tournamentId);
+	
+			fetch('/leave_tournament/' + user.id + '/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			.catch(error => console.error(error));
-
-
+				.then(response => response.text())
+				.then(data => {
+					console.log(data);
+					var response = JSON.parse(data);
+					if (response.status === 'success') {
+						// Send a message to the tournament lobby group
+						if (isOpen(pagesocket)) {
+							pagesocket.send(JSON.stringify({
+								'type': 'tournament_updated',
+							}));
+						}
+						if (isOpen(lobbysocket)) {
+							lobbysocket.send(JSON.stringify({
+								'type': 'tournament_lobby_updated',
+								'tournament_id': tournamentId,
+							}));
+						}
+						if (isOpen(pagesocket)) {
+							pagesocket.close();
+						}
+						if (isOpen(lobbysocket)) {
+							lobbysocket.close();
+						}
+						window.location.href = '/tournament/';
+					}
+					else {
+						console.log('Error leaving tournament');
+						console.log(response);
+					}
+				})
+				.catch(error => console.error(error));
+		}
 	});
 
 });

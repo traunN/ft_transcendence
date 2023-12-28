@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
-from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
+from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, TournamentGame
 import logging
 import json
 from django.db.models import Count
@@ -15,6 +15,20 @@ import random
 import string
 import faker
 from django.http import HttpResponse
+
+def create_tournament_game(request, tournament_id, room_name):
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		room, created = GameRoom.objects.get_or_create(name=room_name)
+		room.ball_position = '0,0'
+		room.paddle1_position = '0,0'
+		room.paddle2_position = '0,0'
+		room.save();		
+		tournament_game = TournamentGame(tournament=tournament, room=room)
+		tournament_game.save()
+		return JsonResponse({'status': 'success', 'message': 'Tournament game created successfully'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def set_player_ready(request):
 	if request.method == 'POST':
@@ -56,11 +70,12 @@ def get_players_in_tournament(request, tournament_id):
 		player_data.append({
 			'id': player.user.id,
 			'login': player.user.login,
+			'idName': player.user.idName,
 			'alias': player.user.alias,
-			'is_ready': player.is_ready  # Include 'is_ready' status
+			'is_ready': player.is_ready
 		})
+	player_data.sort(key=lambda x: x['id'])
 	return JsonResponse({'players': player_data})
-
 
 def leave_tournament(request, user_id):
 	if request.method == 'POST':
@@ -258,6 +273,13 @@ def tournament_lobby(request, tournament_id):
 	except Tournament.DoesNotExist:
 		return render(request, 'tournament_lobby.html', {'tournament': None})
 
+def tournament_game(request, tournament_id, room_name):
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		return render(request, 'tournament_game.html', {'tournament': tournament, 'room_name': room_name})
+	except Tournament.DoesNotExist:
+		return render(request, 'tournament_game.html', {'tournament': None, 'room_name': room_name})
+
 def chat(request):
 	return render(request, 'chat.html')
 
@@ -309,7 +331,6 @@ def save_user_profile(request):
 def save_test_user(request):
 	user_data = generate_random_user()
 
-	# Check if the user_data is valid
 	logging.error('Saving user: ' + str(user_data))
 
 	try:
@@ -363,7 +384,6 @@ def generate_random_user():
 		'idName': idName,
 		'image': image
 	}
-
 
 def get_user(request, user_id):
 	try:

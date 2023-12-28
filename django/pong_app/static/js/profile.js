@@ -9,6 +9,9 @@ var userLevel = document.getElementById('levelProfile');
 var userWallet = document.getElementById('walletProfile');
 var userCorrectionPoint = document.getElementById('correctionPointProfile');
 var userLocation = document.getElementById('locationProfile');
+var userWins = document.getElementById('winsProfile');
+var userLoses = document.getElementById('losesProfile');
+var userTournamentWins = document.getElementById('tournamentWinsProfile');
 var searchUser = document.getElementById('searchUser');
 
 var user = JSON.parse(sessionStorage.getItem('user'));
@@ -46,6 +49,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			userWallet.textContent = 'Wallet: ' + data.user.wallet;
 			userCorrectionPoint.textContent = 'Correction point: ' + data.user.correctionPoint;
 			userLocation.textContent = 'Location: ' + data.user.location;
+			userWins.textContent = 'Wins: ' + data.user.wins;
+			userLoses.textContent = 'Loses: ' + data.user.loses;
+			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
 		})
 		.catch(error => {
@@ -82,6 +88,9 @@ searchUser.addEventListener('keypress', function (event) {
 				userWallet.textContent = 'Wallet: ' + data.user.wallet;
 				userCorrectionPoint.textContent = 'Correction point: ' + data.user.correctionPoint;
 				userLocation.textContent = 'Location: ' + data.user.location;
+				userWins.textContent = 'Wins: ' + data.user.wins;
+				userLoses.textContent = 'Loses: ' + data.user.loses;
+				userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 				userImage.src = data.user.image;
 			})
 			.catch(error => {

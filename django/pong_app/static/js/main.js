@@ -25,6 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	paddle2.classList.add(paddleSkin);
 	board.classList.add(boardSkin);
 	let user = JSON.parse(sessionStorage.getItem('user'));
+	if (!user) {
+		// change button text to please login
+		startGameBtn.textContent = 'Please login';
+		return;
+	}
+	else{
+		startGameBtn.textContent = 'Start Game';
+	}
 	if (user.id) {
 		userId = user.id;
 	}

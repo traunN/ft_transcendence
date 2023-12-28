@@ -3,25 +3,32 @@ document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament.js loaded');
 
 	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
-
+	const form = document.getElementById('create-tournament-form');
+	var user = JSON.parse(sessionStorage.getItem('user'));
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}
+
+	socket.onopen = function (e) {
+		refreshTournamentList();
+	};
+
 	socket.onmessage = function (e) {
 		var data = JSON.parse(e.data);
 		if (data.type === 'tournament_updated') {
 			// just refresh for other users
-			location.reload();
+			refreshTournamentList();
 		}
 	};
-	const form = document.getElementById('create-tournament-form');
 
 	// Add an event listener for the form submission
 	form.addEventListener('submit', function (event) {
 		event.preventDefault();
-
+		if (!user) {
+			alert('Please login');
+			return;
+		}
 		const formData = new FormData(form);
-		var user = JSON.parse(sessionStorage.getItem('user'));
 		formData.append('user_id', user.id);
 		formData.append('tournament_name', form.elements['tournament-name'].value);
 		// Convert FormData to plain JavaScript object
@@ -70,8 +77,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function joinTournament(tournamentId) {
+		if (!user) {
+			alert('Please login');
+			return;
+		}
 		const formData = new FormData();
-		var user = JSON.parse(sessionStorage.getItem('user'));
 		formData.append('tournament_id', tournamentId);
 
 		fetch('/join_tournament/' + user.id + '/', {
@@ -103,54 +113,59 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => console.error(error));
 	}
 
+	function refreshTournamentList() {
+		var table = document.getElementById('tournament-list');
+		var tbody = table.getElementsByTagName('tbody')[0];
+		tbody.innerHTML = '';
 
-	fetch('/available_tournaments/', {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': csrfToken,
-		},
-	})
-		.then(response => response.json())
-		.then(data => {
-			if (data && data.tournaments) {
-				var tournaments = data.tournaments;
-				var table = document.getElementById('tournament-list');
-				var tbody = table.getElementsByTagName('tbody')[0];
-				for (var i = 0; i < tournaments.length; i++) {
-					var row = tbody.insertRow(0);
-					var tournamentName = row.insertCell(0);
-					var tournamentStatus = row.insertCell(1);
-					var tournamentPlayerCount = row.insertCell(2);
-					var tournamentJoin = row.insertCell(3);
-					if (tournaments[i].name.length > 20) {
-						tournamentName.innerHTML = tournaments[i].name.substring(0, 20) + '...';
-					}
-					else {
-						tournamentName.innerHTML = tournaments[i].name;
-					}
-					tournamentStatus.innerHTML = tournaments[i].status;
-					tournamentPlayerCount.innerHTML = tournaments[i].count + '/4';
-					if (tournaments[i].status === 'available') {
-						tournamentJoin.innerHTML = '<button class="join-button-style button-style" data-tournament-id="' + tournaments[i].id + '">Join</button>';
-						tournamentStatus.style.color = '#00ff00';
-						var joinButtons = document.getElementsByClassName('join-button-style');
-						for (var j = 0; j < joinButtons.length; j++) {
-							joinButtons[j].addEventListener('click', function (e) {
-								var tournamentId = e.target.dataset.tournamentId;
-								joinTournament(tournamentId);
-							});
+		fetch('/available_tournaments/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+		})
+			.then(response => response.json())
+			.then(data => {
+				if (data && data.tournaments) {
+					var tournaments = data.tournaments;
+					var table = document.getElementById('tournament-list');
+					var tbody = table.getElementsByTagName('tbody')[0];
+					for (var i = 0; i < tournaments.length; i++) {
+						var row = tbody.insertRow(0);
+						var tournamentName = row.insertCell(0);
+						var tournamentStatus = row.insertCell(1);
+						var tournamentPlayerCount = row.insertCell(2);
+						var tournamentJoin = row.insertCell(3);
+						if (tournaments[i].name.length > 20) {
+							tournamentName.innerHTML = tournaments[i].name.substring(0, 20) + '...';
+						}
+						else {
+							tournamentName.innerHTML = tournaments[i].name;
+						}
+						tournamentStatus.innerHTML = tournaments[i].status;
+						tournamentPlayerCount.innerHTML = tournaments[i].count + '/4';
+						if (tournaments[i].status === 'available') {
+							tournamentJoin.innerHTML = '<button class="join-button-style button-style" data-tournament-id="' + tournaments[i].id + '">Join</button>';
+							tournamentStatus.style.color = '#00ff00';
+							var joinButtons = document.getElementsByClassName('join-button-style');
+							for (var j = 0; j < joinButtons.length; j++) {
+								joinButtons[j].addEventListener('click', function (e) {
+									var tournamentId = e.target.dataset.tournamentId;
+									joinTournament(tournamentId);
+								});
+							}
+						}
+						else {
+							tournamentStatus.style.color = 'red';
 						}
 					}
-					else {
-						tournamentStatus.style.color = 'red';
-					}
 				}
-			}
-			else {
-				console.log('no tournaments available');
-				console.log(data);
-			}
-		})
-		.catch(error => console.error(error));
+				else {
+					console.log('no tournaments available');
+					console.log(data);
+				}
+			})
+			.catch(error => console.error(error));
+	}
 });

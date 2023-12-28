@@ -20,6 +20,7 @@ urlpatterns = [
 	path('chat/', views.chat, name='chat'),
 	path('save_test_user/', views.save_test_user, name='save_test_user'),
 	path('tournament_lobby/<int:tournament_id>/', views.tournament_lobby, name='tournament_lobby'),
+	path('tournament_game/<int:tournament_id>/<str:room_name>/', views.tournament_game, name='tournament_game'),
 	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
 	path('get_user/<int:user_id>/', views.get_user, name='get_user'),
 	path('get_user_by_login/<str:login>/', views.get_user_by_login, name='get_user_by_login'),
@@ -33,4 +34,5 @@ urlpatterns = [
 	path('get_players_in_tournament/<int:tournament_id>/', views.get_players_in_tournament, name='get_players_in_tournament'),
 	path('change_tournament_user_alias/<int:user_id>/', views.change_tournament_user_alias, name='change_tournament_user_alias'),
 	path('set_player_ready/', views.set_player_ready, name='set_player_ready'),
+	path('create_tournament_game/<int:tournament_id>/<str:room_name>/', views.create_tournament_game, name='create_tournament_game'),
 ]
