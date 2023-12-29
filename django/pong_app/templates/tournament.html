@@ -9,32 +9,44 @@
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
+	<style>
+		body {
+			background-color: #202425;
+		}
+		.container {
+			position: relative;
+			top: 100px;
+		}
+	</style>
 </head>
 
 <body>
-	<div class="container-fluid">
-		<div class="row">
-			{% include 'topbar.html' %}
-			<div class="d-flex">
-			</div>
-			<div class="container">
-				<div class="row">
-					<div class="col">
-						<form id="create-tournament-form">
-							<input type="text" id="tournament-name" name="tournament-name" placeholder="Tournament Name" required>
-							<button type="submit" class="button-style">Create</button>
-						</form>
-						<table id="tournament-list">
-							<thead>
-								<tr>
-								<th>Name</th>
-								<th>Status</th>
-								<th>Players</th>
-								</tr>
-							</thead>
-							<tbody>
-							</tbody>
-						</table>
+	{% include 'topbar.html' %}
+	<div class="scrollable">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="container">
+					<div class="row">
+						<div class="col">
+							<h2 class="tournament-title">Create Your Own Tournament</h2>
+							<form id="create-tournament-form">
+								<input type="text" id="tournament-name" name="tournament-name"
+									placeholder="Tournament Name" required>
+								<button type="submit" class="button-style">Create</button>
+							</form>
+							<h2 class="tournament-title">Available Tournaments</h2>
+							<table id="tournament-list">
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Status</th>
+										<th>Players</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -47,5 +59,8 @@
 	<script type="text/javascript" src="../static/js/login42.js"></script>
 	<script type="text/javascript" src="../static/js/tournament.js"></script>
 </body>
+
+<footer class="myFooter">
+</footer>
 
 </html>

@@ -10,6 +10,9 @@
 	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
+		body {
+			background-color: #202425;
+		}
 		main {
 			display: flex;
 			justify-content: center;
@@ -19,36 +22,41 @@
 </head>
 
 <body>
-	<div class="container-fluid">
-		<div class="row">
-			{% include 'topbar.html' %}
-			<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
-				<div class="card custom-bg">
-					<img class="card-img-top" src="" alt="User Image" id="userImageProfile">
-					<div class="card-body">
-						<h1 class="card-title" id="usernameProfile"></h1>
-						<ul class="card-text" id="userInfo">
-							<li id="emailProfile"></li>
-							<li id="firstNameProfile"></li>
-							<li id="lastNameProfile"></li>
-							<li id="campusProfile"></li>
-							<li id="levelProfile"></li>
-							<li id="walletProfile"></li>
-							<li id="correctionPointProfile"></li>
-							<li id="locationProfile"></li>
-							<li id="winsProfile"></li>
-							<li id="losesProfile"></li>
-							<li id="tournamentWinsProfile"></li>
-						</ul>
+	{% include 'topbar.html' %}
+	<div class="scrollable">
+		<div class="container-fluid">
+			<div class="row">
+				<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
+					<div class="card custom-bg">
+						<img class="card-img-top" src="" alt="User Image" id="userImageProfile">
+						<div class="card-body">
+							<h1 class="card-title" id="usernameProfile"></h1>
+							<ul class="card-text" id="userInfo">
+								<li id="emailProfile"></li>
+								<li id="firstNameProfile"></li>
+								<li id="lastNameProfile"></li>
+								<li id="campusProfile"></li>
+								<li id="levelProfile"></li>
+								<li id="walletProfile"></li>
+								<li id="correctionPointProfile"></li>
+								<li id="locationProfile"></li>
+								<li id="winsProfile"></li>
+								<li id="losesProfile"></li>
+								<li id="tournamentWinsProfile"></li>
+							</ul>
+						</div>
+						<input type="search" id="searchUser" placeholder="Search for a user">
 					</div>
-					<input type="search" id="searchUser" placeholder="Search for a user">
-				 </div>
-			</main>
+				</main>
+			</div>
 		</div>
 	</div>
 	<script type="text/javascript" src="../static/js/setActive.js"></script>
 	<script type="text/javascript" src="../static/js/profile.js"></script>
 	<script type="text/javascript" src="../static/js/login42.js"></script>
 </body>
+
+<footer class="myFooter">
+</footer>
 
 </html>

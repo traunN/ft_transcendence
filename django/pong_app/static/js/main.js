@@ -1,6 +1,7 @@
 let isGameRunning = false;
 let socket;
 let userId;
+let justReload = false;
 
 document.addEventListener('DOMContentLoaded', function () {
 	const board = document.querySelector('.board');
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		startGameBtn.textContent = 'Please login';
 		return;
 	}
-	else{
+	else {
 		startGameBtn.textContent = 'Start Game';
 	}
 	if (user.id) {
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		targetPaddle2Y = y;
 		paddle2.style.top = `${y}px`;
 	}
-	
+
 
 	document.getElementById("startGameBtn").addEventListener("click", startGame);
 
@@ -131,15 +132,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
-	
+
 		// Interpolate the paddle positions for smoother movement
 		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
 		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
-	
+
 		// Update the paddle elements
 		paddle1.style.top = `${paddle1Y}px`;
 		paddle2.style.top = `${paddle2Y}px`;
-	
+
 		// Request the next animation frame
 		requestAnimationFrame(update_paddles);
 	}
@@ -187,11 +188,19 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 
 			}
+			else if (messageData.message === 'cancel_game_room') {
+				isGameRunning = false;
+				message.textContent = 'Player left the game';
+				setTimeout(function () {
+					location.reload();
+				}, 5000);
+				justReload = true;
+			}
 			else {
 				const gameState = messageData.message;
 			}
 		};
-		
+
 		update_paddles();
 		socket.onclose = function (event) {
 			isGameRunning = false;
@@ -283,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
 									gameState = messageData.message;
 									// gameLoop(gameState);
 								}
-								
+
 							};
 						};
 					} else {
@@ -326,29 +335,33 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!socket) {
 			return;
 		}
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-		})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
+		if (!justReload) {
+			fetch(`/cancel_room/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
 			})
-			.then(data => {
-				if (data.status === 'success') {
-					socket.close();
-					console.log('Successfully cancelled room');
-				} else {
-					console.log('Failed to cancel room', data);
-				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.status === 'success') {
+						socket.close();
+						console.log('Successfully cancelled room');
+					} else {
+						console.log('Failed to cancel room', data);
+					}
+				})
+				.catch(error => {
+					console.error('There has been a problem with your fetch operation:', error);
+				});
+			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+		}
+		socket.close();
 	}
 });

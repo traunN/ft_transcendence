@@ -2,23 +2,31 @@ document.addEventListener('DOMContentLoaded', function () {
 	console.log('settings.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 
-	// Get the saved values from sessionStorage
 	var savedBallSkin = sessionStorage.getItem('ballSkin');
 	var savedPaddleSkin = sessionStorage.getItem('paddleSkin');
 	var savedBoardSkin = sessionStorage.getItem('boardSkin');
+	const ball = document.querySelector('.ball');
+	const paddle = document.querySelector('.paddle');
+	const board = document.querySelector('.board');
 
-	// Set the selected options in the dropdowns to match the saved values
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
+
+
+	ball.classList.add(ballSkin);
+	paddle.classList.add(paddleSkin);
+	board.classList.add(boardSkin);
 	if (savedBallSkin) {
 		document.getElementById('ballSkin').value = savedBallSkin;
 	}
+	
 	if (savedPaddleSkin) {
 		document.getElementById('paddleSkin').value = savedPaddleSkin;
 	}
 	if (savedBoardSkin) {
 		document.getElementById('boardSkin').value = savedBoardSkin;
 	}
-
-
 
 	document.getElementById('skinSettingsForm').addEventListener('submit', function (e) {
 		e.preventDefault();
@@ -33,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		// Instead of using alert, update the dedicated area for the success message
 		document.getElementById('successMessage').style.display = 'block';
+		location.reload();
 	});
 	if (!user) {
 		document.getElementById('generateUser').style.display = 'block';
@@ -65,4 +74,5 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error('Error:', error));
 	}
+
 });

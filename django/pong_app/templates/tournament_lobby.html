@@ -10,6 +10,9 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
+		body {
+			background-color: #202425;
+		}
 		main {
 			left: -150px;
 		}
@@ -17,27 +20,31 @@
 </head>
 
 <body>
+	{% include 'topbar.html' %}
 	<input type="hidden" id="tournamentId" value="{{ tournament.id }}">
-	<div class="container-fluid">
-		<div class="row">
-			{% include 'topbar.html' %}
-			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-				</div>
-				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					<h1 class="h2" id="tournamentName">{{ tournament.name }}</h1>
-					<div class="btn-group mr-2">
-						<button id="startTournamentBtn" class="yellow-btn">Start</button>
-						<button id="leaveTournamentBtn" class="yellow-btn">Leave</button>
+	<div class="scrollable">
+		<div class="container-fluid">
+			<div class="row">
+				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+					<div
+						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					</div>
-					<h1 class="h2" id="PlayerCount">Players: {{ tournament.players.count }} / 4</h1>
-				</div>
-				<ul id="playerList"></ul>
-				<input type="text" id="aliasInput" placeholder="Enter your alias">
-				<button id="readyButton" class="yellow-btn">Ready</button>
-				<p id="errorMessage"></p>
+					<div
+						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+						<h1 class="h2" id="tournamentName">{{ tournament.name }}</h1>
+						<div class="btn-group mr-2">
+							<button id="startTournamentBtn" class="yellow-btn">Start</button>
+							<button id="leaveTournamentBtn" class="yellow-btn">Leave</button>
+						</div>
+						<h1 class="h2" id="PlayerCount">Players: {{ tournament.players.count }} / 4</h1>
+					</div>
+					<ul id="playerList"></ul>
+					<input type="text" id="aliasInput" placeholder="Enter your alias">
+					<button id="readyButton" class="yellow-btn">Ready</button>
+					<p id="errorMessage"></p>
+			</div>
+			</main>
 		</div>
-		</main>
 	</div>
 	</div>
 	<script>
@@ -47,5 +54,8 @@
 	<script type="text/javascript" src="{% static 'js/login42.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/tournament_lobby.js' %}"></script>
 </body>
+
+<footer class="myFooter">
+</footer>
 
 </html>

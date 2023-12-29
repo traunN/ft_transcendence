@@ -10,6 +10,9 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
+		body {
+			background-color: #202425;
+		}
 		main {
 			left: -150px;
 		}
@@ -17,23 +20,25 @@
 </head>
 
 <body>
+	{% include 'topbar.html' %}
 	<input type="hidden" id="tournamentId" value="{{ tournament.id }}">
 	<input type="hidden" id="roomName" value="{{ room_name }}">
-	<div class="container-fluid">
-		<div class="row">
-			{% include 'topbar.html' %}
-			<div class="board">
-				<div class="paddle paddle_1"></div>
-				<div class="paddle paddle_2"></div>
-				<div class="ball"></div>
-				<h1 class="message"></h1>
-				<div class="board d-flex align-items-center justify-content-center">
-					<button id="startGameBtn" class="straight-btn">Start</button>
+	<div class="scrollable">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="board">
+					<div class="paddle paddle_1"></div>
+					<div class="paddle paddle_2"></div>
+					<div class="ball"></div>
+					<h1 class="message"></h1>
+					<div class="board d-flex align-items-center justify-content-center">
+						<button id="startGameBtn" class="straight-btn">Start</button>
+					</div>
+					<h1 class="player_1_score">0</h1>
+					<h1 class="player_2_score">0</h1>
+					<h1 class="player_1_name">Player 1</h1>
+					<h1 class="player_2_name">Player 2</h1>
 				</div>
-				<h1 class="player_1_score">0</h1>
-				<h1 class="player_2_score">0</h1>
-				<h1 class="player_1_name">Player 1</h1>
-				<h1 class="player_2_name">Player 2</h1>
 			</div>
 		</div>
 	</div>
@@ -44,5 +49,8 @@
 	<script type="text/javascript" src="{% static 'js/login42.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/tournament_game.js' %}"></script>
 </body>
+
+<footer class="myFooter">
+</footer>
 
 </html>
