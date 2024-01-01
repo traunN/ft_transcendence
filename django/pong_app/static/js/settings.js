@@ -12,7 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
-
+	if (boardSkin === 'defaultSkin') {
+		board.classList.add('blackSkin');
+	} else {
+		board.classList.add(boardSkin);
+	}
 
 	document.getElementById('ballSkin').addEventListener('change', function () {
 		var ballSkin = this.value;

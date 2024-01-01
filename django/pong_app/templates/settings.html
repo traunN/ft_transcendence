@@ -54,6 +54,11 @@
 			align-items: center;
 			margin: 0 20px;
 		}
+		#ballSkin, #paddleSkin, #boardSkin {
+			line-height: 30px; /* Adjust this value to match the height of your select elements */
+			text-align: center;
+		}
+
 	</style>
 </head>
 
@@ -69,6 +74,7 @@
 							<select id="ballSkin">
 								<option value="skin1">Default</option>
 								<option value="skin2">Christmas</option>
+								<option value="skin3">Hallow</option>
 							</select>
 							<div class="ball-container">
 								<div class="ball"></div>
@@ -100,7 +106,7 @@
 						</div>
 					</form>
 				</div>
-					<div class="container">
+					<div class="container-flex">
 						<button id="generateUser" class="button-style">Generate User</button>
 						<button id="deleteUser" class="button-style">Delete User</button>
 					</div>

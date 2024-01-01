@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament id: ' + tournamentId);
 	console.log('room name: ' + roomName);
 
+	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+
 	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament_game/' + tournamentId + '/' + roomName + '/');
 
 	socket.onopen = function (event) {
@@ -56,7 +58,15 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.log(data);
 					var response = JSON.parse(data);
 					if (response.status === 'success') {
-						// redirect to tournament page
+						if (isOpen(pagesocket)) {
+							pagesocket.send(JSON.stringify({
+								'type': 'tournament_updated',
+							}));
+							pagesocket.close();
+						}
+						if (isOpen(socket)) {
+							socket.close();
+						}
 						window.location.href = '/tournament/';
 					}
 					else {

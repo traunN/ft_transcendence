@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.log(data);
 			}
 			var users = data.users;
+			users.sort((a, b) => b.wins - a.wins);
 			var table = document.getElementById('leaderboard');
 			for (var i = 0; i < users.length; i++) {
 				var row = table.insertRow(i + 1);

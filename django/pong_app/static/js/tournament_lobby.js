@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 			else
 			{
-				fetch('/create_tournament_game/' + tournamentId + '/' + roomName + '/')
+				fetch('/create_tournament_game/' + tournamentId + '/' + roomName2 + '/')
 					.then(response => response.text())
 					.then(data => {
 						console.log(data);
@@ -276,22 +276,18 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.log(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
 					if (isOpen(pagesocket)) {
 						pagesocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
+						pagesocket.close();
+
 					}
 					if (isOpen(lobbysocket)) {
 						lobbysocket.send(JSON.stringify({
 							'type': 'tournament_lobby_updated',
 							'tournament_id': tournamentId,
 						}));
-					}
-					if (isOpen(pagesocket)) {
-						pagesocket.close();
-					}
-					if (isOpen(lobbysocket)) {
 						lobbysocket.close();
 					}
 					window.location.href = '/tournament/';
