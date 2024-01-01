@@ -14,35 +14,52 @@ document.addEventListener('DOMContentLoaded', function () {
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 
 
+	document.getElementById('ballSkin').addEventListener('change', function () {
+		var ballSkin = this.value;
+		sessionStorage.setItem('ballSkin', ballSkin);
+		ball.className = '';
+		location.reload();
+	});
+
+	document.getElementById('paddleSkin').addEventListener('change', function () {
+		var paddleSkin = this.value;
+		sessionStorage.setItem('paddleSkin', paddleSkin);
+		paddle.className = '';
+		location.reload();
+	});
+
+	document.getElementById('boardSkin').addEventListener('change', function () {
+		var boardSkin = this.value;
+		sessionStorage.setItem('boardSkin', boardSkin);
+		board.className = '';
+		location.reload();
+	});
+
+
 	ball.classList.add(ballSkin);
 	paddle.classList.add(paddleSkin);
 	board.classList.add(boardSkin);
 	if (savedBallSkin) {
+		ball.classList.add(savedBallSkin);
 		document.getElementById('ballSkin').value = savedBallSkin;
+	} else {
+		ball.classList.add('defaultSkin');
 	}
-	
+ 
 	if (savedPaddleSkin) {
+		paddle.classList.add(savedPaddleSkin);
 		document.getElementById('paddleSkin').value = savedPaddleSkin;
+	} else {
+		paddle.classList.add('defaultSkin');
 	}
+ 
 	if (savedBoardSkin) {
+		board.classList.add(savedBoardSkin);
 		document.getElementById('boardSkin').value = savedBoardSkin;
+	} else {
+		board.classList.add('defaultSkin');
 	}
 
-	document.getElementById('skinSettingsForm').addEventListener('submit', function (e) {
-		e.preventDefault();
-
-		var ballSkin = document.getElementById('ballSkin').value;
-		var paddleSkin = document.getElementById('paddleSkin').value;
-		var boardSkin = document.getElementById('boardSkin').value;
-
-		sessionStorage.setItem('ballSkin', ballSkin);
-		sessionStorage.setItem('paddleSkin', paddleSkin);
-		sessionStorage.setItem('boardSkin', boardSkin);
-
-		// Instead of using alert, update the dedicated area for the success message
-		document.getElementById('successMessage').style.display = 'block';
-		location.reload();
-	});
 	if (!user) {
 		document.getElementById('generateUser').style.display = 'block';
 		document.getElementById('deleteUser').style.display = 'none';

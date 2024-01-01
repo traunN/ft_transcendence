@@ -72,10 +72,6 @@ body {
 	display: none;
 }
 
-.ball {
-	position: absolute;
-}
-
 .col-6 {
 	margin: 0 15px;
 }
@@ -155,6 +151,16 @@ body {
 	background-repeat: no-repeat;
 	background-size: cover;
 }
+
+.board.skin3 {
+	background-image:
+		linear-gradient(rgba(0, 0, 0, 0.7),
+			rgba(0, 0, 0, 0.5)),
+		url('https://helios-i.mashable.com/imagery/articles/02BO6UUdjykfyqQNQ40cgOH/hero-image.fill.size_1248x702.v1623373094.jpg');
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
 
 select {
 	width: 140px;

@@ -13,18 +13,46 @@
 		body {
 			background-color: #202425;
 		}
+
 		.board {
 			width: 300px;
 			height: 200px;
 		}
+
 		.ball {
 			width: 40px;
 			height: 40px;
+			position: relative;
+			top : 20px;
+			left : 165px;
 		}
+
 		.paddle {
 			width: 40px;
 			height: 200px;
 			transform: rotate(90deg);
+		}
+
+		.flex-container {
+			display: flex;
+			align-items: center;
+		}
+
+		.ball-container {
+			display: flex;
+			align-items: center;
+		}
+
+		.paddle-container {
+			display: flex;
+			align-items: center;
+			margin: 0 145px;
+		}
+
+		.board-container {
+			display: flex;
+			align-items: center;
+			margin: 0 20px;
 		}
 	</style>
 </head>
@@ -34,16 +62,20 @@
 	<div class="scrollable">
 		<div class="container-fluid">
 			<div class="row">
-				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-					<div
-						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-						<form id="skinSettingsForm">
-							<label for="ballSkin">Ball Skin:</label>
+				<div class="col-md-8">
+					<form id="skinSettingsForm">
+						<label for="ballSkin"></label>
+						<div class="flex-container">
 							<select id="ballSkin">
 								<option value="skin1">Default</option>
 								<option value="skin2">Christmas</option>
 							</select>
-							<label for="paddleSkin">Paddle Skin:</label>
+							<div class="ball-container">
+								<div class="ball"></div>
+							</div>
+						</div>
+						<label for="paddleSkin"></label>
+						<div class="flex-container">
 							<select id="paddleSkin">
 								<option value="skin1">Default</option>
 								<option value="skin2">Dog</option>
@@ -51,28 +83,27 @@
 								<option value="skin4">Zombie</option>
 								<option value="skin5">Cute</option>
 							</select>
-
-							<label for="boardSkin">Board Skin:</label>
+							<div class="paddle-container">
+								<div class="paddle"></div>
+							</div>
+						</div>
+						<label for="boardSkin"></label>
+						<div class="flex-container">
 							<select id="boardSkin">
 								<option value="skin1">Default</option>
 								<option value="skin2">Christmas</option>
+								<option value="skin3">Hallow</option>
 							</select>
-								<input type="submit" value="Save">
-							<div class="ball"></div>
-							<div class="paddle"></div>
-							<div class="board"></div>
-						</form>
-					</div>
-					<div id="successMessage" style="display: none;">Settings saved!</div>
-					<div class="container">
-						<div class="row">
-							<button id="generateUser"class="button-style">Generate User</button>
-							<button id="deleteUser"class="button-style">Delete User</button>
-							<div class="col">
+							<div class="board-container">
+								<div class="board"></div>
 							</div>
 						</div>
+					</form>
+				</div>
+					<div class="container">
+						<button id="generateUser" class="button-style">Generate User</button>
+						<button id="deleteUser" class="button-style">Delete User</button>
 					</div>
-				</main>
 			</div>
 		</div>
 	</div>
