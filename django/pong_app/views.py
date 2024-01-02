@@ -14,6 +14,7 @@ from django.db.models import Count
 import random
 import string
 import faker
+import pdb;
 from django.http import HttpResponse
 
 def create_tournament_game(request, tournament_id, room_name):
@@ -157,12 +158,20 @@ def create_tournament(request):
 def join_or_create_room(request, user_id):
 	try:
 		rooms = GameRoom.objects.filter(player_count__lt=2)
+		rooms = rooms.exclude(gameState='cancelled')
 		if not rooms.exists():
-			room = GameRoom(name=str(user_id) + '_room')
+			name = str(user_id) + '_room'
+			if GameRoom.objects.filter(name=name).exists():
+				i = 1
+				while GameRoom.objects.filter(name=name + str(i)).exists():
+					i += 1
+				name = name + str(i)
+			room = GameRoom(name=name)
+			room.gameState = 'waiting'
 			room.save()
 		else:
 			room = rooms.first()
-
+			
 		user = User.objects.get(idName=user_id)
 		room.ball_position = '0,0'
 		room.paddle1_position = '0,0'
@@ -219,6 +228,7 @@ def cancel_room(request, user_id):
 				room_player.save()
 			else:
 				room_player.delete()
+			room.gameState = 'cancelled'
 			room.player_count -= 1
 			room.save()
 

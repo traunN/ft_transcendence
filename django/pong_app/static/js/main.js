@@ -151,12 +151,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			const messageData = JSON.parse(event.data);
 			if (messageData.message === 'start_game') {
 				const initialState = messageData.initial_state;
-				gameTimer();
 				setInterval(gameLoop, 1000 / 60, initialState);
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
 				update_ball_position(updated_ball_position);
+				console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				setTimeout(function () {
 					location.reload();
 				}, 5000);
-				justReload = true;
+				// justReload = true;
 			}
 			else {
 				const gameState = messageData.message;
@@ -351,8 +351,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						socket.close();
 						console.log('Successfully cancelled room');
+						socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+						socket.close();
 					} else {
 						console.log('Failed to cancel room', data);
 					}
@@ -360,8 +361,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				.catch(error => {
 					console.error('There has been a problem with your fetch operation:', error);
 				});
-			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
 		}
-		socket.close();
 	}
 });

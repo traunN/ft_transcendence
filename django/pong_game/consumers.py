@@ -250,8 +250,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 		)
 		self.isGameRunning = False
 		self.connected_users -= 1
-		if self.connected_users <= 0:
-			await sync_to_async(self.game_room.delete)()
 
 	# Receive message from WebSocket
 	async def receive(self, text_data):

@@ -9,7 +9,6 @@ from django.conf.urls.static import static
 urlpatterns = [
 	path('', views.homePage, name='homePage'),
 	path('homePage/', views.homePage, name='homePage'),
-	path('error/', views.error, name='error'),
 	path('login/', views.login, name='login'),
 	path('pongGame/', views.pongGame, name='pongGame'),
 	path('leaderboard/', views.leaderboard, name='leaderboard'),
