@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
-	let gameStarted = false;
+	let gameStarted = true;
+	let reloadLeaveLobby = true;
 	var roomName1;
 	var roomName2;
 	let is_in_room1 = false;
@@ -49,10 +50,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				is_in_room1 = true;
 			else
 				is_in_room1 = false;
-			
-			if (is_in_room1)
-			{
-				fetch('/create_tournament_game/' + tournamentId + '/' + roomName1 + '/')
+
+			if (is_in_room1) {
+				reloadLeaveLobby = false;
+				fetch('/create_tournament_game/' + tournamentId + '/' + roomName1 + '/' + user.id + '/')
 					.then(response => response.text())
 					.then(data => {
 						console.log(data);
@@ -68,23 +69,22 @@ document.addEventListener('DOMContentLoaded', function () {
 					})
 					.catch(error => console.error(error));
 			}
-			else
-			{
-				fetch('/create_tournament_game/' + tournamentId + '/' + roomName2 + '/')
-					.then(response => response.text())
-					.then(data => {
-						console.log(data);
-						var response = JSON.parse(data);
-						if (response.status === 'success') {
-							console.log('tournament game room created');
-							window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
-						}
-						else {
-							console.log('Error creating tournament game room');
-							console.log(response);
-						}
-					})
-					.catch(error => console.error(error));
+			else {
+				// fetch('/create_tournament_game/' + tournamentId + '/' + roomName2 + '/')
+				// 	.then(response => response.text())
+				// 	.then(data => {
+				// 		console.log(data);
+				// 		var response = JSON.parse(data);
+				// 		if (response.status === 'success') {
+				// 			console.log('tournament game room created');
+				// 			window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+				// 		}
+				// 		else {
+				// 			console.log('Error creating tournament game room');
+				// 			console.log(response);
+				// 		}
+				// 	})
+				// 	.catch(error => console.error(error));
 			}
 		}
 	};
@@ -101,19 +101,19 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (xhr.readyState == 4 && xhr.status == 200) {
 				var data = JSON.parse(xhr.responseText);
 				var players = data.players;
-				
+
 				// Convert the players array to a Set to remove duplicates, then convert it back to an array
 				var uniquePlayers = Array.from(new Set(players.map(player => JSON.stringify(player)))).map(player => JSON.parse(player));
-				
+
 				for (var i = 0; i < uniquePlayers.length; i++) {
 					var player = uniquePlayers[i];
 					var li = document.createElement('li');
 					var readyStatusIndicator = document.createElement('span');
 					readyStatusIndicator.className = 'readyStatusIndicator';
 					if (player.is_ready) {
-					   readyStatusIndicator.style.backgroundColor = '#00e500';
+						readyStatusIndicator.style.backgroundColor = '#00e500';
 					} else {
-					   readyStatusIndicator.style.backgroundColor = 'red';
+						readyStatusIndicator.style.backgroundColor = 'red';
 					}
 					li.appendChild(readyStatusIndicator);
 					li.innerHTML += ' ' + player.login + ' <span class="aliasSpan">' + player.alias + '</span>';
@@ -143,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}
 					if (allReady) {
-						gameStarted = true;
 						roomName1 = uniquePlayers[0].idName + '|' + uniquePlayers[1].idName;
 						roomName2 = uniquePlayers[2].idName + '|' + uniquePlayers[3].idName;
 						if (isOpen(lobbysocket)) {
@@ -210,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		errorElement.textContent = message;
 		errorElement.classList.remove('hide');
 		errorElement.classList.add('error');
-		setTimeout(function() {
+		setTimeout(function () {
 			errorElement.classList.add('hide');
 		}, 5000);
 	}
@@ -258,10 +257,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		changePlayerReadyStatus();
 	});
 
-	// leave button
-	document.getElementById('leaveTournamentBtn').addEventListener('click', function () {
+	function leaveLobby() {
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
+		reloadLeaveLobby = false;
 
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',
@@ -276,12 +275,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.log(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
+					// Send a message to the tournament lobby group
 					if (isOpen(pagesocket)) {
 						pagesocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
 						pagesocket.close();
-
 					}
 					if (isOpen(lobbysocket)) {
 						lobbysocket.send(JSON.stringify({
@@ -298,53 +297,18 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			})
 			.catch(error => console.error(error));
+	}
+	
+	document.getElementById('leaveTournamentBtn').addEventListener('click', function () {
+		leaveLobby();
 	});
 
-
 	window.addEventListener('beforeunload', function (event) {
-		if (!gameStarted){
-			const formData = new FormData();
-			formData.append('tournament_id', tournamentId);
-	
-			fetch('/leave_tournament/' + user.id + '/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-				.then(response => response.text())
-				.then(data => {
-					console.log(data);
-					var response = JSON.parse(data);
-					if (response.status === 'success') {
-						// Send a message to the tournament lobby group
-						if (isOpen(pagesocket)) {
-							pagesocket.send(JSON.stringify({
-								'type': 'tournament_updated',
-							}));
-						}
-						if (isOpen(lobbysocket)) {
-							lobbysocket.send(JSON.stringify({
-								'type': 'tournament_lobby_updated',
-								'tournament_id': tournamentId,
-							}));
-						}
-						if (isOpen(pagesocket)) {
-							pagesocket.close();
-						}
-						if (isOpen(lobbysocket)) {
-							lobbysocket.close();
-						}
-						window.location.href = '/tournament/';
-					}
-					else {
-						console.log('Error leaving tournament');
-						console.log(response);
-					}
-				})
-				.catch(error => console.error(error));
+		if (reloadLeaveLobby) {
+			console.log('reloadLeaveLobby');
+			event.preventDefault();
+			event.returnValue = '';
+			leaveLobby();
 		}
 	});
 

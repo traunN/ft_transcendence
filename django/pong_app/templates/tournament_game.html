@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+</html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -13,8 +14,9 @@
 		body {
 			background-color: #202425;
 		}
-		main {
-			left: -150px;
+		.container {
+			position: relative;
+			top: 80px;
 		}
 	</style>
 </head>
@@ -24,20 +26,19 @@
 	<input type="hidden" id="tournamentId" value="{{ tournament.id }}">
 	<input type="hidden" id="roomName" value="{{ room_name }}">
 	<div class="scrollable">
-		<div class="container-fluid">
+		<div class="container">
 			<div class="row">
-				<div class="board">
-					<div class="paddle paddle_1"></div>
-					<div class="paddle paddle_2"></div>
-					<div class="ball"></div>
-					<h1 class="message"></h1>
-					<div class="board d-flex align-items-center justify-content-center">
-						<button id="startGameBtn" class="straight-btn">Start</button>
+				<div class="col">
+					<div class="board">
+						<div class="paddle paddle_1"></div>
+						<div class="paddle paddle_2"></div>
+						<div class="ball"></div>
+						<h1 class="message"></h1>
+						<h1 class="player_1_score">0</h1>
+						<h1 class="player_2_score">0</h1>
+						<h1 class="player_1_name">Player 1</h1>
+						<h1 class="player_2_name">Player 2</h1>
 					</div>
-					<h1 class="player_1_score">0</h1>
-					<h1 class="player_2_score">0</h1>
-					<h1 class="player_1_name">Player 1</h1>
-					<h1 class="player_2_name">Player 2</h1>
 				</div>
 			</div>
 		</div>

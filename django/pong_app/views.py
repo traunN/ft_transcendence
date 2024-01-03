@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
-from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, TournamentGame
+from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
 import logging
 import json
 from django.db.models import Count
@@ -17,16 +17,28 @@ import faker
 import pdb;
 from django.http import HttpResponse
 
-def create_tournament_game(request, tournament_id, room_name):
+def create_tournament_game(request, tournament_id, room_name, user_id):
 	try:
 		tournament = Tournament.objects.get(id=tournament_id)
-		room, created = GameRoom.objects.get_or_create(name=room_name)
+		if GameRoom.objects.filter(name=room_name).exists():
+			room = GameRoom.objects.get(name=room_name)
+		else:
+			room = GameRoom(name=room_name)
+			room.gameState = 'waiting'
+			room.save()
+		user = User.objects.get(idName=user_id)
 		room.ball_position = '0,0'
 		room.paddle1_position = '0,0'
 		room.paddle2_position = '0,0'
-		room.save();		
-		tournament_game = TournamentGame(tournament=tournament, room=room)
-		tournament_game.save()
+		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
+		room_player.save()
+
+		room.player_count += 1
+		room.save()
+
+		if room.player_count == 2:
+			room.gameState = 'playing'
+			room.save()
 		return JsonResponse({'status': 'success', 'message': 'Tournament game created successfully'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
@@ -177,10 +189,6 @@ def join_or_create_room(request, user_id):
 		room.paddle1_position = '0,0'
 		room.paddle2_position = '0,0'
 		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
-		if created:
-			room_player.count = 1
-		else:
-			room_player.count += 1
 		room_player.save()
 
 		room.player_count += 1

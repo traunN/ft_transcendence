@@ -1,24 +1,71 @@
+let isGameRunning = false;
+let userId;
+
 document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament_game.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	let isLeavingTournament = false;
 	var tournamentId = document.getElementById('tournamentId').value;
 	var roomName = document.getElementById('roomName').value;
+	const board = document.querySelector('.board');
+	const ball = document.querySelector('.ball');
+	const paddle1 = document.querySelector('.paddle_1');
+	const paddle2 = document.querySelector('.paddle_2');
+	const player1Score = document.querySelector('.player_1_score');
+	const player2Score = document.querySelector('.player_2_score');
+	const message = document.querySelector('.message');
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 	console.log('tournament id: ' + tournamentId);
 	console.log('room name: ' + roomName);
 
-	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+	if (boardSkin === 'defaultSkin') {
+		board.classList.add('blackSkin');
+	}
+	else {
+		board.classList.add(boardSkin);
+	}
+	ball.classList.add(ballSkin);
+	paddle1.classList.add(paddleSkin);
+	paddle2.classList.add(paddleSkin);
+	if (!user) {
+		window.location.href = '/tournament/';
+	}
+	if (user.id) {
+		userId = user.id;
+	}
 
-	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament_game/' + tournamentId + '/' + roomName + '/');
+	const keys = {
+		ArrowUp: false,
+		ArrowDown: false,
+		KeyW: false,
+		KeyS: false,
+		Enter: false
+	};
+
+	let player1ScoreValue = 0;
+	let player2ScoreValue = 0;
+	let ballX = 0;
+	let ballY = 0;
+	let targetBallX = ballX;
+	let targetBallY = ballY;
+	let paddle1Y = 0;
+	let paddle2Y = 0;
+	let interpolationFactor = 0.1;
+	let targetPaddle1Y = paddle1Y;
+	let targetPaddle2Y = paddle2Y;
+
+	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+	const socket = new WebSocket('ws://localhost:8000/ws/tournament_game/' + roomName + '/');
 
 	socket.onopen = function (event) {
 		console.log('Connection opened');
+		socket.send(JSON.stringify({ 'message': 'increment_users' }));
 	};
-
 	socket.onerror = function (error) {
 		console.error('WebSocket Error: ', error);
 	};
-
 	socket.onclose = function (event) {
 		if (event.wasClean) {
 			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
@@ -26,18 +73,177 @@ document.addEventListener('DOMContentLoaded', function () {
 			console.log('Connection died');
 		}
 	};
-
-	// Create a new WebSocket.
-
-	// Function to check if the WebSocket is open
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}
 
-	function sendMessage(message) {
-		if (isOpen(socket)) {
-			socket.send(JSON.stringify(message));
+	function update_ball_position(updated_ball_position) {
+		const ballPositionObj = JSON.parse(updated_ball_position);
+		ballX = ballPositionObj.x;
+		ballY = ballPositionObj.y;
+		targetBallX = ballX;
+		targetBallY = ballY;
+	}
+
+	function update_paddle1_position(updated_paddle_position) {
+		const paddlePositionObj = JSON.parse(updated_paddle_position);
+		const y = paddlePositionObj.y;
+		targetPaddle1Y = y;
+	}
+
+	function update_paddle2_position(updated_paddle_position) {
+		const paddlePositionObj = JSON.parse(updated_paddle_position);
+		const y = paddlePositionObj.y;
+		targetPaddle2Y = y;
+	}
+	setTimeout(startGame, 3000);
+
+	document.addEventListener('keydown', function (event) {
+		if (event.code in keys) {
+			keys[event.code] = true;
 		}
+	});
+
+	document.addEventListener('keyup', function (event) {
+		if (event.code in keys) {
+			keys[event.code] = false;
+		}
+	});
+	
+	function update_paddles() {
+		if (keys.ArrowUp) {
+			targetPaddle2Y -= 10;
+			if (targetPaddle2Y < 50) {
+				targetPaddle2Y = 50;
+			}
+		}
+		if (keys.ArrowDown) {
+			targetPaddle2Y += 10;
+			if (targetPaddle2Y > 550) {
+				targetPaddle2Y = 550;
+			}
+		}
+		if (keys.KeyW) {
+			targetPaddle1Y -= 10;
+			if (targetPaddle1Y < 50) {
+				targetPaddle1Y = 50;
+			}
+		}
+		if (keys.KeyS) {
+			targetPaddle1Y += 10;
+			if (targetPaddle1Y > 550) {
+				targetPaddle1Y = 550;
+			}
+		}
+		socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+		socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+	}
+
+	function gameLoop() {
+		update();
+		draw();
+		requestAnimationFrame(gameLoop);
+	}
+
+	function update() {
+		// Handle WebSocket messages
+		socket.onmessage = function (event) {
+			const messageData = JSON.parse(event.data);
+			if (messageData.message === 'ball_update') {
+				const updated_ball_position = messageData.ball_position;
+				update_ball_position(updated_ball_position);
+				// console.log('reduce lag'); //have to change this not normal javascript things
+			}
+			else if (messageData.message === 'paddle1_update') {
+				const updated_paddle_position = messageData.paddle1_position;
+				update_paddle1_position(updated_paddle_position);
+			}
+			else if (messageData.message === 'paddle2_update') {
+				const updated_paddle_position = messageData.paddle2_position;
+				update_paddle2_position(updated_paddle_position);
+
+			}
+			else if (messageData.message === 'score_update') {
+				const score1 = messageData.score1;
+				const score2 = messageData.score2;
+				player1ScoreValue = score1;
+				player2ScoreValue = score2;
+				player1Score.textContent = `${player1ScoreValue}`;
+				player2Score.textContent = `${player2ScoreValue}`;
+			}
+			else if (messageData.message === 'game_over') {
+				setTimeout(function () {
+					location.reload();
+				}, 5000);
+				isGameRunning = false;
+				if (player1ScoreValue > player2ScoreValue) {
+					message.textContent = 'Player 1 wins!';
+				}
+				else {
+					message.textContent = 'Player 2 wins!';
+				}
+
+			}
+			else if (messageData.message === 'cancel_game_room') {
+				isGameRunning = false;
+				message.textContent = 'Player left the game';
+				// justReload = true;
+			}
+			else {
+				const gameState = messageData.message;
+			}
+		};
+	
+		update_paddles();
+	}
+
+	function draw() {
+		ball.style.left = `${targetBallX}px`;
+		ball.style.top = `${targetBallY}px`;
+		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
+		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
+		paddle1.style.top = `${paddle1Y}px`;
+		paddle2.style.top = `${paddle2Y}px`;
+		player1Score.textContent = `${player1ScoreValue}`;
+		player2Score.textContent = `${player2ScoreValue}`;
+	}
+
+	function displayNames(player1NameValue, player2NameValue) {
+		console.log('displayNames')
+		const player1Name = document.querySelector('.player_1_name');
+		const player2Name = document.querySelector('.player_2_name');
+		player1Name.style.display = 'block';
+		player2Name.style.display = 'block';
+	}
+
+	function startGame() {
+		if (isGameRunning) {
+			return;
+		}
+		message.textContent = '';
+		isGameRunning = true;
+		let userId = user.id;
+		// check if both players are in the same room
+		console.log('userId: ' + userId);
+		console.log('Starting game');
+		paddle1Y = 300;
+		paddle2Y = 300;
+		socket.onmessage = function (event) {
+			const messageData = JSON.parse(event.data);
+			if (messageData.message === 'start_game') {
+				message.textContent = '';
+				const user1 = messageData.user1;
+				const user2 = messageData.user2;
+				displayNames(user1, user2);
+				console.log('Game started');
+				requestAnimationFrame(gameLoop);
+			} else {
+				// Handle other game messages
+				gameState = messageData.message;
+				// gameLoop(gameState);
+			}
+
+		};
 	}
 
 	window.addEventListener('beforeunload', function (event) {
@@ -45,6 +251,30 @@ document.addEventListener('DOMContentLoaded', function () {
 			const formData = new FormData();
 			formData.append('tournament_id', tournamentId);
 
+			fetch(`/cancel_room/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
+			})
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.status === 'success') {
+						console.log('Successfully cancelled room');
+						socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+					} else {
+						console.log('Failed to cancel room', data);
+					}
+				})
+				.catch(error => {
+					console.error('There has been a problem with your fetch operation:', error);
+				});
 			fetch('/leave_tournament/' + user.id + '/', {
 				method: 'POST',
 				headers: {
@@ -68,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							socket.close();
 						}
 						window.location.href = '/tournament/';
+						isLeavingTournament = true;
 					}
 					else {
 						console.log('Error leaving tournament');
@@ -76,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.catch(error => console.error(error));
 
-			isLeavingTournament = true;
 		}
 	});
 

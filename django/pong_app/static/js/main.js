@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	board.classList.add(boardSkin);
 	let user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
-		// change button text to please login
 		startGameBtn.textContent = 'Please login';
 		return;
 	}
@@ -87,10 +86,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	document.addEventListener('keydown', function (event) {
 		if (event.code in keys) {
-			if (event.code === 'Enter') {
-				keys.Enter = true;
-				startGame();
-			}
 			keys[event.code] = true;
 		}
 	});
@@ -103,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	function update_paddles() {
-		// Update target paddle positions based on key events
 		if (keys.ArrowUp) {
 			targetPaddle2Y -= 10;
 			if (targetPaddle2Y < 50) {
@@ -133,15 +127,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
 
-		// Interpolate the paddle positions for smoother movement
 		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
 		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
-
-		// Update the paddle elements
 		paddle1.style.top = `${paddle1Y}px`;
 		paddle2.style.top = `${paddle2Y}px`;
 
-		// Request the next animation frame
 		requestAnimationFrame(update_paddles);
 	}
 
@@ -156,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
 				update_ball_position(updated_ball_position);
-				console.log('reduce lag'); //have to change this not normal javascript things
+				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
@@ -205,33 +195,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		socket.onclose = function (event) {
 			isGameRunning = false;
 		};
-	}
-
-	function stopGame() {
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-		})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data.status === 'success') {
-					socket.close();
-					console.log('Successfully cancelled room');
-				} else {
-					console.log('Failed to cancel room', data);
-				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
 	}
 
 	function displayNames(player1NameValue, player2NameValue) {

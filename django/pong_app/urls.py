@@ -33,5 +33,5 @@ urlpatterns = [
 	path('get_players_in_tournament/<int:tournament_id>/', views.get_players_in_tournament, name='get_players_in_tournament'),
 	path('change_tournament_user_alias/<int:user_id>/', views.change_tournament_user_alias, name='change_tournament_user_alias'),
 	path('set_player_ready/', views.set_player_ready, name='set_player_ready'),
-	path('create_tournament_game/<int:tournament_id>/<str:room_name>/', views.create_tournament_game, name='create_tournament_game'),
+	path('create_tournament_game/<int:tournament_id>/<str:room_name>/<int:user_id>/', views.create_tournament_game, name='create_tournament_game'),
 ]
