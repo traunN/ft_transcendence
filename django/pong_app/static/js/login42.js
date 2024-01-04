@@ -92,6 +92,9 @@ document.addEventListener('DOMContentLoaded', function () {
 								console.log('Login successful!');
 							}
 						};
+						// if no location set to none
+						if (!user.location)
+							user.location = 'none';
 						xhrSaveProfile.send(JSON.stringify({
 							login: user.login,
 							email: user.email,

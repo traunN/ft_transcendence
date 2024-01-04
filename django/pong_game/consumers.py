@@ -397,8 +397,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 	ball_speed_x = 3
 	ball_speed_y = 3
 	ball_radius = 10
-	paddle1_position = {'x': 0, 'y': 0}
-	paddle2_position = {'x': 0, 'y': 0}
+	paddle1_position = {'x': 0, 'y': 300}
+	paddle2_position = {'x': 0, 'y': 300}
 	normalized_relative_intersect_y = 0
 	bounce_angle = 4
 	max_bounce_angle = 4
@@ -411,6 +411,10 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 	users = []
 	user1 = None
 	user2 = None
+
+	@database_sync_to_async
+	def get_game_room(self):
+		return GameRoom.objects.get(name=self.room_name)
 
 	async def ball_update(self, event):
 		try:
@@ -612,26 +616,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 		await self.accept()
 		self.connected_users += 1
 				# start game loop and send start_game message
-		# 		self.game_room = await self.get_game_room()
-		# 		self.ball_position = {'x': 400, 'y': 300}
-		# 		self.paddle1_position = {'x': 10, 'y': 300}
-		# 		self.paddle2_position = {'x': 790, 'y': 300}
-		# 		self.max_bounce_angle = math.pi / 2
-		# 		asyncio.create_task(self.game_loop())
-		# 		self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
-		# 		self.user1 = self.users[0]
-		# 		self.user2 = self.users[1]
-		# 		await self.channel_layer.group_send(
-		# 			self.room_group_name,
-		# 			{
-		# 				'type': 'game_message',
-		# 				'message': 'start_game',
-		# 				'user1': self.user1.login,
-		# 				'user2': self.user2.login
-		# 			}
-		# 		)
-		# except Exception as e:
-		# 	self.logger.error(f"An error occurred while connecting: {e}")
+		
 
 	async def disconnect(self, close_code):
 		await self.channel_layer.group_discard(
@@ -652,10 +637,31 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 			elif text_data_json['paddle'] == 'paddle2':
 				self.paddle2_position = text_data_json['position']
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
-				# self.game_room = await self.get_game_room()
-		elif message == 'increment_users':
-			self.connected_users += 1
-			self.logger.error(f"Connected users: {self.connected_users}")
+		elif message == 'start_game':
+			try:
+				self.isGameRunning = True
+				self.game_room = await self.get_game_room()
+				self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
+				if text_data_json['user_id'] == self.users[0].idName:
+					self.logger.error("Starting game loop.")
+					self.ball_position = {'x': 400, 'y': 300}
+					self.paddle1_position = {'x': 10, 'y': 300}
+					self.paddle2_position = {'x': 790, 'y': 300}
+					self.max_bounce_angle = math.pi / 2
+					asyncio.create_task(self.game_loop())
+					self.user1 = self.users[0]
+					self.user2 = self.users[1]
+					await self.channel_layer.group_send(
+						self.room_group_name,
+						{
+							'type': 'game_message',
+							'message': 'start_game',
+							'user1': self.user1.login,
+							'user2': self.user2.login
+						}
+					)
+			except Exception as e:
+				self.logger.error(f"An error occurred while connecting: {e}")
 		else:
 			await self.channel_layer.group_send(
 				self.room_group_name,

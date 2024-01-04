@@ -46,10 +46,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (isOpen(lobbysocket)) {
 				lobbysocket.close();
 			}
-			if (user.id == roomName1.split('|')[0] || user.id == roomName1.split('|')[1])
+			if (user.id == roomName1.split('&')[0] || user.id == roomName1.split('&')[1])
+			{
+				roomName1 = roomName1.replace('&', '');
 				is_in_room1 = true;
+			}
 			else
+			{
+				roomName2 = roomName2.replace('&', '');
 				is_in_room1 = false;
+			}
 
 			if (is_in_room1) {
 				reloadLeaveLobby = false;
@@ -143,8 +149,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}
 					if (allReady) {
-						roomName1 = uniquePlayers[0].idName + '|' + uniquePlayers[1].idName;
-						roomName2 = uniquePlayers[2].idName + '|' + uniquePlayers[3].idName;
+						roomName1 = uniquePlayers[0].idName + '&' + uniquePlayers[1].idName;
+						roomName2 = uniquePlayers[2].idName + '&' + uniquePlayers[3].idName;
 						if (isOpen(lobbysocket)) {
 							lobbysocket.send(JSON.stringify({
 								'type': 'tournament_lobby_game_started',

@@ -99,10 +99,9 @@ def leave_tournament(request, user_id):
 			user.alias = ''
 			user.save()
 			tournament = Tournament.objects.get(id=tournament_id)
-			#get first tournament player matching user and tournament
 			tournament_player = TournamentPlayer.objects.get(user=user, tournament=tournament)
 			tournament_player.count -= 1
-			tournament.count -= 1	
+			tournament.count -= 1
 			tournament_player.save()
 			tournament.save()
 			if tournament_player.count == 0:

@@ -1,10 +1,11 @@
 let isGameRunning = false;
 let userId;
+let winner = false;
+let justReload = false;
 
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('tournament_game.js loaded');
+	let reloadLeave = true;
 	var user = JSON.parse(sessionStorage.getItem('user'));
-	let isLeavingTournament = false;
 	var tournamentId = document.getElementById('tournamentId').value;
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
@@ -59,19 +60,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
 	const socket = new WebSocket('ws://localhost:8000/ws/tournament_game/' + roomName + '/');
 
-	socket.onopen = function (event) {
-		console.log('Connection opened');
-		socket.send(JSON.stringify({ 'message': 'increment_users' }));
-	};
+	
 	socket.onerror = function (error) {
 		console.error('WebSocket Error: ', error);
-	};
-	socket.onclose = function (event) {
-		if (event.wasClean) {
-			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
-		} else {
-			console.log('Connection died');
-		}
 	};
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
@@ -96,7 +87,25 @@ document.addEventListener('DOMContentLoaded', function () {
 		const y = paddlePositionObj.y;
 		targetPaddle2Y = y;
 	}
-	setTimeout(startGame, 3000);
+
+	countdown(3, function () {
+		startGame();
+	});
+
+	function countdown(time, callback) {
+		var timer = setInterval(function () {
+			if (time > 0) {
+				message.style.display = 'block';
+				message.textContent = time;
+				time--;
+			} else {
+				message.style.display = 'none';
+				message.textContent = '';
+				clearInterval(timer);
+				callback();
+			}
+		}, 1000);
+	}
 
 	document.addEventListener('keydown', function (event) {
 		if (event.code in keys) {
@@ -109,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			keys[event.code] = false;
 		}
 	});
-	
+
 	function update_paddles() {
 		if (keys.ArrowUp) {
 			targetPaddle2Y -= 10;
@@ -140,6 +149,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function gameLoop() {
+		if (!isGameRunning) {
+			return;
+		}
 		update();
 		draw();
 		requestAnimationFrame(gameLoop);
@@ -149,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Handle WebSocket messages
 		socket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
+			console.log(messageData);
 			if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
 				update_ball_position(updated_ball_position);
@@ -185,15 +198,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			}
 			else if (messageData.message === 'cancel_game_room') {
+				console.log('AAAAAAAH');
+				winner = true;
 				isGameRunning = false;
 				message.textContent = 'Player left the game';
-				// justReload = true;
+				setTimeout(function () {
+					location.reload();
+				}, 5000);
 			}
 			else {
 				const gameState = messageData.message;
 			}
 		};
-	
+
 		update_paddles();
 	}
 
@@ -214,24 +231,23 @@ document.addEventListener('DOMContentLoaded', function () {
 		const player2Name = document.querySelector('.player_2_name');
 		player1Name.style.display = 'block';
 		player2Name.style.display = 'block';
+		player1Name.textContent = `${player1NameValue}`;
+		player2Name.textContent = `${player2NameValue}`;
 	}
 
 	function startGame() {
 		if (isGameRunning) {
 			return;
 		}
-		message.textContent = '';
 		isGameRunning = true;
 		let userId = user.id;
 		// check if both players are in the same room
 		console.log('userId: ' + userId);
 		console.log('Starting game');
-		paddle1Y = 300;
-		paddle2Y = 300;
+		socket.send(JSON.stringify({ 'message': 'start_game', 'user_id': userId }));
 		socket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
 			if (messageData.message === 'start_game') {
-				message.textContent = '';
 				const user1 = messageData.user1;
 				const user2 = messageData.user2;
 				displayNames(user1, user2);
@@ -246,67 +262,74 @@ document.addEventListener('DOMContentLoaded', function () {
 		};
 	}
 
+	function leaveLobby() {
+		const formData = new FormData();
+		formData.append('tournament_id', tournamentId);
+		reloadLeave = false;
+		isGameRunning = false;
+
+		// cancel room
+		if (!winner) {
+			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+		}
+
+		fetch(`/cancel_room/${userId}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+		})
+			.then(response => response.text())
+			.then(data => {
+				var response = JSON.parse(data);
+				if (response.status === 'success') {
+					// Send a message to the tournament lobby group
+					console.log('Room canceled');
+				}
+				else {
+					console.log('Error canceling room');
+					console.log(response);
+				}
+			})
+
+		fetch('/leave_tournament/' + user.id + '/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+			body: JSON.stringify(Object.fromEntries(formData))
+		})
+			.then(response => response.text())
+			.then(data => {
+				console.log(data);
+				var response = JSON.parse(data);
+				if (response.status === 'success') {
+					// Send a message to the tournament lobby group
+					if (isOpen(pagesocket)) {
+						pagesocket.send(JSON.stringify({
+							'type': 'tournament_updated',
+						}));
+						pagesocket.close();
+					}
+					socket.close();
+					window.location.href = '/tournament/';
+				}
+				else {
+					console.log('Error leaving tournament');
+					console.log(response);
+				}
+			})
+			.catch(error => console.error(error));
+	}
+
 	window.addEventListener('beforeunload', function (event) {
-		if (!isLeavingTournament) {
-			const formData = new FormData();
-			formData.append('tournament_id', tournamentId);
-
-			fetch(`/cancel_room/${userId}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-				},
-			})
-				.then(response => {
-					if (!response.ok) {
-						throw new Error('Network response was not ok');
-					}
-					return response.json();
-				})
-				.then(data => {
-					if (data.status === 'success') {
-						console.log('Successfully cancelled room');
-						socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-					} else {
-						console.log('Failed to cancel room', data);
-					}
-				})
-				.catch(error => {
-					console.error('There has been a problem with your fetch operation:', error);
-				});
-			fetch('/leave_tournament/' + user.id + '/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-				.then(response => response.text())
-				.then(data => {
-					console.log(data);
-					var response = JSON.parse(data);
-					if (response.status === 'success') {
-						if (isOpen(pagesocket)) {
-							pagesocket.send(JSON.stringify({
-								'type': 'tournament_updated',
-							}));
-							pagesocket.close();
-						}
-						if (isOpen(socket)) {
-							socket.close();
-						}
-						window.location.href = '/tournament/';
-						isLeavingTournament = true;
-					}
-					else {
-						console.log('Error leaving tournament');
-						console.log(response);
-					}
-				})
-				.catch(error => console.error(error));
-
+		if (reloadLeave) {
+			console.log('reloadLeaveLobby');
+			event.preventDefault();
+			event.returnValue = '';
+			leaveLobby();
 		}
 	});
 
