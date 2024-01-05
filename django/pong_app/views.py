@@ -39,7 +39,11 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 		if room.player_count == 2:
 			room.gameState = 'playing'
 			room.save()
-		return JsonResponse({'status': 'success', 'message': 'Tournament game created successfully'})
+			tournament.status = 'started'
+			tournament.save()
+			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
+		else: 
+			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 

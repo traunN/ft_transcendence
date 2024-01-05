@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 
-
 	if (boardSkin === 'defaultSkin') {
 		board.classList.add('blackSkin');
 	} else {
@@ -184,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				setTimeout(function () {
 					location.reload();
 				}, 5000);
-				// justReload = true;
 			}
 			else {
 				const gameState = messageData.message;

@@ -17,16 +17,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		return ws.readyState === ws.OPEN;
 	}
 
-	lobbysocket.addEventListener('open', function (event) {
-		lobbysocket.send(JSON.stringify({
-			'type': 'tournament_lobby_updated',
-			'tournament_id': tournamentId,
-		}));
-	});
-
 	lobbysocket.onmessage = function (event) {
 		var data = JSON.parse(event.data);
 		if (data.type === 'tournament_lobby_updated') {
+			console.log('tournament_lobby_updated');
 			updatePlayersList();
 		}
 		else if (data.type === 'tournament_lobby_game_started') {
@@ -56,34 +50,45 @@ document.addEventListener('DOMContentLoaded', function () {
 				roomName2 = roomName2.replace('&', '');
 				is_in_room1 = false;
 			}
-
 			if (is_in_room1) {
 				reloadLeaveLobby = false;
-				fetch('/create_tournament_game/' + tournamentId + '/' + roomName1 + '/' + user.id + '/')
-					.then(response => response.text())
-					.then(data => {
-						console.log(data);
-						var response = JSON.parse(data);
-						if (response.status === 'success') {
-							console.log('tournament game room created');
-							window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
-						}
-						else {
-							console.log('Error creating tournament game room');
-							console.log(response);
-						}
-					})
-					.catch(error => console.error(error));
-			}
-			else {
-				// fetch('/create_tournament_game/' + tournamentId + '/' + roomName2 + '/')
+				// fetch('/create_tournament_game/' + tournamentId + '/' + roomName1 + '/' + user.id + '/')
 				// 	.then(response => response.text())
 				// 	.then(data => {
 				// 		console.log(data);
 				// 		var response = JSON.parse(data);
 				// 		if (response.status === 'success') {
 				// 			console.log('tournament game room created');
-				// 			window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+					// 	}
+					// 	else {
+					// 		console.log('Error creating tournament game room');
+					// 		console.log(response);
+					// 	}
+					// })
+					// .catch(error => console.error(error));
+			}
+		}
+		else if (data.type === 'first_match_finished') {
+			console.log('first match finished');
+			// get userid of winner
+			var winnerId = data.winner_id;
+			if (user.id == winnerId) {
+				is_in_room1 = true;
+			}
+			else {
+				is_in_room1 = false;
+			}
+			if (!is_in_room1) {
+				reloadLeaveLobby = false;
+				// fetch('/create_tournament_game/' + tournamentId + '/' + roomName2 + '/' + user.id + '/')
+				// 	.then(response => response.text())
+				// 	.then(data => {
+				// 		console.log(data);
+				// 		var response = JSON.parse(data);
+				// 		if (response.status === 'success') {
+				// 			console.log('tournament game room created');
+				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
 				// 		}
 				// 		else {
 				// 			console.log('Error creating tournament game room');
@@ -100,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		while (playersList.firstChild) {
 			playersList.removeChild(playersList.firstChild);
 		}
+		playersList.innerHTML = '';
 		// Use AJAX to get the updated list of players
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", '/get_players_in_tournament/' + tournamentId + '/', true);
