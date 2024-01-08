@@ -5,10 +5,10 @@ body {
 	overflow: hidden;
 	overflow-x: hidden !important;
 	height: 100vh;
-	display : flex;
+	display: flex;
 	flex-direction: column;
 	min-height: 100vh;
-	max-width : 100vw;
+	max-width: 100vw;
 }
 
 .myFooter {
@@ -26,7 +26,7 @@ body {
 }
 
 .scrollable {
-	flex-grow : 1;
+	flex-grow: 1;
 	overflow: auto;
 }
 
@@ -379,7 +379,7 @@ input[type="search"] {
 	padding: 100px;
 }
 
-.tournament-title{
+.tournament-title {
 	color: #f7ff19;
 	font-weight: bold;
 	text-shadow: #f7ff19;
@@ -389,7 +389,7 @@ input[type="search"] {
 
 #leaderboardHeader::before {
 	content: "";
-	background: url(https://pbs.twimg.com/media/FyChAjmX0AErdsN.jpg:large) no-repeat center center fixed; 
+	background: url(https://pbs.twimg.com/media/FyChAjmX0AErdsN.jpg:large) no-repeat center center fixed;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -421,7 +421,7 @@ thead {
 #leaderboard td,
 #leaderboard th {
 	background-color: #151718;
-	border-radius : 2.5px;
+	border-radius: 2.5px;
 	border: none;
 }
 
@@ -429,7 +429,7 @@ thead {
 	color: #ecedee;
 	border-collapse: separate;
 	border-spacing: 10px 10px;
-	width : 60%;
+	width: 60%;
 }
 
 .custom-bg {
@@ -569,7 +569,7 @@ thead {
 	align-items: left;
 	display: flex;
 	align-items: center;
-	margin : 10px;
+	margin: 10px;
 }
 
 .card-img {
@@ -585,4 +585,29 @@ thead {
 .card:hover {
 	color: #f7ff19;
 }
- 
+
+@keyframes pulse {
+
+	0%,
+	100% {
+		transform: translate(-50%, -50%) scale(1);
+		/* Adjust scale down if needed */
+		opacity: 1;
+	}
+
+	50% {
+		transform: translate(-50%, -50%) scale(1.2);
+		/* Example: use a smaller scaling factor */
+		opacity: 1;
+	}
+}
+
+#loadingMessage {
+	font-size: 2em;
+	animation: pulse 2s infinite;
+	transform-origin: center;
+	position: absolute;
+	top: 70%;
+	left: 50%;
+	transform: translate(-50%, -50%) scale(1);
+}

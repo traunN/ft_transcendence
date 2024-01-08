@@ -2,6 +2,7 @@ let isGameRunning = false;
 let userId;
 let socket;
 let isWinner = false;
+let gameRoomStarted = false;
 
 document.addEventListener('DOMContentLoaded', function () {
 	let reloadLeave = true;
@@ -19,8 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
-	console.log('tournament id: ' + tournamentId);
-	console.log('room name: ' + roomName);
 
 	if (boardSkin === 'defaultSkin') {
 		board.classList.add('blackSkin');
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	ball.classList.add(ballSkin);
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
-	
+
 	if (user.id) {
 		userId = user.id;
 	}
@@ -46,36 +45,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;
-	let ballX = 0;
-	let ballY = 0;
-	let targetBallX = ballX;
-	let targetBallY = ballY;
-	let paddle1Y = 0;
-	let paddle2Y = 0;
+	let previousX = 0;
+	let previousY = 0;
+	let paddle1Y = 300;
+	let paddle2Y = 300;
 	let interpolationFactor = 0.1;
 	let targetPaddle1Y = paddle1Y;
 	let targetPaddle2Y = paddle2Y;
 
+	const lobbysocket = new WebSocket('ws://' + window.location.host + '/ws/tournament_lobby/' + tournamentId + '/');
+
+	lobbysocket.onopen = function (e) {
+		console.log('tournament game lobby socket opened');
+	};
+
+	lobbysocket.onerror = function (e) {
+		console.log('tournament game lobby socket error');
+	};
 	function update_ball_position(updated_ball_position) {
 		const ballPositionObj = JSON.parse(updated_ball_position);
-		ballX = ballPositionObj.x;
-		ballY = ballPositionObj.y;
-		targetBallX = ballX;
-		targetBallY = ballY;
+		const x = ballPositionObj.x;
+		const y = ballPositionObj.y;
+		const newX = x + (x - previousX) * interpolationFactor;
+		const newY = y + (y - previousY) * interpolationFactor;
+		previousX = x;
+		previousY = y;
+		ball.style.left = `${newX}px`;
+		ball.style.top = `${newY}px`;
 	}
 
 	function update_paddle1_position(updated_paddle_position) {
 		const paddlePositionObj = JSON.parse(updated_paddle_position);
 		const y = paddlePositionObj.y;
 		targetPaddle1Y = y;
+		paddle1.style.top = `${y}px`;
 	}
 
 	function update_paddle2_position(updated_paddle_position) {
 		const paddlePositionObj = JSON.parse(updated_paddle_position);
 		const y = paddlePositionObj.y;
 		targetPaddle2Y = y;
+		paddle2.style.top = `${y}px`;
 	}
-
 	document.addEventListener('keydown', function (event) {
 		if (event.code in keys) {
 			keys[event.code] = true;
@@ -96,37 +107,40 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (targetPaddle2Y < 50) {
 				targetPaddle2Y = 50;
 			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 		}
 		if (keys.ArrowDown) {
 			targetPaddle2Y += 10;
 			if (targetPaddle2Y > 550) {
 				targetPaddle2Y = 550;
 			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 		}
 		if (keys.KeyW) {
 			targetPaddle1Y -= 10;
 			if (targetPaddle1Y < 50) {
 				targetPaddle1Y = 50;
 			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
 		if (keys.KeyS) {
 			targetPaddle1Y += 10;
 			if (targetPaddle1Y > 550) {
 				targetPaddle1Y = 550;
 			}
+			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
-		socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
-		socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+
+		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
+		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
+		paddle1.style.top = `${paddle1Y}px`;
+		paddle2.style.top = `${paddle2Y}px`;
+
+		requestAnimationFrame(update_paddles);
 	}
 
-	function gameLoop() {
-		update();
-		draw();
-		requestAnimationFrame(gameLoop);
-	}
 
-	function update() {
-		// Handle WebSocket messages
+	function gameLoop(gameState) {
 		socket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
 			if (messageData.message === 'start_game') {
@@ -145,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			else if (messageData.message === 'paddle2_update') {
 				const updated_paddle_position = messageData.paddle2_position;
 				update_paddle2_position(updated_paddle_position);
+
 			}
 			else if (messageData.message === 'score_update') {
 				const score1 = messageData.score1;
@@ -160,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				const winner = messageData.winner;
 				const loser = messageData.loser;
 				message.style.display = 'block';
-				if (winner === userId) {
+				if (Number(winner) === Number(userId)) {
 					isWinner = true;
 					message.textContent = 'You won!';
 					setTimeout(function () {
@@ -185,17 +200,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		};
 	}
 
-	function draw() {
-		ball.style.left = `${targetBallX}px`;
-		ball.style.top = `${targetBallY}px`;
-		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
-		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
-		paddle1.style.top = `${paddle1Y}px`;
-		paddle2.style.top = `${paddle2Y}px`;
-		player1Score.textContent = `${player1ScoreValue}`;
-		player2Score.textContent = `${player2ScoreValue}`;
-	}
-
 	function displayNames(player1NameValue, player2NameValue) {
 		console.log('displayNames')
 		const player1Name = document.querySelector('.player_1_name');
@@ -210,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (isGameRunning) {
 			return;
 		}
+		gameRoomStarted = true;
 		message.textContent = '';
 		readyGamebtn.style.display = 'none';
 		isGameRunning = true;
@@ -229,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						console.log('Failed to create socket');
 						return;
 					}
-					if (data.start_game){
+					if (data.start_game) {
 						console.log('Starting the game...');
 						console.log('Joined room name:', data.room_name);
 						window.room_name = data.room_name;
@@ -295,35 +300,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if (!isWinner) {
 			console.log('LOST');
-			socket.send(JSON.stringify({ 'message': 'cancel_game_room', 'user_id': userId }));
+			if (gameRoomStarted) {
+				socket.send(JSON.stringify({ 'message': 'cancel_game_room', 'user_id': userId }));
+			}
 		}
-
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-		})
-			.then(response => response.text())
-			.then(data => {
-				var response = JSON.parse(data);
-				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
-					if (isOpen(pagesocket)) {
-						pagesocket.send(JSON.stringify({
-							'type': 'tournament_updated',
-						}));
-						pagesocket.close();
-					}
-					socket.close();
-					console.log('Room canceled');
-				}
-				else {
-					console.log('Error canceling room');
-					console.log(response);
-				}
+		if (!gameLeave){
+			socket.send(JSON.stringify({ 'message': 'user_left', 'user_id': userId }));
+		}
+		if (gameRoomStarted) {
+			fetch(`/cancel_room/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
 			})
+				.then(response => response.text())
+				.then(data => {
+					var response = JSON.parse(data);
+					if (response.status === 'success') {
+						// Send a message to the tournament lobby group
+						socket.close();
+						lobbysocket.close();
+						console.log('Room canceled');
+					}
+					else {
+						console.log('Error canceling room');
+						console.log(response);
+					}
+				})
+		}
 
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',
@@ -339,14 +345,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
 					// Send a message to the tournament lobby group
-					if (isOpen(pagesocket)) {
-						pagesocket.send(JSON.stringify({
-							'type': 'tournament_updated',
-						}));
-						pagesocket.close();
-					}
 					socket.close();
-					window.location.href = '/tournament/';
+					lobbysocket.close();
+
 				}
 				else {
 					console.log('Error leaving tournament');
@@ -361,12 +362,21 @@ document.addEventListener('DOMContentLoaded', function () {
 			event.preventDefault();
 			event.returnValue = '';
 			leaveLobby();
+			window.location.href = '/tournament/';
 		}
 		else if (reloadLeave && gameLeave && !isWinner) {
 			leaveLobby();
 		}
-		else if (reloadLeave && gameLeave && isWinner)
-		{
+		else if (reloadLeave && gameLeave && isWinner) {
+			// await self.send(text_data=json.dumps({
+			// 	'type': 'first_match_finished',
+			// 	'winner_id': event['winner_id'],
+			// }))
+			lobbysocket.send(JSON.stringify({
+				'type': 'first_match_finished',
+				'winner_id': userId,
+				'tournament_id': tournamentId,
+			}));
 			fetch(`/cancel_room/${userId}/`, {
 				method: 'POST',
 				headers: {
@@ -378,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				.then(data => {
 					var response = JSON.parse(data);
 					if (response.status === 'success') {
-						pagesocket.close();
 						socket.close();
 						console.log('Room canceled');
 					}
@@ -389,5 +398,4 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 		}
 	});
-
 });

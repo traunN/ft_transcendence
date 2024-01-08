@@ -362,7 +362,6 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
-	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json and 'tournament_id' in text_data_json:
@@ -383,6 +382,7 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 					}
 				)
 			elif text_data_json['type'] == 'first_match_finished':
+				self.logger.error("First match finished.")
 				await self.channel_layer.group_send(
 					f'tournament_lobby_{text_data_json["tournament_id"]}',
 					{
@@ -400,25 +400,13 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 		await self.accept()
-		await self.channel_layer.group_send(
-			f'tournament_lobby_{self.tournament_id}',
-			{
-				'type': 'tournament_lobby_updated',
-			}
-		)
 	
 	async def disconnect(self, close_code):
 		await self.channel_layer.group_discard(
 			f'tournament_lobby_{self.tournament_id}',
 			self.channel_name
 		)
-		await self.channel_layer.group_send(
-			f'tournament_lobby_{self.tournament_id}',
-			{
-				'type': 'tournament_lobby_updated',
-			}
-		)
-
+		
 class TournamentGameConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	game_room = None
@@ -426,15 +414,15 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 	ball_speed_x = 3
 	ball_speed_y = 3
 	ball_radius = 10
-	paddle1_position = {'x': 0, 'y': 300}
-	paddle2_position = {'x': 0, 'y': 300}
+	paddle1_position = {'x': 0, 'y': 0}
+	paddle2_position = {'x': 0, 'y': 0}
 	normalized_relative_intersect_y = 0
 	bounce_angle = 4
 	max_bounce_angle = 4
-	isGameRunning = False
+	isGameRunning = True
 	score1 = 0
 	score2 = 0
-	score_threshold = 5
+	score_threshold = 3
 	game_over = False
 	users = []
 	user1 = None
@@ -452,7 +440,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 				return
 			self.game_room.ball_position = f"{ball_position['x']},{ball_position['y']}"
 			await sync_to_async(self.game_room.save)()
-
 			await self.channel_layer.group_send(
 				self.room_group_name,
 				{
@@ -545,7 +532,7 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 							'score1': self.score1,
 							'score2': self.score2,
 							'winner': self.user1.idName if self.score1 >= self.score_threshold else self.user2.idName,
-							'loser': self.user2.idName if self.score2 >= self.score_threshold else self.user1.idName
+							'loser': self.user2.idName if self.score1 >= self.score_threshold else self.user1.idName
 						}
 					)
 					self.isGameRunning = False
@@ -647,7 +634,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 		)
 		self.isGameRunning = False
 
-	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		message = text_data_json['message']
@@ -677,31 +663,24 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 					'user2': self.user2.login
 				}
 			)
-		elif message == 'cancel_game_room' :
-			self.game_room = await self.get_game_room()
-			self.users = await sync_to_async(lambda: [player.user for player in self.game_room.roomplayer_set.all()])()
-			self.isGameRunning = False
+		elif message == 'user_left':
+			user_id = text_data_json['user_id']
 			self.game_over = True
-			if text_data_json['user_id'] == self.users[0].idName:
-				await self.channel_layer.group_send(
-					self.room_group_name,
-					{
-						'type': 'game_message',
-						'message': 'game_over',
-						'winner': self.users[1].idName,
-						'loser': self.users[0].idName
-					}
-				)
-			else:
-				await self.channel_layer.group_send(
-					self.room_group_name,
-					{
-						'type': 'game_message',
-						'message': 'game_over',
-						'winner': self.users[0].idName,
-						'loser': self.users[1].idName
-					}
-				)
+			self.gameState = 'waiting'
+			await sync_to_async(self.user1.save)()
+			await sync_to_async(self.user2.save)()
+			await sync_to_async(self.game_room.save)()
+			await self.channel_layer.group_send(
+				self.room_group_name,
+				{
+					'type': 'game_message',
+					'message': 'game_over',
+					'score1': self.score1,
+					'score2': self.score2,
+					'winner': self.user1.idName if self.user1.id == user_id else self.user2.idName,
+					'loser': self.user2.idName if self.user1.id == user_id else self.user1.idName
+				}
+			)
 		else:
 			await self.channel_layer.group_send(
 				self.room_group_name,
