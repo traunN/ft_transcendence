@@ -304,6 +304,9 @@ def tournament_game(request, tournament_id, room_name):
 def chat(request):
 	return render(request, 'chat.html')
 
+def test(request):
+	return render(request, 'test.html')
+
 def testDBConnection(request):
 	try:
 		with connection.cursor() as cursor:
