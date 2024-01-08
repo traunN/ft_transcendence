@@ -17,6 +17,7 @@ urlpatterns = [
 	path('settings/', views.settings, name='settings'),
 	path('tournament/', views.tournament, name='tournament'),
 	path('chat/', views.chat, name='chat'),
+	path('test/', views.test, name='test'),
 	path('save_test_user/', views.save_test_user, name='save_test_user'),
 	path('tournament_lobby/<int:tournament_id>/', views.tournament_lobby, name='tournament_lobby'),
 	path('tournament_game/<int:tournament_id>/<str:room_name>/', views.tournament_game, name='tournament_game'),
