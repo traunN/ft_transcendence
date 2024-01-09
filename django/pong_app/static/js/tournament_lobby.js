@@ -17,6 +17,49 @@ document.addEventListener('DOMContentLoaded', function () {
 		return ws.readyState === ws.OPEN;
 	}
 
+	fetch('/get_tournament_status/' + tournamentId + '/')
+		.then(response => response.text())
+		.then(data => {
+			var response = JSON.parse(data);
+			if (response.status === 'success') {
+				if (response.tournament_status === 'second_match_finished') {
+					reloadLeaveLobby = false;
+					setTimeout(function () {
+						window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
+					}, 3000);
+				}
+				else if (response.tournament_status === 'final_match_finished') {
+					reloadLeaveLobby = false;
+					fetch('/user_win_tournament/' + user.id + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+						},
+					})
+						.then(response => response.text())
+						.then(data => {
+							var response = JSON.parse(data);
+							if (response.status === 'success') {
+								setTimeout(function () {
+									window.location.href = '/tournament/';
+								}, 3000);
+							}
+							else {
+								console.log('Error getting tournament status');
+								console.log(response);
+							}
+						})
+						.catch(error => console.error(error));
+				}
+			}
+			else {
+				console.log('Error getting tournament status');
+				console.log(response);
+			}
+		})
+		.catch(error => console.error(error));
+
 	lobbysocket.onopen = function (e) {
 		console.log('lobbysocket opened');
 		loadingMessage.style.display = 'block';
@@ -79,6 +122,16 @@ document.addEventListener('DOMContentLoaded', function () {
 				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
 			}
 		}
+		else if (data.type === 'second_match_finished') {
+			var winnerId = data.winner_id;
+			console.log('second match finished');
+			// get last two players name
+			reloadLeaveLobby = false;
+			setTimeout(function () {
+				window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
+			}, 3000);
+		}
+		
 	};
 
 	function updatePlayersList() {
@@ -135,6 +188,16 @@ document.addEventListener('DOMContentLoaded', function () {
 						roomName1 = uniquePlayers[0].idName + '&' + uniquePlayers[1].idName;
 						roomName2 = uniquePlayers[2].idName + '&' + uniquePlayers[3].idName;
 						if (isOpen(lobbysocket)) {
+							fetch('/change_tournament_status/' + tournamentId + '/', {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'X-CSRFToken': csrfToken,
+								},
+								body: JSON.stringify({
+									'status': 'started',
+								})
+							})
 							lobbysocket.send(JSON.stringify({
 								'type': 'tournament_lobby_game_started',
 								'tournament_id': tournamentId,
@@ -202,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			errorElement.classList.add('hide');
 		}, 5000);
 	}
-
 
 	function changePlayerReadyStatus() {
 		var user = JSON.parse(sessionStorage.getItem('user'));

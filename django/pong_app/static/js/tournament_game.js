@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				socket.send(JSON.stringify({ 'message': 'cancel_game_room', 'user_id': userId }));
 			}
 		}
-		if (!gameLeave){
+		if (!gameLeave) {
 			socket.send(JSON.stringify({ 'message': 'user_left', 'user_id': userId }));
 		}
 		if (gameRoomStarted) {
@@ -368,15 +368,97 @@ document.addEventListener('DOMContentLoaded', function () {
 			leaveLobby();
 		}
 		else if (reloadLeave && gameLeave && isWinner) {
-			// await self.send(text_data=json.dumps({
-			// 	'type': 'first_match_finished',
-			// 	'winner_id': event['winner_id'],
-			// }))
-			lobbysocket.send(JSON.stringify({
-				'type': 'first_match_finished',
-				'winner_id': userId,
-				'tournament_id': tournamentId,
-			}));
+			fetch('/get_tournament_status/' + tournamentId + '/')
+				.then(response => response.text())
+				.then(data => {
+					var response = JSON.parse(data);
+					if (response.status === 'success') {
+						if (response.tournament_status === 'second_match_finished') {
+							fetch(`/change_tournament_status/${tournamentId}/`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'X-CSRFToken': csrfToken,
+								},
+								body: JSON.stringify({ 'status': 'final_match_finished' })
+							})
+								.then(response => response.text())
+								.then(data => {
+									var response = JSON.parse(data);
+									if (response.status === 'success') {
+										console.log('tournament status changed');
+									}
+									else {
+										console.log('Error changing tournament status');
+										console.log(response);
+									}
+								})
+							lobbysocket.send(JSON.stringify({
+								'type': 'final_match_finished',
+								'winner_id': userId,
+								'tournament_id': tournamentId,
+							}));
+						}
+						else if (response.tournament_status === 'first_match_finished') {
+							fetch(`/change_tournament_status/${tournamentId}/`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'X-CSRFToken': csrfToken,
+								},
+								body: JSON.stringify({ 'status': 'second_match_finished' })
+							})
+								.then(response => response.text())
+								.then(data => {
+									var response = JSON.parse(data);
+									if (response.status === 'success') {
+										console.log('tournament status changed');
+									}
+									else {
+										console.log('Error changing tournament status');
+										console.log(response);
+									}
+								})
+							lobbysocket.send(JSON.stringify({
+								'type': 'second_match_finished',
+								'winner_id': userId,
+								'tournament_id': tournamentId,
+							}));
+						}
+						else {
+							fetch(`/change_tournament_status/${tournamentId}/`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'X-CSRFToken': csrfToken,
+								},
+								body: JSON.stringify({ 'status': 'first_match_finished' })
+							})
+								.then(response => response.text())
+								.then(data => {
+									var response = JSON.parse(data);
+									if (response.status === 'success') {
+										console.log('tournament status changed');
+									}
+									else {
+										console.log('Error changing tournament status');
+										console.log(response);
+									}
+								})
+							lobbysocket.send(JSON.stringify({
+								'type': 'first_match_finished',
+								'winner_id': userId,
+								'tournament_id': tournamentId,
+							}));
+						}
+					}
+					else {
+						console.log('Error retrieving tournament status');
+						console.log(response);
+					}
+				}
+				)
+
 			fetch(`/cancel_room/${userId}/`, {
 				method: 'POST',
 				headers: {

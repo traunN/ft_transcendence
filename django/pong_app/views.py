@@ -17,6 +17,36 @@ import faker
 import pdb;
 from django.http import HttpResponse
 
+def user_win_tournament(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		user.tournamentWins += 1
+		user.save()
+		return JsonResponse({'status': 'success', 'message': 'User win tournament successfully'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
+def get_tournament_status(request, tournament_id):
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		return JsonResponse({'status': 'success', 'tournament_status': tournament.status})
+	except Tournament.DoesNotExist:
+		return JsonResponse({'status': 'error', 'message': 'Tournament not found'})
+
+def change_tournament_status(request, tournament_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			tournament = Tournament.objects.get(id=tournament_id)
+			tournament.status = data['status']
+			tournament.save()
+			self.logger.error('status : ' + tournament.status)
+			return JsonResponse({'status': 'success', 'message': 'Changed tournament status successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 def create_tournament_game(request, tournament_id, room_name, user_id):
 	try:
 		tournament = Tournament.objects.get(id=tournament_id)
@@ -39,8 +69,6 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 		if room.player_count == 2:
 			room.gameState = 'playing'
 			room.save()
-			tournament.status = 'started'
-			tournament.save()
 			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
 		else: 
 			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
