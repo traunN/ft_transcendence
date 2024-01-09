@@ -20,6 +20,22 @@ document.addEventListener('DOMContentLoaded', function () {
 	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
+	var roomNameKey = sessionStorage.getItem('roomNameKey');
+
+	console.log('tournament game room name:', roomName);
+	console.log('tournament game room name key:', roomNameKey);
+	if (roomNameKey){
+		if(roomNameKey !== roomName) {
+			sessionStorage.setItem('roomNameKey', '');
+			reloadLeave = false;
+			history.back();
+		}
+	}
+	else{
+		sessionStorage.setItem('roomNameKey', '');
+		reloadLeave = false;
+		history.back();
+	}
 
 	if (boardSkin === 'defaultSkin') {
 		board.classList.add('blackSkin');
@@ -62,6 +78,31 @@ document.addEventListener('DOMContentLoaded', function () {
 	lobbysocket.onerror = function (e) {
 		console.log('tournament game lobby socket error');
 	};
+
+	lobbysocket.onmessage = function (e) {
+		var data = JSON.parse(e.data);
+		if (data.type === 'canceled_room') {
+			console.log('canceled_room');
+			if (data.room_name === roomName) {
+				if (data.user_id !== userId) {
+					isWinner = true;
+					gameLeave = true;
+					isGameRunning = false;
+					message.textContent = 'You won!';
+					setTimeout(function () {
+						window.location.href = '/tournament_lobby/' + tournamentId;
+					}, 3000);
+				}
+				else {
+					isWinner = false;
+					gameLeave = true;
+					isGameRunning = false;
+					window.location.href = '/tournament/';
+				}
+			}
+		}
+	};
+			
 	function update_ball_position(updated_ball_position) {
 		const ballPositionObj = JSON.parse(updated_ball_position);
 		const x = ballPositionObj.x;
@@ -300,12 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if (!isWinner) {
 			console.log('LOST');
-			if (gameRoomStarted) {
-				socket.send(JSON.stringify({ 'message': 'cancel_game_room', 'user_id': userId }));
-			}
-		}
-		if (!gameLeave) {
-			socket.send(JSON.stringify({ 'message': 'user_left', 'user_id': userId }));
 		}
 		if (gameRoomStarted) {
 			fetch(`/cancel_room/${userId}/`, {
@@ -345,7 +380,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
 					// Send a message to the tournament lobby group
-					socket.close();
+					if (gameRoomStarted) {
+						socket.close();
+					}
 					lobbysocket.close();
 
 				}
@@ -361,8 +398,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (reloadLeave && !gameLeave) {
 			event.preventDefault();
 			event.returnValue = '';
+			lobbysocket.send(JSON.stringify({
+				'type': 'canceled_room',
+				'user_id': userId,
+				'room_name': roomName,
+				'tournament_id': tournamentId,
+			}));
 			leaveLobby();
-			window.location.href = '/tournament/';
 		}
 		else if (reloadLeave && gameLeave && !isWinner) {
 			leaveLobby();
@@ -458,26 +500,27 @@ document.addEventListener('DOMContentLoaded', function () {
 					}
 				}
 				)
-
-			fetch(`/cancel_room/${userId}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-				},
-			})
-				.then(response => response.text())
-				.then(data => {
-					var response = JSON.parse(data);
-					if (response.status === 'success') {
-						socket.close();
-						console.log('Room canceled');
-					}
-					else {
-						console.log('Error canceling room');
-						console.log(response);
-					}
+			if (gameRoomStarted) {
+				fetch(`/cancel_room/${userId}/`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrfToken,
+					},
 				})
+					.then(response => response.text())
+					.then(data => {
+						var response = JSON.parse(data);
+						if (response.status === 'success') {
+							socket.close();
+							console.log('Room canceled');
+						}
+						else {
+							console.log('Error canceling room');
+							console.log(response);
+						}
+					})
+			}
 		}
 	});
 });

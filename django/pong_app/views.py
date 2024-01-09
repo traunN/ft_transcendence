@@ -54,7 +54,7 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 			room = GameRoom.objects.get(name=room_name)
 		else:
 			room = GameRoom(name=room_name)
-			room.gameState = 'waiting'
+			room.gameState = 'waiting_tournament'
 			room.save()
 		user = User.objects.get(idName=user_id)
 		room.ball_position = '0,0'
@@ -67,7 +67,7 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 		room.save()
 
 		if room.player_count == 2:
-			room.gameState = 'playing'
+			room.gameState = 'playing_tournament'
 			room.save()
 			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
 		else: 
@@ -202,6 +202,7 @@ def join_or_create_room(request, user_id):
 	try:
 		rooms = GameRoom.objects.filter(player_count__lt=2)
 		rooms = rooms.exclude(gameState='cancelled')
+		rooms = rooms.exclude(gameState='waiting_tournament')
 		if not rooms.exists():
 			name = str(user_id) + '_room'
 			if GameRoom.objects.filter(name=name).exists():

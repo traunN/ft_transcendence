@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				var wins = row.insertCell(2);
 				var loses = row.insertCell(3);
 				var winrate = row.insertCell(4);
+				var tourney_wins = row.insertCell(5);
 				rank.innerHTML = i + 1;
 				login.innerHTML = users[i].login;
 				wins.innerHTML = users[i].wins;
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					winrateValue = Math.round(users[i].wins / totalGames * 100);
 				}
 				winrate.innerHTML = winrateValue + '%';
+				tourney_wins.innerHTML = users[i].tournamentWins;
 			}
 		});
 	console.log('leadearboard.js loaded');

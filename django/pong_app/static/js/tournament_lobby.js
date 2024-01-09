@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
 	var loadingMessage = document.getElementById('loadingMessage');
+	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
 	let gameStarted = true;
 	let reloadLeaveLobby = true;
 	var roomName1;
@@ -17,6 +18,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		return ws.readyState === ws.OPEN;
 	}
 
+	if (tournamentLobbyKey){
+		console.log('tournamentLobbyKey', tournamentLobbyKey);
+		console.log('tournamentId', tournamentId);
+		if(tournamentLobbyKey !== tournamentId) {
+			sessionStorage.setItem('tournamentLobbyKey', '');
+			reloadLeaveLobby = false;
+			history.back();
+		}
+	}
+	else{
+		sessionStorage.setItem('tournamentLobbyKey', '');
+		reloadLeaveLobby = false;
+		history.back();
+	}
+
 	fetch('/get_tournament_status/' + tournamentId + '/')
 		.then(response => response.text())
 		.then(data => {
@@ -24,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (response.status === 'success') {
 				if (response.tournament_status === 'second_match_finished') {
 					reloadLeaveLobby = false;
+					sessionStorage.setItem('roomNameKey', user.id );
 					setTimeout(function () {
 						window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
 					}, 3000);
@@ -104,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 			if (is_in_room1) {
 				reloadLeaveLobby = false;
+				sessionStorage.setItem('roomNameKey', roomName1);
 				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
 			}
 		}
@@ -119,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 			if (!is_in_room1) {
 				reloadLeaveLobby = false;
+				sessionStorage.setItem('roomNameKey', roomName2);
 				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
 			}
 		}
@@ -128,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			// get last two players name
 			reloadLeaveLobby = false;
 			setTimeout(function () {
+				sessionStorage.setItem('roomNameKey', winnerId);
 				window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
 			}, 3000);
 		}

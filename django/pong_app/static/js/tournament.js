@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							'type': 'tournament_updated',
 						}));
 					}
+					sessionStorage.setItem('tournamentLobbyKey', response.tournament_id);
 					window.location.href = '/tournament_lobby/' + response.tournament_id;
 				}
 				else {
@@ -103,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							'type': 'tournament_updated',
 						}));
 					}
+					sessionStorage.setItem('tournamentLobbyKey', response.tournament_id);
 					window.location.href = '/tournament_lobby/' + response.tournament_id;
 				}
 				else {
