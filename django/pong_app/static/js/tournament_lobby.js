@@ -151,6 +151,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
 			}, 3000);
 		}
+		else if (data.type === 'cancel_lobby') {
+			console.log('cancel_lobby');
+			reloadLeaveLobby = false;
+			window.location.href = '/tournament/';
+		}
 		
 	};
 
@@ -351,15 +356,45 @@ document.addEventListener('DOMContentLoaded', function () {
 						pagesocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
+						// if tournament is anything but available then cancel lobby
+						fetch('/get_tournament_status/' + tournamentId + '/')
+							.then(response => response.text())
+							.then(data => {
+								var response = JSON.parse(data);
+								if (response.status === 'success') {
+									if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
+										lobbysocket.send(JSON.stringify({
+											'type': 'cancel_lobby',
+											'tournament_id': tournamentId,
+										}));
+										fetch('/change_tournament_status/' + tournamentId + '/', {
+											method: 'POST',
+											headers: {
+												'Content-Type': 'application/json',
+												'X-CSRFToken': csrfToken,
+											},
+											body: JSON.stringify({
+												'status': 'canceled',
+											})
+										})
+										if (isOpen(lobbysocket)) {
+											lobbysocket.send(JSON.stringify({
+												'type': 'tournament_lobby_updated',
+												'tournament_id': tournamentId,
+											}));
+											lobbysocket.close();
+										}
+									}
+								}
+								else {
+									console.log('Error getting tournament status');
+									console.log(response);
+								}
+							})
+							.catch(error => console.error(error));
 						pagesocket.close();
 					}
-					if (isOpen(lobbysocket)) {
-						lobbysocket.send(JSON.stringify({
-							'type': 'tournament_lobby_updated',
-							'tournament_id': tournamentId,
-						}));
-						lobbysocket.close();
-					}
+					
 					window.location.href = '/tournament/';
 				}
 				else {

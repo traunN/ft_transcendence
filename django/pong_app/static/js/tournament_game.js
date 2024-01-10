@@ -88,10 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					isWinner = true;
 					gameLeave = true;
 					isGameRunning = false;
-					message.textContent = 'You won!';
-					setTimeout(function () {
-						window.location.href = '/tournament_lobby/' + tournamentId;
-					}, 3000);
+					window.location.href = '/tournament_lobby/' + tournamentId;
 				}
 				else {
 					isWinner = false;
@@ -100,6 +97,13 @@ document.addEventListener('DOMContentLoaded', function () {
 					window.location.href = '/tournament/';
 				}
 			}
+		}
+		else if (data.type === 'cancel_lobby') {
+			console.log('cancel_lobby');
+			isWinner = false;
+			gameLeave = true;
+			isGameRunning = false;
+			window.location.href = '/tournament/';
 		}
 	};
 			

@@ -390,6 +390,14 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
+	async def cancel_lobby(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'cancel_lobby',
+			}))
+		except Exception as e:
+			print(e)
+
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json and 'tournament_id' in text_data_json:
@@ -444,6 +452,14 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 						'type': 'canceled_room',
 						'user_id': text_data_json['user_id'],
 						'room_name': text_data_json['room_name'],
+					}
+				)
+			elif text_data_json['type'] == 'cancel_lobby':
+				self.logger.error("Canceled lobby.")
+				await self.channel_layer.group_send(
+					f'tournament_lobby_{text_data_json["tournament_id"]}',
+					{
+						'type': 'cancel_lobby',
 					}
 				)
 		else:
@@ -715,8 +731,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 				{
 					'type': 'game_message',
 					'message': 'start_game',
-					'user1': self.user1.login,
-					'user2': self.user2.login
+					'user1': self.user1.alias,
+					'user2': self.user2.alias
 				}
 			)
 		elif message == 'user_left':
