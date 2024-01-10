@@ -1,5 +1,10 @@
+@font-face {
+	font-family: 'BurbankBigCondensed-Black';
+	src: url('/static/fonts/BurbankBigCondensed-Black.otf'); /* Adjust the URL based on your font file's location */
+}
+
 body {
-	background-color: #f1f4f6;
+	background-color: #202425;
 	color: #fff;
 	margin: 0;
 	overflow: hidden;
@@ -376,20 +381,22 @@ input[type="search"] {
 }
 
 .lb-title {
-	font-size: 50px;
+	font-family: 'BurbankBigCondensed-Black', sans-serif !important;
+	font-size: 3.8rem;
 	color: #f7ff19;
 	font-weight: 900;
 	text-shadow: #f7ff19;
 	font-style: italic;
 	text-align: center;
-	padding: 100px;
+	padding: 50px;
 }
 
 .tournament-title {
+	font-family: 'BurbankBigCondensed-Black', sans-serif !important;
 	color: #f7ff19;
-	font-weight: bold;
+	/* font-weight: bold; */
 	text-shadow: #f7ff19;
-	font-style: italic;
+	/* font-style: italic; */
 	text-align: center;
 }
 
@@ -438,13 +445,9 @@ thead {
 	width: 60%;
 }
 
-.custom-bg {
+div.card.custom-bg{
 	background-color: #151718;
-	margin-top: 50px;
-	padding: 25px;
-	border-radius: 5px;
-	justify-content: center;
-	align-items: center;
+	color: #fff;
 }
 
 #create-tournament-form {
@@ -567,7 +570,8 @@ thead {
 }
 
 .card {
-	background-color: #151718;
+	background-color: #ffffff;
+	color: #000000;
 	border: none;
 	border-radius: 5px;
 	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
@@ -588,8 +592,40 @@ thead {
 	padding: 15px;
 }
 
+.card-title {
+	font-family: 'BurbankBigCondensed-Black', sans-serif !important;
+	font-size: 1.8rem;
+}
+
+.card-title-profile {
+	font-family: 'BurbankBigCondensed-Black', sans-serif !important;
+	font-size: 2.8rem;
+}
+
 .card:hover {
-	color: #f7ff19;
+	background-color: #f8f9fa;
+	transform: scale(1.05);
+	transition: all 0.3s ease;
+}
+
+.card.no-hover:hover {
+	transform: none;
+}
+
+.flex-card-profile {
+	display: flex;
+	flex-direction: row;
+}
+
+.card-img-top-profile {
+	width: 50%; /* adjust as needed */
+	height: auto;
+	padding: 20px;
+}
+
+.card-body-profile {
+	width: 50%; /* adjust as needed */
+	padding: 20px;
 }
 
 @keyframes pulse {

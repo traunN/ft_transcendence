@@ -10,9 +10,6 @@
 	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
-		body {
-			background-color: #202425;
-		}
 		main {
 			display: flex;
 			justify-content: center;
@@ -27,10 +24,10 @@
 		<div class="container-fluid">
 			<div class="row">
 				<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
-					<div class="card custom-bg">
-						<img class="card-img-top" src="" alt="User Image" id="userImageProfile">
-						<div class="card-body">
-							<h1 class="card-title" id="usernameProfile"></h1>
+					<div class="card custom-bg no-hover flex-card-profile">
+						<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
+						<div class="card-body-profile">
+							<h1 class="card-title-profile" id="usernameProfile"></h1>
 							<ul class="card-text" id="userInfo">
 								<li id="emailProfile"></li>
 								<li id="firstNameProfile"></li>
@@ -44,8 +41,8 @@
 								<li id="losesProfile"></li>
 								<li id="tournamentWinsProfile"></li>
 							</ul>
+							<input type="search" id="searchUser" placeholder="Search for a user">
 						</div>
-						<input type="search" id="searchUser" placeholder="Search for a user">
 					</div>
 				</main>
 			</div>

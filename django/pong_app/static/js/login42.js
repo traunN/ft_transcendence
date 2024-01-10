@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				// Now you can use clientId and clientSecret
 				console.log('clientId: ' + clientId);
-				
+					//move request to backend
 				var xhr = new XMLHttpRequest();
 				xhr.open('POST', 'https://api.intra.42.fr/oauth/token', true);
 				xhr.onreadystatechange = function () {
