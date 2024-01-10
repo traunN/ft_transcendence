@@ -111,6 +111,12 @@ body {
 	background-size: cover;
 }
 
+.ball.skin4 {
+	background: url('https://i.ibb.co/c6VhPCz/download-1.jpg') no-repeat;
+	background-size: cover;
+	border: 1px solid #fff;
+}
+
 .paddle.skin1 {
 	background-color: #fff;
 }

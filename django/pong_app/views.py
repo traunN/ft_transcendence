@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
+from django.conf import settings
 from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
 import logging
 import json
@@ -16,6 +17,20 @@ import string
 import faker
 import pdb;
 from django.http import HttpResponse
+
+logger = logging.getLogger(__name__)
+
+def get_client_secret(request):
+	try:
+		return JsonResponse({'status': 'success', 'client_secret': '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'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
+def get_client_id(request):
+	try:
+		return JsonResponse({'status': 'success', 'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def user_win_tournament(request, user_id):
 	try:
@@ -40,7 +55,6 @@ def change_tournament_status(request, tournament_id):
 			tournament = Tournament.objects.get(id=tournament_id)
 			tournament.status = data['status']
 			tournament.save()
-			self.logger.error('status : ' + tournament.status)
 			return JsonResponse({'status': 'success', 'message': 'Changed tournament status successfully'})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
