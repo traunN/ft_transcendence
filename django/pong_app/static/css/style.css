@@ -106,18 +106,18 @@ body {
 }
 
 .ball.skin2 {
-	background: url('https://i.ibb.co/sHfnxvG/bauble-1.png') no-repeat;
+	background: url('../images/noel-ball.png') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
 
 .ball.skin3 {
-	background: url('https://i.ibb.co/2Pzhjkq/ezgif-4-69a92ae632.jpg') no-repeat;
+	background: url('../images/hollow-ball.jpg') no-repeat;
 	background-size: cover;
 }
 
 .ball.skin4 {
-	background: url('https://i.ibb.co/c6VhPCz/download-1.jpg') no-repeat;
+	background: url('../images/t1-ball.jpg') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
@@ -127,26 +127,26 @@ body {
 }
 
 .paddle.skin2 {
-	background: url('https://i.ibb.co/89VMQrT/barres.jpg') no-repeat;
+	background: url('../images/dog-pa.jpg') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
 
 .paddle.skin3 {
-	background: url('https://i.ibb.co/wCGdmBH/ours.jpg') no-repeat;
+	background: url('../images/bear-pa.jpg') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
 
 .paddle.skin4 {
-	background: url('https://i.ibb.co/PtPXYL4/feaeaf-2.png') no-repeat;
+	background: url('../images/zombie-pa.png') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
 
 
 .paddle.skin5 {
-	background: url('https://i.ibb.co/qdY1CMD/vjefi0L.jpg') no-repeat;
+	background: url('../images/cute-pa.jpg') no-repeat;
 	background-size: cover;
 	border: 1px solid #fff;
 }
@@ -163,7 +163,7 @@ body {
 	background-image:
 		linear-gradient(rgba(0, 0, 0, 0.7),
 			rgba(0, 0, 0, 0.5)),
-		url('https://wallpapercave.com/wp/wp3850584.jpg');
+		url('../images/noel-bg.png');
 	background-repeat: no-repeat;
 	background-size: cover;
 }
@@ -172,7 +172,7 @@ body {
 	background-image:
 		linear-gradient(rgba(0, 0, 0, 0.7),
 			rgba(0, 0, 0, 0.5)),
-		url('https://helios-i.mashable.com/imagery/articles/02BO6UUdjykfyqQNQ40cgOH/hero-image.fill.size_1248x702.v1623373094.jpg');
+		url('../images/hollow-bg.jpg');
 	background-repeat: no-repeat;
 	background-size: cover;
 }
@@ -402,7 +402,7 @@ input[type="search"] {
 
 #leaderboardHeader::before {
 	content: "";
-	background: url(https://pbs.twimg.com/media/FyChAjmX0AErdsN.jpg:large) no-repeat center center fixed;
+	background: url(../images/lb-bg.jpg) no-repeat center center fixed;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -533,7 +533,7 @@ div.card.custom-bg{
 
 #playerList {
 	display: grid;
-	grid-template-columns: repeat(1, 1fr);
+	grid-template-columns: repeat(2, 1fr);
 	gap: 10px;
 }
 
@@ -551,6 +551,19 @@ div.card.custom-bg{
 
 #playerList li:hover {
 	background-color: #090801;
+}
+
+.player-grid{
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.player-grid li{
+	flex: 50%;
+}
+
+.selected-player {
+	border: 2px solid #00ff00; /* Change this to the desired border color */
 }
 
 .aliasSpan {

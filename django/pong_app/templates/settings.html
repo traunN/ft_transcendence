@@ -13,14 +13,21 @@
 		.board {
 			width: 300px;
 			height: 200px;
+			transition: transform 0.3s ease-in-out;
+		}
+
+		.board:hover {
+			transform: scale(1.1);
+			
 		}
 
 		.ball {
 			width: 40px;
 			height: 40px;
 			position: relative;
-			top : 20px;
+			top : 15px;
 			left : 165px;
+			animation: float 2s ease-in-out infinite;
 		}
 
 		.paddle {
@@ -28,6 +35,11 @@
 			height: 200px;
 			transform: rotate(90deg);
 			background-color: #fff;
+			transition: transform 0.3s ease-in-out;
+		}
+
+		.paddle:hover {
+			transform: rotate(90deg) scale(1.1);
 		}
 
 		.flex-container {
@@ -56,6 +68,11 @@
 			text-align: center;
 		}
 
+		@keyframes float {
+			0% { transform: translateY(0px); }
+			50% { transform: translateY(-20px); }
+			100% { transform: translateY(0px); }
+		}
 	</style>
 </head>
 

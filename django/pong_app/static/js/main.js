@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
 				update_ball_position(updated_ball_position);
-				console.log('reduce lag'); //have to change this not normal javascript things
+				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				message.textContent = 'Player left the game';
 				setTimeout(function () {
 					location.reload();
-				}, 5000);
+				}, 3000);
 			}
 			else {
 				const gameState = messageData.message;

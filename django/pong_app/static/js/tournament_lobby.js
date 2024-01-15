@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var playersList = document.getElementById('playerList');
 	var loadingMessage = document.getElementById('loadingMessage');
 	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
+	var statusText = document.getElementById('statusText');
 	let gameStarted = true;
 	let reloadLeaveLobby = true;
 	var roomName1;
@@ -81,11 +82,11 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('lobbysocket opened');
 		loadingMessage.style.display = 'block';
 		// wait a second to refresh
+		lobbysocket.send(JSON.stringify({
+			'type': 'tournament_lobby_updated',
+			'tournament_id': tournamentId,
+		}));
 		setTimeout(function () {
-			lobbysocket.send(JSON.stringify({
-				'type': 'tournament_lobby_updated',
-				'tournament_id': tournamentId,
-			}));
 			loadingMessage.style.display = 'none';
 		}, 600);
 	};
@@ -98,9 +99,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		var data = JSON.parse(event.data);
 		if (data.type === 'tournament_lobby_updated') {
 			console.log('tournament_lobby_updated');
-			updatePlayersList();
+			setTimeout(function () {
+				updatePlayersList();
+			}, 600);
 		}
 		else if (data.type === 'tournament_lobby_game_started') {
+			statusText.innerHTML = 'Round 1';
 			gameStarted = true;
 			console.log('Game started');
 			if (isOpen(pagesocket)) {
@@ -122,10 +126,13 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (is_in_room1) {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName1);
-				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+				setTimeout(function () {
+					window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+				}, 3000);
 			}
 		}
 		else if (data.type === 'first_match_finished') {
+			statusText.innerHTML = 'Round 2';
 			console.log('first match finished');
 			// get userid of winner
 			var winnerId = data.winner_id;
@@ -138,10 +145,13 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (!is_in_room1) {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName2);
-				window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+				setTimeout(function () {
+					window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+				}, 3000);
 			}
 		}
 		else if (data.type === 'second_match_finished') {
+			statusText.innerHTML = 'Final Round';
 			var winnerId = data.winner_id;
 			console.log('second match finished');
 			// get last two players name
@@ -362,6 +372,13 @@ document.addEventListener('DOMContentLoaded', function () {
 							.then(data => {
 								var response = JSON.parse(data);
 								if (response.status === 'success') {
+									if (isOpen(lobbysocket)) {
+										lobbysocket.send(JSON.stringify({
+											'type': 'tournament_lobby_updated',
+											'tournament_id': tournamentId,
+										}));
+										lobbysocket.close();
+									}
 									if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
 										lobbysocket.send(JSON.stringify({
 											'type': 'cancel_lobby',
@@ -377,13 +394,6 @@ document.addEventListener('DOMContentLoaded', function () {
 												'status': 'canceled',
 											})
 										})
-										if (isOpen(lobbysocket)) {
-											lobbysocket.send(JSON.stringify({
-												'type': 'tournament_lobby_updated',
-												'tournament_id': tournamentId,
-											}));
-											lobbysocket.close();
-										}
 									}
 								}
 								else {
