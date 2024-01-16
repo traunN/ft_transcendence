@@ -593,6 +593,7 @@ div.card.custom-bg{
 	display: flex;
 	align-items: center;
 	margin: 10px;
+	transition: all 0.3s ease-in-out;
 }
 
 .card-img {
@@ -618,7 +619,6 @@ div.card.custom-bg{
 .card:hover {
 	background-color: #f8f9fa;
 	transform: scale(1.05);
-	transition: all 0.3s ease;
 }
 
 .card.no-hover:hover {
