@@ -398,6 +398,16 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
+	async def next_players(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'next_players',
+				'player1': event['player1'],
+				'player2': event['player2'],
+			}))
+		except Exception as e:
+			print(e)
+
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json and 'tournament_id' in text_data_json:
@@ -418,6 +428,7 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 					}
 				)
 			elif text_data_json['type'] == 'first_match_finished':
+				# send next players with other two players
 				self.logger.error("First match finished.")
 				await self.channel_layer.group_send(
 					f'tournament_lobby_{text_data_json["tournament_id"]}',
@@ -460,6 +471,16 @@ class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 					f'tournament_lobby_{text_data_json["tournament_id"]}',
 					{
 						'type': 'cancel_lobby',
+					}
+				)
+			elif text_data_json['type'] == 'next_players':
+				self.logger.error("Next players.")
+				await self.channel_layer.group_send(
+					f'tournament_lobby_{text_data_json["tournament_id"]}',
+					{
+						'type': 'next_players',
+						'player1': text_data_json['player1'],
+						'player2': text_data_json['player2'],
 					}
 				)
 		else:
