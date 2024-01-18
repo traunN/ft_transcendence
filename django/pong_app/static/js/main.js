@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		requestAnimationFrame(update_paddles);
 	}
 
-
 	function gameLoop(gameState) {
 		socket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);

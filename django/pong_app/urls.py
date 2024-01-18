@@ -39,4 +39,5 @@ urlpatterns = [
 	path('user_win_tournament/<int:user_id>/', views.user_win_tournament, name='user_win_tournament'),
 	path('get_client_id/', views.get_client_id, name='get_client_id'),
 	path('get_client_secret/', views.get_client_secret, name='get_client_secret'),
+	path('exchange_token/', views.exchange_token, name='exchange_token'),
 ]

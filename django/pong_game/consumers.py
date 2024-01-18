@@ -22,7 +22,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 	max_bounce_angle = 4
 	game_room = None
 	isGameRunning = True
-	connected_users = 0
 	score1 = 0
 	score2 = 0
 	score_threshold = 5
@@ -119,8 +118,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 	async def game_loop(self):
 		try:
+			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
 			while self.isGameRunning:
-				self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
+				# self.logger.error("test")
 				if self.score1 >= self.score_threshold or self.score2 >= self.score_threshold:
 					self.game_over = True
 					self.gameState = 'waiting'
@@ -231,7 +231,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 		await self.accept()
-		self.connected_users += 1
 
 
 	async def disconnect(self, close_code):
@@ -241,7 +240,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 		self.isGameRunning = False
-		self.connected_users -= 1
 
 	# Receive message from WebSocket
 	async def receive(self, text_data):
@@ -255,7 +253,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 				self.paddle2_position = text_data_json['position']
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
 		elif message == 'start_game':
-			self.game_room = await self.get_game_room()	
+			self.game_room = await self.get_game_room()
 			self.ball_position = {'x': 400, 'y': 300}
 			self.paddle1_position = {'x': 10, 'y': 300}
 			self.paddle2_position = {'x': 790, 'y': 300}

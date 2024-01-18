@@ -17,8 +17,36 @@ import string
 import faker
 import pdb;
 from django.http import HttpResponse
+import requests
 
-logger = logging.getLogger(__name__)
+def exchange_token(request):
+	try:
+		# Get the authorization code from the request
+		code = request.GET.get('code')
+
+		# Define the redirect URI and the data for the POST request
+		redirect_uri = 'http://localhost:8000/homePage/'
+		post_data = {
+			'grant_type': 'authorization_code',
+			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
+			'client_secret': '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',
+			'code': code,
+			'redirect_uri': redirect_uri
+		}
+
+		# Make the POST request to exchange the code for a token
+		response = requests.post('https://api.intra.42.fr/oauth/token', data=post_data)
+
+		# Check if the request was successful
+		if response.status_code == 200:
+			# Return the access token to the frontend
+			response_data = response.json()
+			access_token = response_data['access_token']
+			return JsonResponse({'access_token': access_token})
+		else:
+			return JsonResponse({'status': 'error', 'message': 'Token exchange failed'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def get_client_secret(request):
 	try:
@@ -277,16 +305,17 @@ def cancel_room(request, user_id):
 		room = GameRoom.objects.filter(players=user).first()
 		if room is not None:
 			room_player = RoomPlayer.objects.get(user=user, room=room)
-			if room_player.count > 1:
-				room_player.count -= 1
-				room_player.save()
-			else:
-				room_player.delete()
+			room_player.delete()
 			room.gameState = 'cancelled'
 			room.player_count -= 1
 			room.save()
 
-			if room.player_count == 0:
+			# get RoomPlayer to check if there is another player in the room
+			room_player = RoomPlayer.objects.filter(room=room).first()
+			if room_player is not None:
+				return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
+			else:
+				# if there is no other player in the room, delete the room
 				room.delete()
 
 			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
@@ -395,7 +424,6 @@ def save_user_profile(request):
 def save_test_user(request):
 	user_data = generate_random_user()
 
-	logging.error('Saving user: ' + str(user_data))
 
 	try:
 		user = User.objects.create(
@@ -413,7 +441,6 @@ def save_test_user(request):
 		)
 	except Exception as e:
 		import traceback
-		logging.error(traceback.format_exc())
 		return HttpResponse(str(e), status=500)
 
 

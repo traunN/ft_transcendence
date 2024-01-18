@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		loginLogout.innerHTML = 'Logout';
 		userName.innerHTML = user.login;
 		if (user && user.image) {
-			if (typeof user.image === 'object')
-			{
+			if (typeof user.image === 'object') {
 				userImage.src = user.image.link;
 			}
 			else
@@ -44,13 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			userName.innerHTML = '';
 			userImage.src = '';
 			userImage.style.display = 'none';
-		}
-		else {
+		} else {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
 				console.log('User is already logged in');
-			}
-			else {
+			} else {
 				fetch('/get_client_id/')
 					.then(response => {
 						if (!response.ok) {
@@ -60,8 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					})
 					.then(data => {
 						var clientId = data.client_id;
-						// var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
-						console.log(data);
 						var redirectUri = 'http://localhost:8000/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
 						window.location.href = url;
@@ -86,15 +81,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				const dataId = await responseId.json();
 				clientId = dataId.client_id;
 
-				// Now you can use clientId and clientSecret
-				console.log('clientId: ' + clientId);
-					//move request to backend
-				var xhr = new XMLHttpRequest();
-				xhr.open('POST', 'https://api.intra.42.fr/oauth/token', true);
-				xhr.onreadystatechange = function () {
-					if (this.readyState === 4 && this.status === 200) {
-						var response = JSON.parse(this.responseText);
-						var accessToken = response.access_token;
+				fetch('/exchange_token/?code=' + code)
+					.then((response) => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							throw new Error('Network response was not ok');
+						}
+					}).then((data) => {
+						var accessToken = data.access_token;
 						var userUrl = 'https://api.intra.42.fr/v2/me';
 						var userXhr = new XMLHttpRequest();
 						userXhr.open('GET', userUrl, true);
@@ -110,13 +105,11 @@ document.addEventListener('DOMContentLoaded', function () {
 								var xhrSaveProfile = new XMLHttpRequest();
 								xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
 								xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
-				
 								xhrSaveProfile.onload = function () {
 									if (xhrSaveProfile.status === 200) {
 										console.log('Login successful!');
 									}
 								};
-								// if no location set to none
 								if (!user.location)
 									user.location = 'none';
 								xhrSaveProfile.send(JSON.stringify({
@@ -139,36 +132,21 @@ document.addEventListener('DOMContentLoaded', function () {
 						};
 						userXhr.send();
 						loginLogout.innerHTML = 'Logout';
-					}
-				};
-				console.log('clientSecret: ' + clientSecret);
-				// Continue with the rest of your code here...
-
+						isLogged = true;
+					}).catch((error) => {
+						console.error('Error:', error);
+					});
 			} catch (error) {
 				console.error('Error:', error);
 			}
-			if (!user) {
-				console.log('clientId: ' + clientId);
-				console.log('clientSecret: ' + clientSecret);
-				var data = 'grant_type=authorization_code&client_id=' + clientId + '&client_secret=' + clientSecret + '&code=' + code + '&redirect_uri=' + redirectUri;
-				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-				xhr.send(data);
-				isLogged = true;
-				loginLogout.innerHTML = 'Login with 42';
-			}
-			else
-				console.log('user already logged in');
 		}
 		getClientData();
-		// var clientId = 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2';
-		// var clientSecret = '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';
-	}
-	else {
-		if (user)
-		{
+	} else {
+		if (user) {
 			console.log('already logged in');
-		}
-		else
+		} else {
 			console.log('not logged in');
+		}
 	}
+
 });
