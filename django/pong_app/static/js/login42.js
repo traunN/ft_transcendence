@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		for (var i = 0; i < users.length; i++) {
 			if (users[i].login === user.login) {
 				existingUser = true;
+				userName.innerHTML = user.login;
 				break;
 			}
 		}
@@ -143,6 +144,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		getClientData();
 	} else {
 		if (user) {
+			console.log('user login: ' + user.login);
+			userName.textContent = user.login;
 			console.log('already logged in');
 		} else {
 			console.log('not logged in');

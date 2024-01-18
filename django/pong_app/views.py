@@ -19,6 +19,27 @@ import pdb;
 from django.http import HttpResponse
 import requests
 
+def update_user(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user_id = data['id']
+			try:
+				user = User.objects.get(idName=user_id)
+			except User.DoesNotExist:
+				return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+			user.login = data['login']
+			user.email = data['email']
+			user.firstName = data['firstName']
+			user.lastName = data['lastName']
+			user.campus = data['campus']
+			user.save()
+			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 def exchange_token(request):
 	try:
 		# Get the authorization code from the request

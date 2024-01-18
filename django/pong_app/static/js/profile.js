@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	var userId = user.id;
-	console.log('userId: ' + userId);
 	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {
@@ -57,6 +56,60 @@ document.addEventListener('DOMContentLoaded', function () {
 		.catch(error => {
 			console.error('Error:', error);
 		});
+});
+
+document.getElementById('editProfileButton').addEventListener('click', function () {
+	// Replace static text with input fields
+	username.innerHTML = `<input type="text" id="usernameInput" value="${username.textContent}">`;
+	userEmail.innerHTML = `<input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
+	userFirstName.innerHTML = `<input type="text" id="firstNameInput" value="${userFirstName.textContent.slice(12)}">`;
+	userLastName.innerHTML = `<input type="text" id="lastNameInput" value="${userLastName.textContent.slice(11)}">`;
+	usercampusProfile.innerHTML = `<input type="text" id="campusInput" value="${usercampusProfile.textContent.slice(8)}">`;
+});
+
+document.getElementById('saveProfileButton').addEventListener('click', function () {
+	// Get the new values from the input fields
+	var newUsername = document.getElementById('usernameInput').value;
+	var newEmail = document.getElementById('emailInput').value;
+	var newFirstName = document.getElementById('firstNameInput').value;
+	var newLastName = document.getElementById('lastNameInput').value;
+	var newCampus = document.getElementById('campusInput').value;
+	// Make a fetch request to update the user data on the server
+	fetch('/update_user/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': csrfToken,
+		},
+		body: JSON.stringify({
+			id: user.id,
+			login: newUsername,
+			email: newEmail,
+			firstName: newFirstName,
+			lastName: newLastName,
+			campus: newCampus,
+		}),
+	})
+	.then(response => response.json())
+	.then(data => {
+		console.log(data);
+		username.textContent = newUsername;
+		userEmail.textContent = 'Email: ' + newEmail;
+		userFirstName.textContent = 'First name: ' + newFirstName;
+		userLastName.textContent = 'Last name: ' + newLastName;
+		usercampusProfile.textContent = 'Campus: ' + newCampus;
+		// update session storage user login and email
+		user.login = newUsername;
+		user.email = newEmail;
+		user.firstName = newFirstName;
+		user.lastName = newLastName;
+		user.campus = newCampus;
+		sessionStorage.setItem('user', JSON.stringify(user));
+		location.reload();
+	})
+	.catch((error) => {
+		console.error('Error:', error);
+	});
 });
 
 searchUser.addEventListener('keypress', function (event) {

@@ -40,4 +40,5 @@ urlpatterns = [
 	path('get_client_id/', views.get_client_id, name='get_client_id'),
 	path('get_client_secret/', views.get_client_secret, name='get_client_secret'),
 	path('exchange_token/', views.exchange_token, name='exchange_token'),
+	path('update_user/', views.update_user, name='update_user'),
 ]
