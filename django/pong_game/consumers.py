@@ -2,7 +2,7 @@ import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 import logging
-from pong_app.models import GameRoom
+from pong_app.models import GameRoom, GameHistory
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
@@ -24,7 +24,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 	isGameRunning = True
 	score1 = 0
 	score2 = 0
-	score_threshold = 5
+	score_threshold = 3
 	game_over = False
 	users = []
 	user1 = None
@@ -133,6 +133,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 					await sync_to_async(self.user1.save)()
 					await sync_to_async(self.user2.save)()
 					await sync_to_async(self.game_room.save)()
+					await database_sync_to_async(GameHistory.objects.create)(
+						player1Id=self.user1.idName,
+						player2Id=self.user2.idName,
+						player1Login=self.user1.login,
+						player2Login=self.user2.login,
+						winnerId=(self.user1.idName if self.score1 >= self.score_threshold else self.user2.idName),
+						score1=self.score1,
+						score2=self.score2
+					)
 					await self.channel_layer.group_send(
 						self.room_group_name,
 						{

@@ -31,11 +31,21 @@ class GameRoom(models.Model):
 	@property
 	def users(self):
 		return [player.user for player in self.roomplayer_set.all()]
-	
+
 class RoomPlayer(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	room = models.ForeignKey(GameRoom, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)
+
+class GameHistory(models.Model):
+	player1Id = models.CharField(max_length=50);
+	player2Id = models.CharField(max_length=50);
+	player1Login = models.CharField(max_length=50);
+	player2Login = models.CharField(max_length=50);
+	winnerId = models.CharField(max_length=50);
+	score1 = models.IntegerField()
+	score2 = models.IntegerField()
+	game_date = models.DateTimeField(auto_now_add=True)
 
 class Tournament(models.Model):
 	name = models.CharField(max_length=200)

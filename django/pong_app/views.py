@@ -8,7 +8,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
 from django.conf import settings
-from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer
+from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, GameHistory
 import logging
 import json
 from django.db.models import Count
@@ -18,6 +18,43 @@ import faker
 import pdb;
 from django.http import HttpResponse
 import requests
+
+def get_user_game_history(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		games = GameHistory.objects.filter(Q(player1Id=user_id) | Q(player2Id=user_id)).order_by('-game_date')
+		for game in games:
+			# get user with player1Id and player2Id and update player1Login and player2Login
+			player1 = User.objects.get(idName=game.player1Id)
+			player2 = User.objects.get(idName=game.player2Id)
+			game.player1Login = player1.login
+			game.player2Login = player2.login
+			game.save()
+		games = games.values()
+		return JsonResponse({'games': list(games.values())})
+	except User.DoesNotExist:
+		return JsonResponse({'error': 'User not found'}, status=404)
+
+
+def record_game(request):
+	player1_id = request.POST['player1Id']
+	player2_id = request.POST['player2Id']
+	player1_login = request.POST['player1Login']
+	player2_login = request.POST['player2Login']
+	winner_id = request.POST['winnerId']
+	score1 = request.POST['score1']
+	score2 = request.POST['score2']
+
+	GameHistory.objects.create(
+		player1_id=player1_id,
+		player2_id=player2_id,
+		player1_login=player1_login,
+		player2_login=player2_login,
+		winner_id=winner_id,
+		score1=score1,
+		score2=score2,
+	)
+	return JsonResponse({"status": "success"})
 
 def update_user(request):
 	if request.method == 'POST':
@@ -50,7 +87,7 @@ def exchange_token(request):
 		post_data = {
 			'grant_type': 'authorization_code',
 			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
-			'client_secret': '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',
+			'client_secret': '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',
 			'code': code,
 			'redirect_uri': redirect_uri
 		}
@@ -71,7 +108,7 @@ def exchange_token(request):
 
 def get_client_secret(request):
 	try:
-		return JsonResponse({'status': 'success', 'client_secret': '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'})
+		return JsonResponse({'status': 'success', 'client_secret': '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'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 

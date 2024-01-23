@@ -174,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				else {
 					message.textContent = 'Player 2 wins!';
 				}
-
 			}
 			else if (messageData.message === 'cancel_game_room') {
 				isGameRunning = false;

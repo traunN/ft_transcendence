@@ -52,6 +52,66 @@ document.addEventListener('DOMContentLoaded', function () {
 			userLoses.textContent = 'Loses: ' + data.user.loses;
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
+
+			fetch('/get_user_game_history/' + userId + '/')
+				.then(response => {
+					if (!response.ok) {
+						// If the response status is not ok, get the response text and throw an error
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.games) {
+						console.log(data);
+						var gameHistoryDiv = document.getElementById('gameHistory');
+						data.games.forEach(game => {
+							var gameElement = document.createElement('div');
+							gameElement.classList.add('card');
+							var cardBody = document.createElement('div');
+							cardBody.classList.add('card-body');
+							var gameDate = document.createElement('p');
+							gameDate.classList.add('card-text');
+							// game_date : "2024-01-23T16:04:29.351Z"
+							// parse so it writes year-month-day
+							var date = new Date(game.game_date);
+							var year = date.getFullYear();
+							var month = date.getMonth() + 1;
+							var day = date.getDate();
+							if (month < 10) {
+								month = '0' + month;
+							}
+							if (day < 10) {
+								day = '0' + day;
+							}
+							game.game_date = year + '-' + month + '-' + day;
+							gameDate.textContent = game.game_date;
+							var gamePlayers = document.createElement('h5');
+							gamePlayers.classList.add('card-title');
+							gamePlayers.textContent = game.player1Login + ' vs ' + game.player2Login;
+							var gameScore = document.createElement('p');
+							gameScore.classList.add('card-text');
+							gameScore.textContent = game.score1 + ' : ' + game.score2;
+							cardBody.appendChild(gamePlayers);
+							cardBody.appendChild(gameDate);
+							cardBody.appendChild(gameScore);
+							gameElement.appendChild(cardBody);
+							gameHistoryDiv.appendChild(gameElement);
+							if (userId == game.winnerId) {
+								gameElement.style.backgroundColor = '#4CAF50';
+							}
+							else {
+								gameElement.style.backgroundColor = '#f44336';
+							}
+						});
+					}
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+
 		})
 		.catch(error => {
 			console.error('Error:', error);
@@ -90,26 +150,26 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 			campus: newCampus,
 		}),
 	})
-	.then(response => response.json())
-	.then(data => {
-		console.log(data);
-		username.textContent = newUsername;
-		userEmail.textContent = 'Email: ' + newEmail;
-		userFirstName.textContent = 'First name: ' + newFirstName;
-		userLastName.textContent = 'Last name: ' + newLastName;
-		usercampusProfile.textContent = 'Campus: ' + newCampus;
-		// update session storage user login and email
-		user.login = newUsername;
-		user.email = newEmail;
-		user.firstName = newFirstName;
-		user.lastName = newLastName;
-		user.campus = newCampus;
-		sessionStorage.setItem('user', JSON.stringify(user));
-		location.reload();
-	})
-	.catch((error) => {
-		console.error('Error:', error);
-	});
+		.then(response => response.json())
+		.then(data => {
+			console.log(data);
+			username.textContent = newUsername;
+			userEmail.textContent = 'Email: ' + newEmail;
+			userFirstName.textContent = 'First name: ' + newFirstName;
+			userLastName.textContent = 'Last name: ' + newLastName;
+			usercampusProfile.textContent = 'Campus: ' + newCampus;
+			// update session storage user login and email
+			user.login = newUsername;
+			user.email = newEmail;
+			user.firstName = newFirstName;
+			user.lastName = newLastName;
+			user.campus = newCampus;
+			sessionStorage.setItem('user', JSON.stringify(user));
+			location.reload();
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});
 });
 
 searchUser.addEventListener('keypress', function (event) {

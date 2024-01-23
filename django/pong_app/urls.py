@@ -41,4 +41,6 @@ urlpatterns = [
 	path('get_client_secret/', views.get_client_secret, name='get_client_secret'),
 	path('exchange_token/', views.exchange_token, name='exchange_token'),
 	path('update_user/', views.update_user, name='update_user'),
+	path('record_game/', views.record_game, name='record_game'),
+	path('get_user_game_history/<int:user_id>/', views.get_user_game_history, name='get_user_game_history'),
 ]

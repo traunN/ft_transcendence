@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-	var isLogged = false;
+	var isLogged;
 	var existingUser = false;
 	var loginLogout = document.getElementById('Login_Logout');
+	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
 	var userImage = document.getElementById('userImage');
 
@@ -18,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 	if (user) {
-		isLogged = true;
+		console.log('user login: ' + user.login)
 		loginLogout.innerHTML = 'Logout';
+		isLogged = true;
+		normalLogin.style.display = 'none';
 		userName.innerHTML = user.login;
 		if (user && user.image) {
 			if (typeof user.image === 'object') {
@@ -31,22 +34,27 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'block';
 	}
 	else {
+		normalLogin.style.display = 'block';
+		isLogged = false;
 		userName.innerHTML = '';
 		userImage.src = '';
 		userImage.style.display = 'none';
 	}
 
 	document.getElementById("Login_Logout").addEventListener("click", function () {
+		console.log('isLogged: ' + isLogged)
 		if (isLogged) {
 			loginLogout.innerHTML = 'Login with 42';
-			isLogged = false;
 			sessionStorage.removeItem('user');
+			
 			userName.innerHTML = '';
+			isLogged = false;
 			userImage.src = '';
 			userImage.style.display = 'none';
 		} else {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
+				isLogged = true;
 				console.log('User is already logged in');
 			} else {
 				fetch('/get_client_id/')
@@ -57,16 +65,27 @@ document.addEventListener('DOMContentLoaded', function () {
 						return response.json();
 					})
 					.then(data => {
+						isLogged = true;
 						var clientId = data.client_id;
 						var redirectUri = 'http://localhost:8000/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
 						window.location.href = url;
+						
 					})
 					.catch(error => console.error('Error:', error));
 			}
 		}
 	});
-
+	
+	if (user) {
+		userName.textContent = user.login;
+		console.log('already logged in');
+		return;
+	}
+	else
+	{
+		console.log('isLogged: ' + isLogged)
+	}
 	var code = new URLSearchParams(window.location.search).get('code');
 	if (code) {
 		var clientId;
@@ -109,6 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
 								xhrSaveProfile.onload = function () {
 									if (xhrSaveProfile.status === 200) {
 										console.log('Login successful!');
+										loginLogout.innerHTML = 'Logout';
+										normalLogin.style.display = 'none';
 									}
 								};
 								if (!user.location)
@@ -132,8 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
 							}
 						};
 						userXhr.send();
-						loginLogout.innerHTML = 'Logout';
-						isLogged = true;
 					}).catch((error) => {
 						console.error('Error:', error);
 					});
@@ -143,13 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 		getClientData();
 	} else {
-		if (user) {
-			console.log('user login: ' + user.login);
-			userName.textContent = user.login;
-			console.log('already logged in');
-		} else {
-			console.log('not logged in');
-		}
+		console.log('No code');
 	}
 
 });
