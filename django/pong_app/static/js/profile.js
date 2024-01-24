@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	var userId = user.id;
-	fetch('/get_user/' + userId + '/')
+	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
 			if (!response.ok) {
 				// If the response status is not ok, get the response text and throw an error
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
 
-			fetch('/get_user_game_history/' + userId + '/')
+			fetch('/get_user_game_history/' + user.idName + '/')
 				.then(response => {
 					if (!response.ok) {
 						// If the response status is not ok, get the response text and throw an error

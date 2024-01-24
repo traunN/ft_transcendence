@@ -23,6 +23,9 @@ def get_user_game_history(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		games = GameHistory.objects.filter(Q(player1Id=user_id) | Q(player2Id=user_id)).order_by('-game_date')
+		# if no games found, return empty list
+		if not games.exists():
+			return JsonResponse({'games': []})
 		for game in games:
 			# get user with player1Id and player2Id and update player1Login and player2Login
 			player1 = User.objects.get(idName=game.player1Id)
@@ -431,6 +434,9 @@ def tournament_game(request, tournament_id, room_name):
 	except Tournament.DoesNotExist:
 		return render(request, 'tournament_game.html', {'tournament': None, 'room_name': room_name})
 
+def createAccount(request):
+	return render(request, 'createAccount.html')
+
 def chat(request):
 	return render(request, 'chat.html')
 
@@ -442,6 +448,60 @@ def testDBConnection(request):
 		return render(request, 'success.html')
 	except Exception as error:
 		return render(request, 'error.html')
+
+def login_user(request):
+	try:
+		data = json.loads(request.body.decode('utf-8'))
+		accountName = data['accountName']
+		password = data['password']
+		user = User.objects.get(idName=accountName)
+		if user.isFrom42:
+			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
+		if user.password == password:
+			user_dict = model_to_dict(user)
+			user_dict['image'] = str(user_dict['image'])
+			return JsonResponse({'status': 'success', 'user': user_dict})
+		else:
+			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
+	except User.DoesNotExist:
+		return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
+def save_user_profile_manual(request):
+	if request.method == 'POST':
+		if not request.body:
+			return JsonResponse({'error': 'Request body is empty'}, status=400)
+		try:
+			data = json.loads(request.body)
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+		user_id = data['accountName']
+		try:
+			user = User.objects.get(idName=user_id)
+			return JsonResponse({'error': 'User already exists'}, status=200)
+		except User.DoesNotExist:
+			user = User.objects.create(
+				login=data['login'],
+				isFrom42=False,
+				password=data['password'],
+				email=data['email'],
+				firstName='',
+				lastName='',
+				campus='',
+				level=0,
+				wallet=0,
+				correctionPoint=0,
+				location='',
+				idName=data['accountName'],
+				image='https://cdn.intra.42.fr/users/5b610039b4ad44fb01cb2e6c530534f9/ntraun.jpg'
+			)
+			user_dict = model_to_dict(user)
+			user_dict['image'] = str(user_dict['image'])
+			user_json = json.dumps(user_dict)
+			return HttpResponse(user_json, content_type='application/json')
+	else:
+		return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
 def save_user_profile(request):
@@ -464,6 +524,8 @@ def save_user_profile(request):
 		except User.DoesNotExist:
 			user = User.objects.create(
 				login=data['login'],
+				isFrom42=True,
+				password='',
 				email=data['email'],
 				firstName=data['firstName'],
 				lastName=data['lastName'],
@@ -482,10 +544,11 @@ def save_user_profile(request):
 def save_test_user(request):
 	user_data = generate_random_user()
 
-
 	try:
 		user = User.objects.create(
 			login=user_data['login'],
+			isFrom42=True,
+			password='',
 			email=user_data['email'],
 			firstName=user_data['firstName'],
 			lastName=user_data['lastName'],

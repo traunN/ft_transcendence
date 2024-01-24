@@ -9,6 +9,19 @@ document.addEventListener('DOMContentLoaded', function () {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 
+	function isUserLoggedIn() {
+		var user = JSON.parse(sessionStorage.getItem('user'));
+		return user !== null;
+	}
+	if (isUserLoggedIn()) {
+		// console log entire user object
+		console.log('User infos: ' + JSON.stringify(user));
+		
+		isLogged = true;
+	} else {
+		console.log('User is not logged in');
+		isLogged = false;
+	}
 	if (user) {
 		for (var i = 0; i < users.length; i++) {
 			if (users[i].login === user.login) {
@@ -41,12 +54,120 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'none';
 	}
 
+	document.getElementById('normalLogin').addEventListener('click', function() {
+		event.stopPropagation();
+		var loginModal = document.createElement('div');
+		loginModal.style.position = 'fixed';
+		loginModal.style.top = '50%';
+		loginModal.style.left = '50%';
+		loginModal.style.transform = 'translate(-50%, -50%)';
+		loginModal.style.backgroundColor = '#151718';
+		loginModal.style.padding = '20px';
+		loginModal.style.zIndex = '1000';
+		loginModal.innerHTML = `
+			<div>
+				<label for="username">Username:</label>
+				<input type="text" id="username" name="username">
+			</div>
+			<div>
+				<label for="password">Password:</label>
+				<input type="password" id="password" name="password">
+			</div>
+			<button id="loginButton" class="yellow-btn" >Login</button>
+			<button id="createAccountButton" class="yellow-btn" >Create Account</button>
+		`;
+		document.body.appendChild(loginModal);
+
+		// def login_user(request):
+		// 	try:
+		// 		data = json.loads(request.body.decode('utf-8'))
+		// 		accountName = data['accountName']
+		// 		password = data['password']
+		// 		user = User.objects.get(idName=accountName)
+		// 		if user.isFrom42:
+		// 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
+		// 		if user.password == password:
+		// 			user_dict = model_to_dict(user)
+		// 			user_dict['image'] = str(user_dict['image'])
+		// 			return JsonResponse({'status': 'success', 'user': user_dict})
+		// 		else:
+		// 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
+		// 	except User.DoesNotExist:
+		// 		return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+		// 	except Exception as e:
+		// 		return JsonResponse({'status': 'error', 'message': str(e)})
+
+	
+		document.getElementById('loginButton').addEventListener('click', function() {
+			var username = document.getElementById('username').value;
+			var password = document.getElementById('password').value;
+			var data = {
+				accountName: username,
+				password: password
+			};
+			fetch('/login_user/', {
+				method: 'POST',
+				body: JSON.stringify(data),
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				}
+			})
+				.then(response => {
+					if (!response.ok) {
+						// If the response status is not ok, get the response text and throw an error
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.status === 'success') {
+						console.log(data);
+						sessionStorage.setItem('user', JSON.stringify(data.user));
+						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+						user.id = data.user.idName;
+						console.log('User infos: ' + JSON.stringify(user));
+						loginLogout.innerHTML = 'Logout';
+						normalLogin.style.display = 'none';
+						userName.innerHTML = data.user.login;
+						userImage.src = data.user.image;
+						userImage.style.display = 'block';
+						loginModal.remove();
+					}
+					else {
+						console.log(data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+		});
+	
+		document.getElementById('createAccountButton').addEventListener('click', function() {
+			// Redirect to account creation page
+			window.location.href = '/createAccount';
+		});
+
+		document.addEventListener('click', function removeModal() {
+			// Remove the modal
+			loginModal.remove();
+			// Remove this event listener
+			document.removeEventListener('click', removeModal);
+		});
+
+		loginModal.addEventListener('click', function(event) {
+			event.stopPropagation();
+		});
+	});
+
 	document.getElementById("Login_Logout").addEventListener("click", function () {
 		console.log('isLogged: ' + isLogged)
 		if (isLogged) {
 			loginLogout.innerHTML = 'Login with 42';
 			sessionStorage.removeItem('user');
-			
+			normalLogin.style.display = 'block';
 			userName.innerHTML = '';
 			isLogged = false;
 			userImage.src = '';
@@ -70,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						var redirectUri = 'http://localhost:8000/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
 						window.location.href = url;
-						
 					})
 					.catch(error => console.error('Error:', error));
 			}
@@ -161,6 +281,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 		getClientData();
+		window.history.pushState({}, null, '/homePage/');
+		isLogged = true;
 	} else {
 		console.log('No code');
 	}

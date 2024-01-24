@@ -2,6 +2,8 @@ from django.db import models
 
 class User(models.Model):
 	login = models.CharField(max_length=50);
+	isFrom42 = models.BooleanField(default=False);
+	password = models.CharField(max_length=50);
 	email = models.CharField(max_length=50);
 	firstName = models.CharField(max_length=50);
 	lastName = models.CharField(max_length=50);
