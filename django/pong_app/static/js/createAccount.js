@@ -56,10 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data) {
 					console.log(data);
+					// add id to user object
+					data.id = data.idName;
 					sessionStorage.setItem('user', JSON.stringify(data));
-					user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+					user = JSON.parse(sessionStorage.getItem('user')); 
 					user.id = data.idName;
-					console.log('User infos: ' + JSON.stringify(user));
 					loginLogout.innerHTML = 'Logout';
 					normalLogin.style.display = 'none';
 					userName.innerHTML = data.login;

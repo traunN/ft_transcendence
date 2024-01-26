@@ -14,12 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		return user !== null;
 	}
 	if (isUserLoggedIn()) {
-		// console log entire user object
-		console.log('User infos: ' + JSON.stringify(user));
-		
 		isLogged = true;
 	} else {
-		console.log('User is not logged in');
 		isLogged = false;
 	}
 	if (user) {
@@ -77,26 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			<button id="createAccountButton" class="yellow-btn" >Create Account</button>
 		`;
 		document.body.appendChild(loginModal);
-
-		// def login_user(request):
-		// 	try:
-		// 		data = json.loads(request.body.decode('utf-8'))
-		// 		accountName = data['accountName']
-		// 		password = data['password']
-		// 		user = User.objects.get(idName=accountName)
-		// 		if user.isFrom42:
-		// 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
-		// 		if user.password == password:
-		// 			user_dict = model_to_dict(user)
-		// 			user_dict['image'] = str(user_dict['image'])
-		// 			return JsonResponse({'status': 'success', 'user': user_dict})
-		// 		else:
-		// 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
-		// 	except User.DoesNotExist:
-		// 		return JsonResponse({'status': 'error', 'message': 'User does not exist'})
-		// 	except Exception as e:
-		// 		return JsonResponse({'status': 'error', 'message': str(e)})
-
 	
 		document.getElementById('loginButton').addEventListener('click', function() {
 			var username = document.getElementById('username').value;
@@ -125,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				.then(data => {
 					if (data.status === 'success') {
 						console.log(data);
+						data.user.id = data.user.idName;
 						sessionStorage.setItem('user', JSON.stringify(data.user));
 						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
 						user.id = data.user.idName;

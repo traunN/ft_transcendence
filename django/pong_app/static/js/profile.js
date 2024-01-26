@@ -12,6 +12,7 @@ var userLocation = document.getElementById('locationProfile');
 var userWins = document.getElementById('winsProfile');
 var userLoses = document.getElementById('losesProfile');
 var userTournamentWins = document.getElementById('tournamentWinsProfile');
+var userAccountName = document.getElementById('accountNameProfile');
 var searchUser = document.getElementById('searchUser');
 
 var user = JSON.parse(sessionStorage.getItem('user'));
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	var userId = user.id;
-	fetch('/get_user/' + user.idName + '/')
+	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {
 				// If the response status is not ok, get the response text and throw an error
@@ -52,8 +53,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			userLoses.textContent = 'Loses: ' + data.user.loses;
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
+			if (!data.user.isFrom42) {
+				userAccountName.style.display = 'block';
+			}
+			else {
+				userAccountName.style.display = 'none';
+			}
+			userAccountName.textContent = 'Account name: ' + data.user.idName;
 
-			fetch('/get_user_game_history/' + user.idName + '/')
+			fetch('/get_user_game_history/' + userId + '/')
 				.then(response => {
 					if (!response.ok) {
 						// If the response status is not ok, get the response text and throw an error
@@ -205,6 +213,14 @@ searchUser.addEventListener('keypress', function (event) {
 				userLoses.textContent = 'Loses: ' + data.user.loses;
 				userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 				userImage.src = data.user.image;
+				if (!data.user.isFrom42) {
+					userAccountName.style.display = 'block';
+				}
+				else {
+					userAccountName.style.display = 'none';
+				}
+				userAccountName.textContent = 'Account name: ' + data.user.idName;
+	
 			})
 			.catch(error => {
 				console.error('Error:', error);

@@ -18,6 +18,8 @@ import faker
 import pdb;
 from django.http import HttpResponse
 import requests
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
 
 def get_user_game_history(request, user_id):
 	try:
@@ -457,7 +459,7 @@ def login_user(request):
 		user = User.objects.get(idName=accountName)
 		if user.isFrom42:
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
-		if user.password == password:
+		if check_password(password, user.password):
 			user_dict = model_to_dict(user)
 			user_dict['image'] = str(user_dict['image'])
 			return JsonResponse({'status': 'success', 'user': user_dict})
@@ -481,10 +483,11 @@ def save_user_profile_manual(request):
 			user = User.objects.get(idName=user_id)
 			return JsonResponse({'error': 'User already exists'}, status=200)
 		except User.DoesNotExist:
+			hashed_password = make_password(data['password'])
 			user = User.objects.create(
 				login=data['login'],
 				isFrom42=False,
-				password=data['password'],
+				password= hashed_password,
 				email=data['email'],
 				firstName='',
 				lastName='',
