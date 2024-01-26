@@ -1,5 +1,6 @@
 var username = document.getElementById('usernameProfile');
 var userImage = document.getElementById('userImageProfile');
+var userImageTopBar = document.getElementById('userImage');
 var userInfo = document.getElementById('userInfo');
 var userEmail = document.getElementById('emailProfile');
 var userFirstName = document.getElementById('firstNameProfile');
@@ -123,6 +124,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 		.catch(error => {
 			console.error('Error:', error);
+			username.textContent = 'Please login';
+			userInfo.style.display = 'none';
+			userImage.style.display = 'none';
+			return;
 		});
 });
 
@@ -133,6 +138,10 @@ document.getElementById('editProfileButton').addEventListener('click', function 
 	userFirstName.innerHTML = `<input type="text" id="firstNameInput" value="${userFirstName.textContent.slice(12)}">`;
 	userLastName.innerHTML = `<input type="text" id="lastNameInput" value="${userLastName.textContent.slice(11)}">`;
 	usercampusProfile.innerHTML = `<input type="text" id="campusInput" value="${usercampusProfile.textContent.slice(8)}">`;
+	var imageInput = document.createElement('input');
+	imageInput.type = 'file';
+	imageInput.id = 'imageInput';
+	userImageProfile.parentNode.insertBefore(imageInput, userImageProfile.nextSibling);
 });
 
 document.getElementById('saveProfileButton').addEventListener('click', function () {
@@ -142,21 +151,28 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 	var newFirstName = document.getElementById('firstNameInput').value;
 	var newLastName = document.getElementById('lastNameInput').value;
 	var newCampus = document.getElementById('campusInput').value;
+	var newImage = document.getElementById('imageInput').files[0];
+
+	var formData = new FormData();
+
+	// Append the user data and the image file to the form data
+	formData.append('id', user.id);
+	formData.append('login', newUsername);
+	formData.append('email', newEmail);
+	formData.append('firstName', newFirstName);
+	formData.append('lastName', newLastName);
+	formData.append('campus', newCampus);
+	if (newImage) {
+		formData.append('image', newImage);
+	}
+
 	// Make a fetch request to update the user data on the server
 	fetch('/update_user/', {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json',
 			'X-CSRFToken': csrfToken,
 		},
-		body: JSON.stringify({
-			id: user.id,
-			login: newUsername,
-			email: newEmail,
-			firstName: newFirstName,
-			lastName: newLastName,
-			campus: newCampus,
-		}),
+		body: formData,
 	})
 		.then(response => response.json())
 		.then(data => {

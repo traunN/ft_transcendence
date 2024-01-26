@@ -20,6 +20,9 @@ from django.http import HttpResponse
 import requests
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
+import urllib.request
+from django.core.files.base import ContentFile
+import os
 
 def get_user_game_history(request, user_id):
 	try:
@@ -60,21 +63,22 @@ def record_game(request):
 		score2=score2,
 	)
 	return JsonResponse({"status": "success"})
-
+	
 def update_user(request):
 	if request.method == 'POST':
 		try:
-			data = json.loads(request.body.decode('utf-8'))
-			user_id = data['id']
+			user_id = request.POST['id']
 			try:
 				user = User.objects.get(idName=user_id)
 			except User.DoesNotExist:
 				return JsonResponse({'status': 'error', 'message': 'User does not exist'})
-			user.login = data['login']
-			user.email = data['email']
-			user.firstName = data['firstName']
-			user.lastName = data['lastName']
-			user.campus = data['campus']
+			user.login = request.POST['login']
+			user.email = request.POST['email']
+			user.firstName = request.POST['firstName']
+			user.lastName = request.POST['lastName']
+			user.campus = request.POST['campus']
+			if 'image' in request.FILES:
+				user.image = request.FILES['image']
 			user.save()
 			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
 		except Exception as e:
@@ -461,7 +465,7 @@ def login_user(request):
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
 		if check_password(password, user.password):
 			user_dict = model_to_dict(user)
-			user_dict['image'] = str(user_dict['image'])
+			user_dict['image'] = request.build_absolute_uri(user.image.url)
 			return JsonResponse({'status': 'success', 'user': user_dict})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
@@ -497,14 +501,19 @@ def save_user_profile_manual(request):
 				correctionPoint=0,
 				location='',
 				idName=data['accountName'],
-				image='https://cdn.intra.42.fr/users/5b610039b4ad44fb01cb2e6c530534f9/ntraun.jpg'
+				image='images/default.jpg'
 			)
 			user_dict = model_to_dict(user)
-			user_dict['image'] = str(user_dict['image'])
+			user_dict['image'] = request.build_absolute_uri(user.image.url)
 			user_json = json.dumps(user_dict)
 			return HttpResponse(user_json, content_type='application/json')
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def save_image_from_url(url, user):
+	with urllib.request.urlopen(url) as response:
+		image_data = response.read()
+		user.image.save(os.path.basename(url), ContentFile(image_data))
 
 @csrf_exempt
 def save_user_profile(request):
@@ -524,7 +533,7 @@ def save_user_profile(request):
 		try:
 			user = User.objects.get(idName=user_id)
 			return JsonResponse({'message': 'User already exists'}, status=200)
-		except User.DoesNotExist:
+		except User.DoesNotExist:	
 			user = User.objects.create(
 				login=data['login'],
 				isFrom42=True,
@@ -538,8 +547,10 @@ def save_user_profile(request):
 				correctionPoint=data['correctionPoint'],
 				location=data['location'],
 				idName=data['idName'],
-				image=data['image']
+				# image=image_filename
 			)
+			image_url = data['image']
+			save_image_from_url(image_url, user)
 			return JsonResponse({'message': 'User profile saved successfully'}, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -569,7 +580,7 @@ def save_test_user(request):
 
 
 	user_dict = model_to_dict(user)
-	user_dict['image'] = str(user_dict['image'])
+	user_dict['image'] = request.build_absolute_uri(user.image.url)
 	user_json = json.dumps(user_dict)
 	return HttpResponse(user_json, content_type='application/json')
 
@@ -604,7 +615,7 @@ def get_user(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		user_dict = model_to_dict(user)
-		user_dict['image'] = str(user_dict['image'])
+		user_dict['image'] = request.build_absolute_uri(user.image.url)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -613,7 +624,7 @@ def get_user_by_login(request, login):
 	try:
 		user = User.objects.get(login=login)
 		user_dict = model_to_dict(user)
-		user_dict['image'] = str(user_dict['image'])
+		user_dict['image'] = request.build_absolute_uri(user.image.url)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -622,5 +633,5 @@ def get_all_users(request):
 	users = User.objects.all()
 	users_dict = [model_to_dict(user) for user in users]
 	for user_dict in users_dict:
-		user_dict['image'] = str(user_dict['image'])
+		user_dict['image'] = request.build_absolute_uri(user.image.url)
 	return JsonResponse({'users': users_dict}, safe=False)

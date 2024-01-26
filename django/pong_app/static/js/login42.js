@@ -14,8 +14,32 @@ document.addEventListener('DOMContentLoaded', function () {
 		return user !== null;
 	}
 	if (isUserLoggedIn()) {
+		// get user image from database and update sessionstorage
+		var user = JSON.parse(sessionStorage.getItem('user'));
+		fetch('/get_user/' + user.id + '/')
+			.then(response => {
+				if (!response.ok) {
+					// If the response status is not ok, get the response text and throw an error
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					console.log(data);
+					// add id to user object
+					// set image in sessionstorage
+					userImage.src = data.user.image;
+					user.image = data.user.image;
+					sessionStorage.setItem('user', JSON.stringify(user));
+				}
+			})
+			.catch(error => console.error('Error:', error));
 		isLogged = true;
 	} else {
+		console.log('User is not logged in');
 		isLogged = false;
 	}
 	if (user) {
@@ -50,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'none';
 	}
 
-	document.getElementById('normalLogin').addEventListener('click', function() {
+	document.getElementById('normalLogin').addEventListener('click', function () {
 		event.stopPropagation();
 		var loginModal = document.createElement('div');
 		loginModal.style.position = 'fixed';
@@ -61,20 +85,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		loginModal.style.padding = '20px';
 		loginModal.style.zIndex = '1000';
 		loginModal.innerHTML = `
-			<div>
-				<label for="username">Username:</label>
-				<input type="text" id="username" name="username">
-			</div>
-			<div>
-				<label for="password">Password:</label>
-				<input type="password" id="password" name="password">
-			</div>
-			<button id="loginButton" class="yellow-btn" >Login</button>
-			<button id="createAccountButton" class="yellow-btn" >Create Account</button>
-		`;
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" style="width: 200px;">
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" style="width: 200px;">
+    </div>
+    <button id="loginButton" class="yellow-btn" >Login</button>
+    <button id="createAccountButton" class="yellow-btn" >Create Account</button>
+`;
 		document.body.appendChild(loginModal);
-	
-		document.getElementById('loginButton').addEventListener('click', function() {
+
+		document.getElementById('loginButton').addEventListener('click', function () {
 			var username = document.getElementById('username').value;
 			var password = document.getElementById('password').value;
 			var data = {
@@ -102,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (data.status === 'success') {
 						console.log(data);
 						data.user.id = data.user.idName;
+						console.log('data.user.id: ' + data.user.id);
 						sessionStorage.setItem('user', JSON.stringify(data.user));
 						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
 						user.id = data.user.idName;
@@ -112,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						userImage.src = data.user.image;
 						userImage.style.display = 'block';
 						loginModal.remove();
+						location.reload();
 					}
 					else {
 						console.log(data.message);
@@ -121,8 +147,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.error('Error:', error);
 				});
 		});
-	
-		document.getElementById('createAccountButton').addEventListener('click', function() {
+
+		document.getElementById('createAccountButton').addEventListener('click', function () {
 			// Redirect to account creation page
 			window.location.href = '/createAccount';
 		});
@@ -134,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			document.removeEventListener('click', removeModal);
 		});
 
-		loginModal.addEventListener('click', function(event) {
+		loginModal.addEventListener('click', function (event) {
 			event.stopPropagation();
 		});
 	});
@@ -173,16 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 	});
-	
-	if (user) {
-		userName.textContent = user.login;
-		console.log('already logged in');
-		return;
-	}
-	else
-	{
-		console.log('isLogged: ' + isLogged)
-	}
+
 	var code = new URLSearchParams(window.location.search).get('code');
 	if (code) {
 		var clientId;
@@ -227,6 +244,14 @@ document.addEventListener('DOMContentLoaded', function () {
 										console.log('Login successful!');
 										loginLogout.innerHTML = 'Logout';
 										normalLogin.style.display = 'none';
+									} else {
+										console.error('Error saving user profile:', xhrSaveProfile.statusText);
+										if (user) {
+											userName.innerHTML = '';
+											isLogged = false;
+											userImage.style.display = 'none';
+											sessionStorage.removeItem('user');
+										}
 									}
 								};
 								if (!user.location)
@@ -244,8 +269,25 @@ document.addEventListener('DOMContentLoaded', function () {
 									idName: user.id,
 									image: user.image.link
 								}));
+								// get user infos returned so i can change image in user sessionstorage
+								var userXhr = new XMLHttpRequest();
+								userXhr.open('GET', '/get_user/' + user.id + '/', true);
+								userXhr.onload = function () {
+									if (userXhr.status === 200) {
+										var user = JSON.parse(userXhr.responseText);
+										sessionStorage.setItem('user', JSON.stringify(user));
+										userName.innerHTML = user.login;
+										userImage.src = user.image.link;
+										userImage.style.display = 'block';
+									}
+								};
+							}
+						};
+						userXhr.onerror = function () {
+							console.log('Error');
+							if (user) {
 								userName.innerHTML = user.login;
-								userImage.src = user.image.link;
+								userImage.src = user.image;
 								userImage.style.display = 'block';
 							}
 						};

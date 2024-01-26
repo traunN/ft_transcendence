@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'channels',
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_app', 'media')
+
+
 ASGI_APPLICATION = 'pong_game.asgi.application'
 
 CHANNEL_LAYERS = {

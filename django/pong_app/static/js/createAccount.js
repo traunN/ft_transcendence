@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	var createAccountForm = document.getElementById('createAccountForm');
 	var isLogged;
 
+	function validatePassword(password) {
+		var regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+		return regex.test(password);
+	}
+
 	function isUserLoggedIn() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		return user !== null;
@@ -29,6 +34,16 @@ document.addEventListener('DOMContentLoaded', function () {
 		var accountName = document.getElementById('accountName').value;
 		var login = document.getElementById('login').value;
 		var password = document.getElementById('password').value;
+		var passwordConfirm = document.getElementById('passwordConfirm').value;
+		if (password !== confirmPassword) {
+			alert("Passwords do not match");
+			return;
+		}
+		if (!validatePassword(password)) {
+			event.preventDefault();
+			alert("Password must contain at least one number, one uppercase and lowercase letter, and at least 8 characters");
+			return;
+		}
 		var email = document.getElementById('email').value;
 		var data = {
 			accountName: accountName,

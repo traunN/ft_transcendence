@@ -46,4 +46,7 @@ urlpatterns = [
 	path('update_user/', views.update_user, name='update_user'),
 	path('record_game/', views.record_game, name='record_game'),
 	path('get_user_game_history/<str:user_id>/', views.get_user_game_history, name='get_user_game_history'),
-]
+] 
+
+if settings.DEBUG:
+	urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
