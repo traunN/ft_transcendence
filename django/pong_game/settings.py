@@ -34,6 +34,9 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
+# SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,6 +78,8 @@ PASSWORD_HASHERS = [
 ]
 
 ROOT_URLCONF = 'pong_game.urls'
+
+ALLOWED_HOSTS = ['*']
 
 TEMPLATES = [
     {

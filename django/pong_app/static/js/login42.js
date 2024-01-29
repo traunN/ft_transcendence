@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		fetch('/set_user_online/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {
-					// If the response status is not ok, get the response text and throw an error
 					return response.text().then(text => {
 						throw new Error('Server error: ' + text);
 					});
@@ -34,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		fetch('/set_user_offline/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {
-					// If the response status is not ok, get the response text and throw an error
 					return response.text().then(text => {
 						throw new Error('Server error: ' + text);
 					});
@@ -62,12 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		return user !== null;
 	}
 	if (isUserLoggedIn()) {
-		// get user image from database and update sessionstorage
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		fetch('/get_user/' + user.id + '/')
 			.then(response => {
 				if (!response.ok) {
-					// If the response status is not ok, get the response text and throw an error
 					return response.text().then(text => {
 						throw new Error('Server error: ' + text);
 					});
@@ -76,9 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data) {
-					console.log(data);
-					// add id to user object
-					// set image in sessionstorage
 					userImage.src = data.user.image;
 					user.image = data.user.image;
 					sessionStorage.setItem('user', JSON.stringify(user));
@@ -198,14 +191,11 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 
 		document.getElementById('createAccountButton').addEventListener('click', function () {
-			// Redirect to account creation page
 			window.location.href = '/createAccount';
 		});
 
 		document.addEventListener('click', function removeModal() {
-			// Remove the modal
 			loginModal.remove();
-			// Remove this event listener
 			document.removeEventListener('click', removeModal);
 		});
 

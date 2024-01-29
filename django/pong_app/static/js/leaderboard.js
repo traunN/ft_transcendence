@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', function () {
 	fetch('/get_all_users/')
 		.then(response => response.json())
 		.then(data => {
-			if (data.users.length === 0) {
-				return;
-			}
 			if (data) {
 				console.log(data);
 			}
 			var users = data.users;
+			if (data.users.length === 0) {
+				return;
+			}
 			users.sort((a, b) => b.wins - a.wins);
 			var table = document.getElementById('leaderboard');
 			for (var i = 0; i < users.length; i++) {

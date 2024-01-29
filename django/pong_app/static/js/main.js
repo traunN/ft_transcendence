@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		player2Name.textContent = `${player2NameValue}`;
 	}
 
+
 	function startGame() {
 		if (isGameRunning) {
 			return;

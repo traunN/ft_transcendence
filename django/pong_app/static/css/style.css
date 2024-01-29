@@ -666,3 +666,51 @@ div.card.custom-bg{
 	left: 50%;
 	transform: translate(-50%, -50%) scale(1);
 }
+
+.friendlist-btn {
+	background-color: #f7ff19;
+	padding: 5px 20px;
+	border: none;
+	display:block;
+	height: 100%;
+	width: 100%;
+	border-radius: 0.5rem;
+	margin-bottom: 10px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.friendlist-btn:hover {
+	background-color: #f9ff57;
+	color: #000;
+}
+
+.friend-list {
+	position: fixed;
+	bottom: 0;
+	z-index: 100;
+	right: 20px;
+	width: 200px;
+	background-color: #18181c;
+	border: 1px solid #ddd;
+	border-radius: 0.5rem;
+	padding: 10px;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+}
+
+.friend-list-content {
+	display: none;
+	overflow: auto;
+	max-height: 200px;
+	margin-bottom: 10px;
+}
+
+.friend-list-item {
+	margin-bottom: 5px;
+}
+
+#addFriendInput, #addFriendButton {
+	margin-bottom: 10px;
+	max-width: 100%;
+}
