@@ -19,6 +19,7 @@ class User(models.Model):
 	elo = models.IntegerField(default=0);
 	alias = models.CharField(max_length=50, default='');
 	tournamentWins = models.IntegerField(default=0);
+	isOnline = models.BooleanField(default=False);
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		var login = document.getElementById('login').value;
 		var password = document.getElementById('password').value;
 		var passwordConfirm = document.getElementById('passwordConfirm').value;
-		if (password !== confirmPassword) {
+		if (password !== passwordConfirm) {
 			alert("Passwords do not match");
 			return;
 		}

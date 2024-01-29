@@ -9,6 +9,54 @@ document.addEventListener('DOMContentLoaded', function () {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 
+	function setUserOnline(userId) {
+		console.log('setUserOnline called');
+		fetch('/set_user_online/' + userId + '/')
+			.then(response => {
+				if (!response.ok) {
+					// If the response status is not ok, get the response text and throw an error
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					console.log('User set online successfully');
+				}
+			})
+			.catch(error => console.error('Error:', error));
+	}
+
+	function setUserOffline(userId) {
+		console.log('setUserOffline called');
+		fetch('/set_user_offline/' + userId + '/')
+			.then(response => {
+				if (!response.ok) {
+					// If the response status is not ok, get the response text and throw an error
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					console.log('User set offline successfully');
+				}
+			})
+			.catch(error => console.error('Error:', error));
+	}
+
+	function disconnectUser() {
+		var user = JSON.parse(sessionStorage.getItem('user'));
+		if (user) {
+			setUserOffline(user.id);
+			sessionStorage.removeItem('user');
+		}
+	}
+
 	function isUserLoggedIn() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		return user !== null;
@@ -85,17 +133,17 @@ document.addEventListener('DOMContentLoaded', function () {
 		loginModal.style.padding = '20px';
 		loginModal.style.zIndex = '1000';
 		loginModal.innerHTML = `
-    <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" style="width: 200px;">
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" style="width: 200px;">
-    </div>
-    <button id="loginButton" class="yellow-btn" >Login</button>
-    <button id="createAccountButton" class="yellow-btn" >Create Account</button>
-`;
+			<div>
+				<label for="username">Username:</label>
+				<input type="text" id="username" name="username" style="width: 200px;">
+			</div>
+			<div>
+				<label for="password">Password:</label>
+				<input type="password" id="password" name="password" style="width: 200px;">
+			</div>
+			<button id="loginButton" class="yellow-btn" >Login</button>
+			<button id="createAccountButton" class="yellow-btn" >Create Account</button>
+		`;
 		document.body.appendChild(loginModal);
 
 		document.getElementById('loginButton').addEventListener('click', function () {
@@ -135,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						normalLogin.style.display = 'none';
 						userName.innerHTML = data.user.login;
 						userImage.src = data.user.image;
+						setUserOnline(data.user.id);
 						userImage.style.display = 'block';
 						loginModal.remove();
 						location.reload();
@@ -169,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('isLogged: ' + isLogged)
 		if (isLogged) {
 			loginLogout.innerHTML = 'Login with 42';
-			sessionStorage.removeItem('user');
+			disconnectUser();
 			normalLogin.style.display = 'block';
 			userName.innerHTML = '';
 			isLogged = false;
@@ -179,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
 				isLogged = true;
-				console.log('User is already logged in');
+				console.log('User is already logged in HAHA');
 			} else {
 				fetch('/get_client_id/')
 					.then(response => {
@@ -232,6 +281,10 @@ document.addEventListener('DOMContentLoaded', function () {
 							if (this.readyState === 4 && this.status === 200) {
 								var user = JSON.parse(this.responseText);
 								sessionStorage.setItem('user', JSON.stringify(user));
+								userImage.style.display = 'block';
+								userImage.src = user.image.link;
+								userName.innerHTML = user.login;
+								setUserOnline(user.id);
 								if (!existingUser) {
 									users.push(user);
 									sessionStorage.setItem('users', JSON.stringify(users));
@@ -297,13 +350,17 @@ document.addEventListener('DOMContentLoaded', function () {
 					});
 			} catch (error) {
 				console.error('Error:', error);
-			}
+			}	
 		}
 		getClientData();
 		window.history.pushState({}, null, '/homePage/');
 		isLogged = true;
-	} else {
-		console.log('No code');
 	}
 
+	window.addEventListener('beforeunload', function (event) {
+		// Check if the user is navigating away or closing the window
+		if (document.visibilityState === 'hidden') {
+			disconnectUser();
+		}
+	});
 });

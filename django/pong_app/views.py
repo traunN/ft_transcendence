@@ -24,6 +24,24 @@ import urllib.request
 from django.core.files.base import ContentFile
 import os
 
+def set_user_online(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		user.isOnline = True
+		user.save()
+		return JsonResponse({'status': 'success', 'message': 'User set online successfully'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
+def set_user_offline(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		user.isOnline = False
+		user.save()
+		return JsonResponse({'status': 'success', 'message': 'User set offline successfully'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
 def get_user_game_history(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
@@ -63,7 +81,7 @@ def record_game(request):
 		score2=score2,
 	)
 	return JsonResponse({"status": "success"})
-	
+
 def update_user(request):
 	if request.method == 'POST':
 		try:

@@ -46,6 +46,8 @@ urlpatterns = [
 	path('update_user/', views.update_user, name='update_user'),
 	path('record_game/', views.record_game, name='record_game'),
 	path('get_user_game_history/<str:user_id>/', views.get_user_game_history, name='get_user_game_history'),
+	path('set_user_online/<str:user_id>/', views.set_user_online, name='set_user_online'),
+	path('set_user_offline/<str:user_id>/', views.set_user_offline, name='set_user_offline'),
 ] 
 
 if settings.DEBUG:
