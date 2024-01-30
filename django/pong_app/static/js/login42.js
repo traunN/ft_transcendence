@@ -93,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 	if (user) {
-		console.log('user login: ' + user.login)
+		// console log entire user object
+		console.log('User infos: ' + JSON.stringify(user));
 		loginLogout.innerHTML = 'Logout';
 		isLogged = true;
 		normalLogin.style.display = 'none';
@@ -230,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					.then(data => {
 						isLogged = true;
 						var clientId = data.client_id;
-						var redirectUri = 'http://localhost:8000/homePage/';
+						var redirectUri = 'https://localhost:8443/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
 						window.location.href = url;
 					})
@@ -243,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (code) {
 		var clientId;
 		var clientSecret;
-		var redirectUri = 'http://localhost:8000/homePage/';
+		var redirectUri = 'https://localhost:8443/homePage/';
 		async function getClientData() {
 			try {
 				const responseSecret = await fetch('/get_client_secret/');

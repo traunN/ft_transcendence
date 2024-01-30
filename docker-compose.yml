@@ -60,6 +60,8 @@ services:
     networks:
       - transcendence
     restart: on-failure
+    volumes:
+      - images_volume:/usr/src/app/pong_app/media/images
 
   postgres:
     image: postgres:latest

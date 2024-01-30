@@ -34,8 +34,10 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-# SECURE_SSL_REDIRECT = True
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = ['localhost:8443']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -50,7 +52,6 @@ INSTALLED_APPS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_app', 'media')
-
 
 ASGI_APPLICATION = 'pong_game.asgi.application'
 

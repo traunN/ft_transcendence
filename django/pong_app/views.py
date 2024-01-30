@@ -110,7 +110,7 @@ def exchange_token(request):
 		code = request.GET.get('code')
 
 		# Define the redirect URI and the data for the POST request
-		redirect_uri = 'http://localhost:8000/homePage/'
+		redirect_uri = 'https://localhost:8443/homePage/'
 		post_data = {
 			'grant_type': 'authorization_code',
 			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
@@ -483,7 +483,7 @@ def login_user(request):
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
 		if check_password(password, user.password):
 			user_dict = model_to_dict(user)
-			user_dict['image'] = request.build_absolute_uri(user.image.url)
+			user_dict['image'] ='https://' + request.get_host() + '/media/' + str(user.image)
 			return JsonResponse({'status': 'success', 'user': user_dict})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
@@ -519,10 +519,11 @@ def save_user_profile_manual(request):
 				correctionPoint=0,
 				location='',
 				idName=data['accountName'],
-				image='images/default.jpg'
+				# setup image as default
+				image='default.jpg'
 			)
 			user_dict = model_to_dict(user)
-			user_dict['image'] = request.build_absolute_uri(user.image.url)
+			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
 			return HttpResponse(user_json, content_type='application/json')
 	else:
@@ -633,7 +634,7 @@ def get_user(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		user_dict = model_to_dict(user)
-		user_dict['image'] = request.build_absolute_uri(user.image.url)
+		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -642,7 +643,7 @@ def get_user_by_login(request, login):
 	try:
 		user = User.objects.get(login=login)
 		user_dict = model_to_dict(user)
-		user_dict['image'] = request.build_absolute_uri(user.image.url)
+		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -651,5 +652,5 @@ def get_all_users(request):
 	users = User.objects.all()
 	users_dict = [model_to_dict(user) for user in users]
 	for user_dict in users_dict:
-		user_dict['image'] = request.build_absolute_uri(user_dict['image'])
+		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 	return JsonResponse({'users': users_dict}, safe=False)

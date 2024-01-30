@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('Successfully joined or created room');
-					socket = new WebSocket('ws://localhost:8000/ws/game/' + data.room_name + '/');
+					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
 					if (!socket) {
 						console.log('Failed to create socket');
 						return;
