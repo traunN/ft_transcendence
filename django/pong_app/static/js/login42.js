@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 	if (user) {
 		// console log entire user object
-		console.log('User infos: ' + JSON.stringify(user));
+		// console.log('User infos: ' + JSON.stringify(user));
 		loginLogout.innerHTML = 'Logout';
 		isLogged = true;
 		normalLogin.style.display = 'none';
@@ -264,43 +264,24 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}).then((data) => {
 						var accessToken = data.access_token;
-						var userUrl = 'https://api.intra.42.fr/v2/me';
+						var userUrl = 'https://localhost:8443/proxy/';
 						var userXhr = new XMLHttpRequest();
 						userXhr.open('GET', userUrl, true);
 						userXhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
 						userXhr.onreadystatechange = function () {
 							if (this.readyState === 4 && this.status === 200) {
 								var user = JSON.parse(this.responseText);
+								// console.log('User infos: ' + JSON.stringify(user));
 								sessionStorage.setItem('user', JSON.stringify(user));
 								userImage.style.display = 'block';
-								userImage.src = user.image.link;
+								// userImage.src = user.image.link;
 								userName.innerHTML = user.login;
 								setUserOnline(user.id);
 								if (!existingUser) {
 									users.push(user);
 									sessionStorage.setItem('users', JSON.stringify(users));
 								}
-								var xhrSaveProfile = new XMLHttpRequest();
-								xhrSaveProfile.open('POST', '/api/save_user_profile/', true);
-								xhrSaveProfile.setRequestHeader('Content-Type', 'application/json');
-								xhrSaveProfile.onload = function () {
-									if (xhrSaveProfile.status === 200) {
-										console.log('Login successful!');
-										loginLogout.innerHTML = 'Logout';
-										normalLogin.style.display = 'none';
-									} else {
-										console.error('Error saving user profile:', xhrSaveProfile.statusText);
-										if (user) {
-											userName.innerHTML = '';
-											isLogged = false;
-											userImage.style.display = 'none';
-											sessionStorage.removeItem('user');
-										}
-									}
-								};
-								if (!user.location)
-									user.location = 'none';
-								xhrSaveProfile.send(JSON.stringify({
+								var data = {
 									login: user.login,
 									email: user.email,
 									firstName: user.first_name,
@@ -312,8 +293,36 @@ document.addEventListener('DOMContentLoaded', function () {
 									location: user.location,
 									idName: user.id,
 									image: user.image.link
-								}));
-								// get user infos returned so i can change image in user sessionstorage
+								};
+								console.log('data: ' + JSON.stringify(data));
+								fetch('/save_user_profile_42/', {
+									method: 'POST',
+									body: JSON.stringify(data),
+									headers: {
+										'Content-Type': 'application/json',
+										'X-CSRFToken': csrfToken,
+									}
+								})
+									.then(response => {
+										if (!response.ok) {
+											// If the response status is not ok, get the response text and throw an error
+											return response.text().then(text => {
+												throw new Error('Server error: ' + text);
+											});
+										}
+										return response.json();
+									})
+									.then(data => {
+										if (data) {
+											console.log(data);
+											// loginLogout.innerHTML = 'Logout';
+											// userName.innerHTML = data.login;
+											userImage.src = data.image;
+										}
+									})
+									.catch((error) => {
+										console.error('Error:', error);
+									});
 								var userXhr = new XMLHttpRequest();
 								userXhr.open('GET', '/get_user/' + user.id + '/', true);
 								userXhr.onload = function () {

@@ -13,7 +13,7 @@ class User(models.Model):
 	correctionPoint = models.IntegerField();
 	location = models.CharField(max_length=50);
 	idName = models.CharField(max_length=50);
-	image = models.ImageField(upload_to='images/', default='images/default.jpg');
+	image = models.ImageField(upload_to='', default='default.jpg');
 	wins = models.IntegerField(default=0);
 	loses = models.IntegerField(default=0);
 	elo = models.IntegerField(default=0);

@@ -13,6 +13,7 @@ import logging
 import json
 from django.db.models import Count
 import random
+import time
 import string
 import faker
 import pdb;
@@ -23,6 +24,32 @@ from django.contrib.auth.hashers import check_password
 import urllib.request
 from django.core.files.base import ContentFile
 import os
+from django.http import HttpResponseForbidden
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from django.core.files.storage import default_storage
+
+
+def proxy_view(request):
+	auth_header = request.headers.get('Authorization')
+	if not auth_header or not auth_header.startswith('Bearer '):
+		return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+
+	access_token = auth_header.split(' ')[1]
+
+	# Include the access token in the 'Authorization' header when making the request to the API
+	headers = {'Authorization': 'Bearer ' + access_token}
+	response = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
+	if response.status_code == 200 and response.text.strip():
+		try:
+			data = response.json()
+			return JsonResponse(data, safe=False)
+		except json.JSONDecodeError:
+			return HttpResponse("Invalid JSON response", status=500)
+	else:
+		print("Empty response or server error")
+		return HttpResponse("Empty response or server error", status=500)
+
 
 def set_user_online(request, user_id):
 	try:
@@ -82,6 +109,7 @@ def record_game(request):
 	)
 	return JsonResponse({"status": "success"})
 
+
 def update_user(request):
 	if request.method == 'POST':
 		try:
@@ -96,7 +124,9 @@ def update_user(request):
 			user.lastName = request.POST['lastName']
 			user.campus = request.POST['campus']
 			if 'image' in request.FILES:
-				user.image = request.FILES['image']
+				image_file = request.FILES['image']
+				file_name = default_storage.save(image_file.name, image_file)
+				user.image = file_name
 			user.save()
 			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
 		except Exception as e:
@@ -121,7 +151,6 @@ def exchange_token(request):
 
 		# Make the POST request to exchange the code for a token
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=post_data)
-
 		# Check if the request was successful
 		if response.status_code == 200:
 			# Return the access token to the frontend
@@ -492,6 +521,48 @@ def login_user(request):
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
+def save_user_profile_42(request):
+	if request.method == 'POST':
+		if not request.body:
+			return JsonResponse({'error': 'Request body is empty'}, status=400)
+		try:
+			data = json.loads(request.body)
+		except json.JSONDecodeError:
+			return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+
+		expected_keys = ['login', 'email', 'firstName', 'lastName','campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 'image']
+		if not all(key in data for key in expected_keys):
+			return JsonResponse({'error': 'Missing data in request body'}, status=400)
+		user_id = data['idName']
+		try:
+			user = User.objects.get(idName=user_id)
+			user_dict = model_to_dict(user)
+			user_dict['image'] = str(user.image)
+			return JsonResponse({'user': user_dict}, status=200)
+		except User.DoesNotExist:
+			user = User.objects.create(
+				login=data['login'],
+				isFrom42=True,
+				password= '',
+				email=data['email'],
+				firstName='',
+				lastName='',
+				campus='',
+				level=0,
+				wallet=0,
+				correctionPoint=0,
+				location='',
+				idName=data['idName'],
+			)
+			image_url = data['image']
+			save_image_from_url(image_url, user)
+			user_dict = model_to_dict(user)
+			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+			user_json = json.dumps(user_dict)
+			return HttpResponse(user_json, content_type='application/json')
+	else:
+		return JsonResponse({'error': 'Invalid request'}, status=400)
+
 def save_user_profile_manual(request):
 	if request.method == 'POST':
 		if not request.body:
@@ -529,50 +600,13 @@ def save_user_profile_manual(request):
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
 
-def save_image_from_url(url, user):
-	with urllib.request.urlopen(url) as response:
-		image_data = response.read()
-		user.image.save(os.path.basename(url), ContentFile(image_data))
-
-@csrf_exempt
-def save_user_profile(request):
-	if request.method == 'POST':
-		if not request.body:
-			return JsonResponse({'error': 'Request body is empty'}, status=400)
-		try:
-			data = json.loads(request.body)
-		except json.JSONDecodeError:
-			return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
-
-		expected_keys = ['login', 'email', 'firstName', 'lastName','campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 'image']
-		if not all(key in data for key in expected_keys):
-			return JsonResponse({'error': 'Missing data in request body'}, status=400)
-
-		user_id = data['idName']
-		try:
-			user = User.objects.get(idName=user_id)
-			return JsonResponse({'message': 'User already exists'}, status=200)
-		except User.DoesNotExist:	
-			user = User.objects.create(
-				login=data['login'],
-				isFrom42=True,
-				password='',
-				email=data['email'],
-				firstName=data['firstName'],
-				lastName=data['lastName'],
-				campus=data['campus'],
-				level=data['level'],
-				wallet=data['wallet'],
-				correctionPoint=data['correctionPoint'],
-				location=data['location'],
-				idName=data['idName'],
-				# image=image_filename
-			)
-			image_url = data['image']
-			save_image_from_url(image_url, user)
-			return JsonResponse({'message': 'User profile saved successfully'}, status=200)
-	else:
-		return JsonResponse({'error': 'Invalid request'}, status=400)
+def save_image_from_url(image_url, user):
+	logger = logging.getLogger(__name__)
+	response = requests.get(image_url)
+	if response.status_code == 200:
+		logger.error('Image downloaded from URL: ' + image_url)
+		image_name = image_url.split('/')[-1]  # get the image name from the URL
+		user.image.save(image_name, ContentFile(response.content), save=True)
 
 def save_test_user(request):
 	user_data = generate_random_user()

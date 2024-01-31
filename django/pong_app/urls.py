@@ -1,13 +1,16 @@
 from django.urls import path, include
 from django.contrib import admin
 from django.views.generic import RedirectView
-from .views import save_user_profile
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import proxy_view
+from .views import save_user_profile_42
+
 
 urlpatterns = [
 	path('', views.homePage, name='homePage'),
+	path('proxy/', proxy_view, name='proxy'),
 	path('homePage/', views.homePage, name='homePage'),
 	path('login/', views.login, name='login'),
 	path('pongGame/', views.pongGame, name='pongGame'),
@@ -21,7 +24,7 @@ urlpatterns = [
 	path('save_test_user/', views.save_test_user, name='save_test_user'),
 	path('tournament_lobby/<int:tournament_id>/', views.tournament_lobby, name='tournament_lobby'),
 	path('tournament_game/<int:tournament_id>/<str:room_name>/', views.tournament_game, name='tournament_game'),
-	path('api/save_user_profile/', save_user_profile, name='save_user_profile'),
+	path('save_user_profile_42/', save_user_profile_42, name='save_user_profile_42'),
 	path('save_user_profile_manual/', views.save_user_profile_manual, name='save_user_profile_manual'),
 	path('login_user/', views.login_user, name='login_user'),
 	path('get_user/<str:user_id>/', views.get_user, name='get_user'),
