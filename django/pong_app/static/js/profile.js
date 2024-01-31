@@ -54,12 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			userLoses.textContent = 'Loses: ' + data.user.loses;
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
-			if (!data.user.isFrom42) {
-				userAccountName.style.display = 'block';
-			}
-			else {
-				userAccountName.style.display = 'none';
-			}
+			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
 
 			fetch('/get_user_game_history/' + userId + '/')
@@ -165,7 +160,6 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 	if (newImage) {
 		formData.append('image', newImage);
 	}
-
 	// Make a fetch request to update the user data on the server
 	fetch('/update_user/', {
 		method: 'POST',

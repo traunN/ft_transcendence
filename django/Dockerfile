@@ -15,6 +15,5 @@ RUN		chown -R www-data:www-data ./pong_app/media/ && \
 
 RUN		python manage.py makemigrations --noinput
 
-
 CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && python manage.py runserver 0.0.0.0:8000"]
 

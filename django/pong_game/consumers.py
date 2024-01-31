@@ -339,6 +339,80 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 
+class FriendListConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+
+	async def friend_request(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'friend_request',
+				'from_user': event['from_user'],
+			}))
+		except Exception as e:
+			print(e)
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		text_data_json = json.loads(text_data)
+		if text_data_json['type'] == 'add_friend':
+			if 'from_user' in text_data_json:
+				await self.channel_layer.group_send(
+					f"user_{text_data_json['to_user']}",
+					{
+						'type': 'friend_request',
+						'from_user': text_data_json['from_user'],
+					}
+				)
+
+	async def connect(self):
+		self.group_name = f"user_{self.scope['user'].id}"
+		await self.channel_layer.group_add(
+			self.group_name,
+			self.channel_name
+		)
+		await self.accept()
+	
+	async def disconnect(self, close_code):
+		await self.channel_layer.group_discard(
+			self.group_name,
+			self.channel_name
+		)
+
+class ChatConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+	async def chat_updated(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'chat_updated',
+			}))
+		except Exception as e:
+			print(e)
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		text_data_json = json.loads(text_data)
+		if 'type' in text_data_json:
+			if text_data_json['type'] == 'chat_updated':
+				await self.channel_layer.group_send(
+					'chat_page',
+					{
+						'type': 'chat_updated',
+					}
+				)
+
+	async def connect(self):
+		await self.channel_layer.group_add(
+			'chat_page',
+			self.channel_name
+		)
+		await self.accept()
+	
+	async def disconnect(self, close_code):
+		await self.channel_layer.group_discard(
+			'chat_page',
+			self.channel_name
+		)
+
 
 class TournamentLobbyConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)

@@ -8,6 +8,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 from django.views import generic
 from django.conf import settings
+from django.conf import settings as django_settings
 from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, GameHistory
 import logging
 import json
@@ -28,7 +29,6 @@ from django.http import HttpResponseForbidden
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
-
 
 def proxy_view(request):
 	auth_header = request.headers.get('Authorization')
@@ -123,10 +123,17 @@ def update_user(request):
 			user.firstName = request.POST['firstName']
 			user.lastName = request.POST['lastName']
 			user.campus = request.POST['campus']
-			if 'image' in request.FILES:
-				image_file = request.FILES['image']
-				file_name = default_storage.save(image_file.name, image_file)
-				user.image = file_name
+			# upload image to media folder
+			image = request.FILES['image']
+			image_name = image.name
+			image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
+			with open(image_path, 'wb+') as destination:
+				for chunk in image.chunks():
+					destination.write(chunk)
+			user.image = image_name
+			logger.error('Image uploaded: ' + image_name)
+			logger.error('Image path: ' + image_path)
+			logger.error('Image URL: ' + request.build_absolute_uri(user.image.url))
 			user.save()
 			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
 		except Exception as e:
@@ -512,7 +519,7 @@ def login_user(request):
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
 		if check_password(password, user.password):
 			user_dict = model_to_dict(user)
-			user_dict['image'] ='https://' + request.get_host() + '/media/' + str(user.image)
+			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			return JsonResponse({'status': 'success', 'user': user_dict})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
@@ -554,8 +561,14 @@ def save_user_profile_42(request):
 				location='',
 				idName=data['idName'],
 			)
+			# upload image to media folder
 			image_url = data['image']
-			save_image_from_url(image_url, user)
+			image_name = image_url.split('/')[-1] # get the image name from the URL
+			image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
+			with open(image_path, 'wb+') as destination:
+				destination.write(urllib.request.urlopen(image_url).read())
+			user.image = image_name
+			user.save()
 			user_dict = model_to_dict(user)
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
@@ -605,8 +618,14 @@ def save_image_from_url(image_url, user):
 	response = requests.get(image_url)
 	if response.status_code == 200:
 		logger.error('Image downloaded from URL: ' + image_url)
-		image_name = image_url.split('/')[-1]  # get the image name from the URL
-		user.image.save(image_name, ContentFile(response.content), save=True)
+		image_name = image_url.split('/')[-1] # get the image name from the URL
+		image_path = os.path.join(dj_settings.MEDIA_ROOT, image_name)
+		with open(image_path, 'wb') as image_file:
+			image_file.write(response.content)
+		return image_path
+	else:
+		logger.error('Failed to download image from URL: ' + image_url)
+		return None
 
 def save_test_user(request):
 	user_data = generate_random_user()
@@ -686,5 +705,6 @@ def get_all_users(request):
 	users = User.objects.all()
 	users_dict = [model_to_dict(user) for user in users]
 	for user_dict in users_dict:
+		user = User.objects.get(idName=user_dict['idName'])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 	return JsonResponse({'users': users_dict}, safe=False)

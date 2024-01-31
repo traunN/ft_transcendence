@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament.js loaded');
 
-	const socket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
+	const socket = new WebSocket('wss://localhost:8443/ws/tournament/');
 	const form = document.getElementById('create-tournament-form');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	function isOpen(ws) {

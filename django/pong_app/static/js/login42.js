@@ -317,6 +317,8 @@ document.addEventListener('DOMContentLoaded', function () {
 											console.log(data);
 											// loginLogout.innerHTML = 'Logout';
 											// userName.innerHTML = data.login;
+											data.id = data.idName;
+											sessionStorage.setItem('user', JSON.stringify(data));
 											userImage.src = data.image;
 										}
 									})
