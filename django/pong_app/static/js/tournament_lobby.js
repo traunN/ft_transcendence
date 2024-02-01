@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	let is_in_room1 = false;
 
 
-	const pagesocket = new WebSocket('ws://' + window.location.host + '/ws/tournament/');
-	const lobbysocket = new WebSocket('ws://' + window.location.host + '/ws/tournament_lobby/' + tournamentId + '/');
+	const pagesocket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	const lobbysocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}

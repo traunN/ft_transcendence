@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	let targetPaddle1Y = paddle1Y;
 	let targetPaddle2Y = paddle2Y;
 
-	const lobbysocket = new WebSocket('ws://' + window.location.host + '/ws/tournament_lobby/' + tournamentId + '/');
+	const lobbysocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
 
 	lobbysocket.onopen = function (e) {
 		console.log('tournament game lobby socket opened');
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('tournament game room created');
-					socket = new WebSocket('ws://localhost:8000/ws/tournament_game/' + roomName + '/');
+					socket = new WebSocket('wss://localhost:8443/ws/tournament_game/' + roomName + '/');
 					if (!socket) {
 						console.log('Failed to create socket');
 						return;
