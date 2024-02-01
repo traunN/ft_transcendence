@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'none';
 		return;
 	}
-	var userId = user.id;
+	var userId = user.idName;
 	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {
@@ -78,8 +78,6 @@ document.addEventListener('DOMContentLoaded', function () {
 							cardBody.classList.add('card-body');
 							var gameDate = document.createElement('p');
 							gameDate.classList.add('card-text');
-							// game_date : "2024-01-23T16:04:29.351Z"
-							// parse so it writes year-month-day
 							var date = new Date(game.game_date);
 							var year = date.getFullYear();
 							var month = date.getMonth() + 1;

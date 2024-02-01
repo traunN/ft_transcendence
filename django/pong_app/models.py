@@ -20,6 +20,7 @@ class User(models.Model):
 	alias = models.CharField(max_length=50, default='');
 	tournamentWins = models.IntegerField(default=0);
 	isOnline = models.BooleanField(default=False);
+	friendList = models.ManyToManyField('self', blank=True)
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)

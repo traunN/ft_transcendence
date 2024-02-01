@@ -30,6 +30,37 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
 
+def is_user_online(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		return JsonResponse({'status': 'success', 'isOnline': user.isOnline})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
+
+def get_friends(request, user_id):
+	try:
+		user = User.objects.get(idName=user_id)
+		friends = user.friendList.values('idName', 'login', 'image')
+		return JsonResponse({'friends': list(friends)})
+	except User.DoesNotExist:
+		return JsonResponse({'error': 'User not found'}, status=404)
+
+def accept_friend_request(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			from_user.friendList.add(to_user)
+			to_user.friendList.add(from_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'Friend request accepted successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 def proxy_view(request):
 	auth_header = request.headers.get('Authorization')
 	if not auth_header or not auth_header.startswith('Bearer '):
@@ -131,9 +162,6 @@ def update_user(request):
 				for chunk in image.chunks():
 					destination.write(chunk)
 			user.image = image_name
-			logger.error('Image uploaded: ' + image_name)
-			logger.error('Image path: ' + image_path)
-			logger.error('Image URL: ' + request.build_absolute_uri(user.image.url))
 			user.save()
 			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
 		except Exception as e:
@@ -518,7 +546,11 @@ def login_user(request):
 		if user.isFrom42:
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
 		if check_password(password, user.password):
-			user_dict = model_to_dict(user)
+			user_dict = model_to_dict(user, fields=[
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			return JsonResponse({'status': 'success', 'user': user_dict})
 		else:
@@ -543,7 +575,11 @@ def save_user_profile_42(request):
 		user_id = data['idName']
 		try:
 			user = User.objects.get(idName=user_id)
-			user_dict = model_to_dict(user)
+			user_dict = model_to_dict(user, fields=[
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			])
 			user_dict['image'] = str(user.image)
 			return JsonResponse({'user': user_dict}, status=200)
 		except User.DoesNotExist:
@@ -569,7 +605,11 @@ def save_user_profile_42(request):
 				destination.write(urllib.request.urlopen(image_url).read())
 			user.image = image_name
 			user.save()
-			user_dict = model_to_dict(user)
+			user_dict = model_to_dict(user, fields=[
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
 			return HttpResponse(user_json, content_type='application/json')
@@ -606,7 +646,11 @@ def save_user_profile_manual(request):
 				# setup image as default
 				image='default.jpg'
 			)
-			user_dict = model_to_dict(user)
+			user_dict = model_to_dict(user, fields=[
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
 			return HttpResponse(user_json, content_type='application/json')
@@ -686,7 +730,11 @@ def generate_random_user():
 def get_user(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
-		user_dict = model_to_dict(user)
+		user_dict = model_to_dict(user, fields=[
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
@@ -695,7 +743,11 @@ def get_user(request, user_id):
 def get_user_by_login(request, login):
 	try:
 		user = User.objects.get(login=login)
-		user_dict = model_to_dict(user)
+		user_dict = model_to_dict(user, fields=[
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
@@ -703,8 +755,13 @@ def get_user_by_login(request, login):
 
 def get_all_users(request):
 	users = User.objects.all()
-	users_dict = [model_to_dict(user) for user in users]
-	for user_dict in users_dict:
-		user = User.objects.get(idName=user_dict['idName'])
+	users_dict = []
+	for user in users:
+		user_dict = model_to_dict(user, fields=[
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+		users_dict.append(user_dict)
 	return JsonResponse({'users': users_dict}, safe=False)

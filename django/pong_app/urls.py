@@ -7,7 +7,6 @@ from django.conf.urls.static import static
 from .views import proxy_view
 from .views import save_user_profile_42
 
-
 urlpatterns = [
 	path('', views.homePage, name='homePage'),
 	path('proxy/', proxy_view, name='proxy'),
@@ -51,6 +50,9 @@ urlpatterns = [
 	path('get_user_game_history/<str:user_id>/', views.get_user_game_history, name='get_user_game_history'),
 	path('set_user_online/<str:user_id>/', views.set_user_online, name='set_user_online'),
 	path('set_user_offline/<str:user_id>/', views.set_user_offline, name='set_user_offline'),
+	path('accept_friend_request/', views.accept_friend_request, name='accept_friend_request'),
+	path('get_friends/<str:user_id>/', views.get_friends, name='get_friends'),
+	path('is_user_online/<str:user_id>/', views.is_user_online, name='is_user_online'),
 ] 
 
 if settings.DEBUG:

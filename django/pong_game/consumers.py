@@ -342,6 +342,10 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 class FriendListConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.group_name = None
+
 	async def friend_request(self, event):
 		try:
 			await self.send(text_data=json.dumps({
@@ -354,7 +358,7 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
-		if text_data_json['type'] == 'add_friend':
+		if text_data_json['type'] == 'friend_request':
 			if 'from_user' in text_data_json:
 				await self.channel_layer.group_send(
 					f"user_{text_data_json['to_user']}",
@@ -365,18 +369,23 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 				)
 
 	async def connect(self):
-		self.group_name = f"user_{self.scope['user'].id}"
+		# connect user and add to group of it's id passed in url
+		self.user_id = self.scope['url_route']['kwargs']['user_id']
+		self.group_name = f"user_{self.user_id}"
+		self.logger.error(f"User {self.user_id} connected.")
 		await self.channel_layer.group_add(
 			self.group_name,
 			self.channel_name
 		)
 		await self.accept()
-	
+
 	async def disconnect(self, close_code):
-		await self.channel_layer.group_discard(
-			self.group_name,
-			self.channel_name
-		)
+		if self.group_name is not None:
+			await self.channel_layer.group_discard(
+				self.group_name,
+				self.channel_name
+			)
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)

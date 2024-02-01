@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 
 	function setUserOnline(userId) {
-		console.log('setUserOnline called');
 		fetch('/set_user_online/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function setUserOffline(userId) {
-		console.log('setUserOffline called');
 		fetch('/set_user_offline/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 	if (isUserLoggedIn()) {
 		var user = JSON.parse(sessionStorage.getItem('user'));
-		fetch('/get_user/' + user.id + '/')
+		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
 				if (!response.ok) {
 					return response.text().then(text => {
@@ -74,7 +72,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (data) {
 					userImage.src = data.user.image;
 					user.image = data.user.image;
-					sessionStorage.setItem('user', JSON.stringify(user));
+					userName.innerHTML = data.user.login;
+					userImage.style.display = 'block';
+					setUserOnline(user.idName);
 				}
 			})
 			.catch(error => console.error('Error:', error));
@@ -93,19 +93,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 	if (user) {
-		// console log entire user object
-		// console.log('User infos: ' + JSON.stringify(user));
 		loginLogout.innerHTML = 'Logout';
 		isLogged = true;
 		normalLogin.style.display = 'none';
 		userName.innerHTML = user.login;
-		if (user && user.image) {
-			if (typeof user.image === 'object') {
-				userImage.src = user.image.link;
-			}
-			else
-				userImage.src = user.image;
-		}
 		userImage.style.display = 'block';
 	}
 	else {
@@ -166,13 +157,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						console.log(data);
 						data.user.id = data.user.idName;
-						console.log('data.user.id: ' + data.user.id);
 						sessionStorage.setItem('user', JSON.stringify(data.user));
 						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
 						user.id = data.user.idName;
-						console.log('User infos: ' + JSON.stringify(user));
 						loginLogout.innerHTML = 'Logout';
 						normalLogin.style.display = 'none';
 						userName.innerHTML = data.user.login;
@@ -181,9 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						userImage.style.display = 'block';
 						loginModal.remove();
 						location.reload();
-					}
-					else {
-						console.log(data.message);
 					}
 				})
 				.catch(error => {
@@ -229,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						return response.json();
 					})
 					.then(data => {
-						isLogged = true;
 						var clientId = data.client_id;
 						var redirectUri = 'https://localhost:8443/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
@@ -271,16 +255,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						userXhr.onreadystatechange = function () {
 							if (this.readyState === 4 && this.status === 200) {
 								var user = JSON.parse(this.responseText);
-								// console.log('User infos: ' + JSON.stringify(user));
-								sessionStorage.setItem('user', JSON.stringify(user));
-								userImage.style.display = 'block';
-								// userImage.src = user.image.link;
-								userName.innerHTML = user.login;
 								setUserOnline(user.id);
-								if (!existingUser) {
-									users.push(user);
-									sessionStorage.setItem('users', JSON.stringify(users));
-								}
+
 								var data = {
 									login: user.login,
 									email: user.email,
@@ -294,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function () {
 									idName: user.id,
 									image: user.image.link
 								};
-								console.log('data: ' + JSON.stringify(data));
 								fetch('/save_user_profile_42/', {
 									method: 'POST',
 									body: JSON.stringify(data),
@@ -314,25 +289,45 @@ document.addEventListener('DOMContentLoaded', function () {
 									})
 									.then(data => {
 										if (data) {
-											console.log(data);
-											// loginLogout.innerHTML = 'Logout';
-											// userName.innerHTML = data.login;
+											loginLogout.innerHTML = 'Logout';
+											userName.innerHTML = data.user.login;
+											normalLogin.style.display = 'none';
 											data.id = data.idName;
-											sessionStorage.setItem('user', JSON.stringify(data));
-											userImage.src = data.image;
+											sessionStorage.setItem('user', JSON.stringify(data.user));
+											user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+											fetch('/get_user/' + user.idName + '/')
+												.then(response => {
+													if (!response.ok) {
+														return response.text().then(text => {
+															throw new Error('Server error: ' + text);
+														});
+													}
+													return response.json();
+												})
+												.then(data => {
+													if (data) {
+														userImage.src = data.user.image;
+														user.image = data.user.image;
+														userName.innerHTML = data.user.login;
+														userImage.style.display = 'block';
+													}
+												})
+												.catch(error => console.error('Error:', error));
+											isLogged = true;
 										}
 									})
 									.catch((error) => {
 										console.error('Error:', error);
 									});
 								var userXhr = new XMLHttpRequest();
-								userXhr.open('GET', '/get_user/' + user.id + '/', true);
+								// console log user
+								userXhr.open('GET', '/get_user/' + data.idName + '/', true);
 								userXhr.onload = function () {
 									if (userXhr.status === 200) {
 										var user = JSON.parse(userXhr.responseText);
 										sessionStorage.setItem('user', JSON.stringify(user));
 										userName.innerHTML = user.login;
-										userImage.src = user.image.link;
+										userImage.src = user.image;
 										userImage.style.display = 'block';
 									}
 								};
@@ -352,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					});
 			} catch (error) {
 				console.error('Error:', error);
-			}	
+			}
 		}
 		getClientData();
 		window.history.pushState({}, null, '/homePage/');
