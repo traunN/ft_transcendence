@@ -114,6 +114,54 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 			return;
 		}
+		if (words[0] === '/invite') {
+			fetch('/invite/' + words[1] + '/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
+				body: JSON.stringify({
+					'from_user': user.idName,
+					'to_user': words[1],
+				})
+			}).then(function (response) {
+				return response.json();
+			}).then(function (data) {
+				if (data.status === 'success') {
+					console.log('Invitation sent');
+				} else {
+					console.log('Error sending invitation:', data);
+				}
+			}).catch(function (error) {
+				console.log('Error sending invitation:', error);
+			});
+			return;
+		}
+		if (words[0] === '/accept') {
+			fetch('/accept/' + words[1] + '/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
+				body: JSON.stringify({
+					'from_user': user.idName,
+					'to_user': words[1],
+				})
+			}).then(function (response) {
+				return response.json();
+			}).then(function (data) {
+				if (data.status === 'success') {
+					console.log('Invitation accepted');
+				} else {
+					console.log('Error accepting invitation:', data);
+				}
+			}).catch(function (error) {
+				console.log('Error accepting invitation:', error);
+			});
+			return;
+		}
 		if (message.toString().length) {
 			username = user.login + "(" + user.idName + ")";
 			var data = {

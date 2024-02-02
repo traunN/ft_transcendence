@@ -30,6 +30,36 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
 
+def accept(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			from_user.invitedUsers.remove(to_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'Invitation accepted successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def invite(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			from_user.invitedUsers.add(to_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'User successfully invited'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 def check_blocked(request, user_id):
 	if request.method == 'POST':
 		try:

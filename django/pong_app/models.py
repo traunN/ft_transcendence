@@ -22,6 +22,7 @@ class User(models.Model):
 	isOnline = models.BooleanField(default=False);
 	friendList = models.ManyToManyField('self', blank=True)
 	blockedUsers = models.ManyToManyField('self', related_name='blockers', symmetrical=False)
+	invitedUsers = models.ManyToManyField('self', related_name='inviters', symmetrical=False)
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)
