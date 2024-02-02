@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.views import generic
 from django.conf import settings
 from django.conf import settings as django_settings
-from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, GameHistory
+from .models import GameRoom, User, RoomPlayer, Tournament, TournamentPlayer, GameHistory, ChatMessage
 import logging
 import json
 from django.db.models import Count
@@ -29,6 +29,65 @@ from django.http import HttpResponseForbidden
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
+
+def check_blocked(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			if to_user in from_user.blockedUsers.all():
+				return JsonResponse({'status': 'success', 'isBlocked': True})
+			else:
+				return JsonResponse({'status': 'success', 'isBlocked': False})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def unblock(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			from_user.blockedUsers.remove(to_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'User successfully unblocked'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def block(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			from_user.blockedUsers.add(to_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'User successfully blocked'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def send_message(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user_id = data['user_id']
+			message = data['message']
+			user = User.objects.get(idName=user_id)
+			username = f"{user.login}({user.idName})"
+			message = ChatMessage.objects.create(user=user, username=username, message=message, idName=user.idName)
+			message.save()
+			return JsonResponse({'status': 'success', 'message': 'Message sent successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
 
 def is_user_online(request, user_id):
 	try:
@@ -501,6 +560,9 @@ def profile(request, user_id=None):
 	except User.DoesNotExist:
 		return render(request, 'profile.html', {'user': None})
 
+def view_profile(request, user_id):
+	user = User.objects.get(idName=user_id)
+	return render(request, 'profile.html', {'user': user})
 
 def settings(request):
 	return render(request, 'settings.html')

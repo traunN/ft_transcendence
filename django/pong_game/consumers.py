@@ -2,7 +2,7 @@ import json
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 import logging
-from pong_app.models import GameRoom, GameHistory
+from pong_app.models import GameRoom, GameHistory, Tournament, TournamentPlayer, ChatMessage, User
 from asgiref.sync import sync_to_async
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
@@ -339,8 +339,72 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 
+class RoomsConsumer(AsyncWebsocketConsumer):
+	logger = logging.getLogger(__name__)
+
+	@database_sync_to_async
+	def get_chat_messages(self):
+		return list(ChatMessage.objects.all().order_by('-date')[:10])
+
+	@database_sync_to_async
+	def get_user(self, user_id):
+		return User.objects.get(idName=user_id)
+
+	async def connect(self):
+		user_id = self.scope['url_route']['kwargs']['user_id']
+		user = await self.get_user(user_id)
+		await self.channel_layer.group_add(
+			'rooms_page',
+			self.channel_name
+		)
+		await self.accept()
+		await asyncio.sleep(0.1)
+		chat_messages = await self.get_chat_messages()
+		chat_messages.reverse()
+		for chat_message in chat_messages:
+			message = chat_message.message
+			username = chat_message.username
+			user_id = chat_message.idName
+			await self.send(text_data=json.dumps({
+				'type': 'message',
+				'username': username,
+				'message': message,
+				'idName': user_id
+			}))
+			
+		async def disconnect(self, close_code):
+			await self.channel_layer.group_discard(
+				'rooms_page',
+				self.channel_name	
+			)
+
+	# Receive message from WebSocket
+	async def receive(self, text_data):
+		text_data_json = json.loads(text_data)
+		if 'type' in text_data_json:
+			if text_data_json['type'] == 'message':
+				await self.channel_layer.group_send(
+					'rooms_page',
+					{
+						'type': 'message',
+						'username': text_data_json['username'],
+						'message': text_data_json['message'],
+						'idName': text_data_json['idName']
+					}
+				)
+
+	# Send message to room group
+	async def message(self, event):
+		await self.send(text_data=json.dumps({
+			'type': 'message',
+			'username': event['username'],
+			'message': event['message'],
+			'idName': event['idName']
+		}))
+
 class FriendListConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
+	
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -372,7 +436,6 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 		# connect user and add to group of it's id passed in url
 		self.user_id = self.scope['url_route']['kwargs']['user_id']
 		self.group_name = f"user_{self.user_id}"
-		self.logger.error(f"User {self.user_id} connected.")
 		await self.channel_layer.group_add(
 			self.group_name,
 			self.channel_name
@@ -385,42 +448,6 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 				self.group_name,
 				self.channel_name
 			)
-
-
-class ChatConsumer(AsyncWebsocketConsumer):
-	logger = logging.getLogger(__name__)
-	async def chat_updated(self, event):
-		try:
-			await self.send(text_data=json.dumps({
-				'type': 'chat_updated',
-			}))
-		except Exception as e:
-			print(e)
-
-	# Receive message from WebSocket
-	async def receive(self, text_data):
-		text_data_json = json.loads(text_data)
-		if 'type' in text_data_json:
-			if text_data_json['type'] == 'chat_updated':
-				await self.channel_layer.group_send(
-					'chat_page',
-					{
-						'type': 'chat_updated',
-					}
-				)
-
-	async def connect(self):
-		await self.channel_layer.group_add(
-			'chat_page',
-			self.channel_name
-		)
-		await self.accept()
-	
-	async def disconnect(self, close_code):
-		await self.channel_layer.group_discard(
-			'chat_page',
-			self.channel_name
-		)
 
 
 class TournamentLobbyConsumer(AsyncWebsocketConsumer):

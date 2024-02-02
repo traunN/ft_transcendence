@@ -25,7 +25,11 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'none';
 		return;
 	}
-	var userId = user.idName;
+	var pathArray = window.location.pathname.split('/');
+	var userId = pathArray[pathArray.length - 2];
+	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
+		userId = user.idName;
+	}
 	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {

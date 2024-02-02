@@ -21,6 +21,7 @@ class User(models.Model):
 	tournamentWins = models.IntegerField(default=0);
 	isOnline = models.BooleanField(default=False);
 	friendList = models.ManyToManyField('self', blank=True)
+	blockedUsers = models.ManyToManyField('self', related_name='blockers', symmetrical=False)
 
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)
@@ -75,3 +76,10 @@ class TournamentPlayer(models.Model):
 	is_ready = models.BooleanField(default=False)
 	tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
 	count = models.IntegerField(default=1)
+
+class ChatMessage(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	username = models.CharField(max_length=50)
+	message = models.CharField(max_length=200)
+	date = models.DateTimeField(auto_now_add=True)
+	idName = models.CharField(max_length=50)

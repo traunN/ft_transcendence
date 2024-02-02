@@ -16,6 +16,10 @@ urlpatterns = [
 	path('leaderboard/', views.leaderboard, name='leaderboard'),
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
 	path('profile/', views.profile, name='profile'),
+	path('profile/<str:user_id>/', views.view_profile, name='view_profile'),
+	path('block/<str:user_id>/', views.block, name='block'),
+	path('unblock/<str:user_id>/', views.unblock, name='unblock'),
+	path('check_blocked/<str:user_id>/', views.check_blocked, name='check_blocked'),
 	path('settings/', views.settings, name='settings'),
 	path('tournament/', views.tournament, name='tournament'),
 	path('chat/', views.chat, name='chat'),	
@@ -53,6 +57,7 @@ urlpatterns = [
 	path('accept_friend_request/', views.accept_friend_request, name='accept_friend_request'),
 	path('get_friends/<str:user_id>/', views.get_friends, name='get_friends'),
 	path('is_user_online/<str:user_id>/', views.is_user_online, name='is_user_online'),
+	path('send_message/', views.send_message, name='send_message'),
 ] 
 
 if settings.DEBUG:

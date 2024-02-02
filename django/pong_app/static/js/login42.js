@@ -290,12 +290,16 @@ document.addEventListener('DOMContentLoaded', function () {
 									.then(data => {
 										if (data) {
 											loginLogout.innerHTML = 'Logout';
-											userName.innerHTML = data.user.login;
+											userName.innerHTML = data.login;
 											normalLogin.style.display = 'none';
 											data.id = data.idName;
+											if (data.id === undefined) {
+												data.id = data.user.idName;
+											}
 											sessionStorage.setItem('user', JSON.stringify(data.user));
-											user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
-											fetch('/get_user/' + user.idName + '/')
+											console
+											// user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+											fetch('/get_user/' + data.id + '/')
 												.then(response => {
 													if (!response.ok) {
 														return response.text().then(text => {
@@ -306,6 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
 												})
 												.then(data => {
 													if (data) {
+														sessionStorage.setItem('user', JSON.stringify(data.user));
 														userImage.src = data.user.image;
 														user.image = data.user.image;
 														userName.innerHTML = data.user.login;

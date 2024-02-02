@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	user = JSON.parse(sessionStorage.getItem('user'));
-	console.log('User infos: ' + JSON.stringify(user));
 	socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
 	if (!socket) {
 		console.log('Failed to create socket');
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	socket.onopen = function (e) {
-		console.log('Successfully connected to the websocket');
 	}
 
 	function updateFriendList() {
