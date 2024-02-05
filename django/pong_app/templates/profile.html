@@ -7,30 +7,31 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>ft_transcendence</title>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
+	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
-		body {
-			background-color: #202425;
-		}
 		main {
 			display: flex;
 			justify-content: center;
 			align-items: center;
+		}
+		#gameHistory {
+			text-align: center;
 		}
 	</style>
 </head>
 
 <body>
 	{% include 'topbar.html' %}
+	{% include 'friendlist.html' %}
 	<div class="scrollable">
 		<div class="container-fluid">
 			<div class="row">
 				<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
-					<div class="card custom-bg">
-						<img class="card-img-top" src="" alt="User Image" id="userImageProfile">
-						<div class="card-body">
-							<h1 class="card-title" id="usernameProfile"></h1>
+					<div class="card custom-bg no-hover flex-card-profile">
+						<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
+						<div class="card-body-profile">
+							<h1 class="card-title-profile" id="usernameProfile"></h1>
 							<ul class="card-text" id="userInfo">
 								<li id="emailProfile"></li>
 								<li id="firstNameProfile"></li>
@@ -43,17 +44,22 @@
 								<li id="winsProfile"></li>
 								<li id="losesProfile"></li>
 								<li id="tournamentWinsProfile"></li>
+								<li id="accountNameProfile"></li>
 							</ul>
+							<input type="search" id="searchUser" placeholder="Search for a user">
+							<button id="editProfileButton" class="btn yellow-btn">Edit Profile</button>
+							<button id="saveProfileButton" class="btn yellow-btn">Save Profile</button>
 						</div>
-						<input type="search" id="searchUser" placeholder="Search for a user">
 					</div>
+					<div id="gameHistory"></div>
 				</main>
 			</div>
 		</div>
 	</div>
-	<script type="text/javascript" src="../static/js/setActive.js"></script>
-	<script type="text/javascript" src="../static/js/profile.js"></script>
-	<script type="text/javascript" src="../static/js/login42.js"></script>
+	<script type="text/javascript" src="{% static 'js/setActive.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/friendlist.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/login42.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/profile.js' %}"></script>
 </body>
 
 <footer class="myFooter">

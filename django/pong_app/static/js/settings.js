@@ -21,22 +21,20 @@ document.addEventListener('DOMContentLoaded', function () {
 	document.getElementById('ballSkin').addEventListener('change', function () {
 		var ballSkin = this.value;
 		sessionStorage.setItem('ballSkin', ballSkin);
-		ball.className = '';
-		location.reload();
+		ball.className = 'ball ' + ballSkin;
 	});
+	
 
 	document.getElementById('paddleSkin').addEventListener('change', function () {
 		var paddleSkin = this.value;
 		sessionStorage.setItem('paddleSkin', paddleSkin);
-		paddle.className = '';
-		location.reload();
+		paddle.className = 'paddle ' + paddleSkin;
 	});
 
 	document.getElementById('boardSkin').addEventListener('change', function () {
 		var boardSkin = this.value;
 		sessionStorage.setItem('boardSkin', boardSkin);
-		board.className = '';
-		location.reload();
+		board.className = 'board ' + boardSkin;
 	});
 
 

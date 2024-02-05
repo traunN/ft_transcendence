@@ -34,6 +34,11 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = ['localhost:8443']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -43,7 +48,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'pong_app',
     'channels',
+	'corsheaders',
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_app', 'media')
 
 ASGI_APPLICATION = 'pong_game.asgi.application'
 
@@ -61,6 +70,31 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'corsheaders.middleware.CorsMiddleware',
+]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.BCryptPasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+
+ALLOWED_HOSTS = ['*']
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGINS = [
+    "https://localhost:8443",
 ]
 
 ROOT_URLCONF = 'pong_game.urls'
@@ -93,6 +127,10 @@ DATABASES = {
       'PORT': '5432',
   }
 }
+
+# CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
+# CLIENT_ID = os.environ.get('CLIENT_ID')
+
 
 LOGGING = {
    'version': 1,

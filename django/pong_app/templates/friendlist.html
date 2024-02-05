@@ -1,0 +1,22 @@
+<div class="container-fluid">
+	<div class="row">
+		<div id="notificationContainer" style="display: none;">
+			<div id="notification">
+				<p id="notificationMessage"></p>
+				<button id="acceptRequest" class="notification-btn">Accept</button>
+				<button id="denyRequest" class="notification-btn">Deny</button>
+			</div>
+		</div>
+		<div id="friendList" class="friend-list">
+			<button id="toggleButton" class="friendlist-btn">Friend List</button>
+			<div id="friendListContent" class="friend-list-content">
+				<table id="friendListNames"></table>
+				<input id="addFriendInput" type="text" placeholder="Add friend">
+				<button id="addFriendButton" class="friendlist-btn">Add</button>
+			</div>
+		</div>
+	</div>
+	<script>
+		const csrfToken = "{{ csrf_token }}";
+	</script>
+</div>

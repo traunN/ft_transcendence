@@ -8,4 +8,6 @@ websocket_urlpatterns = [
 	re_path(r'ws/tournament/$', consumers.TournamentConsumer.as_asgi()),
 	re_path(r'ws/tournament_lobby/(?P<tournament_id>\w+)/$', consumers.TournamentLobbyConsumer.as_asgi()),
 	re_path(r'ws/tournament_game/(?P<room_name>\w+)/$', consumers.TournamentGameConsumer.as_asgi()),
+	re_path(r'ws/rooms/(?P<user_id>\w+)/$', consumers.RoomsConsumer.as_asgi()),
+	re_path(r'ws/friendList/(?P<user_id>\w+)/$', consumers.FriendListConsumer.as_asgi()),
 ]

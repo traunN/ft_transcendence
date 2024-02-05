@@ -7,15 +7,11 @@
 	<title>ft_transcendence</title>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="../static/css/style.css" />
-	<style>
-		body {
-			background-color: #202425;
-		}
-	</style>
 </head>
 
 <body>
 	{% include 'topbar.html' %}
+	{% include 'friendlist.html' %}
 	<div class="scrollable">
 		<div class="container-fluid">
 			<div class="row">
@@ -26,11 +22,12 @@
 				<table class="table no-border" id="leaderboard">
 					<thead>
 						<tr>
-							<th scope="col">Place</th>
+							<th scope="col"></th>
 							<th scope="col">Login</th>
 							<th scope="col">Wins</th>
 							<th scope="col">Loses</th>
 							<th scope="col">Winrate</th>
+							<th scope="col">Tourney wins</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -41,6 +38,7 @@
 	</div>
 	<script type="text/javascript" src="../static/js/setActive.js"></script>
 	<script type="text/javascript" src="../static/js/login42.js"></script>
+	<script type="text/javascript" src="../static/js/friendlist.js"></script>
 	<script type="text/javascript" src="../static/js/leaderboard.js"></script>
 </body>
 

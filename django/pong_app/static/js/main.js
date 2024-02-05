@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		requestAnimationFrame(update_paddles);
 	}
 
-
 	function gameLoop(gameState) {
 		socket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
@@ -175,14 +174,13 @@ document.addEventListener('DOMContentLoaded', function () {
 				else {
 					message.textContent = 'Player 2 wins!';
 				}
-
 			}
 			else if (messageData.message === 'cancel_game_room') {
 				isGameRunning = false;
 				message.textContent = 'Player left the game';
 				setTimeout(function () {
 					location.reload();
-				}, 5000);
+				}, 3000);
 			}
 			else {
 				const gameState = messageData.message;
@@ -203,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		player1Name.textContent = `${player1NameValue}`;
 		player2Name.textContent = `${player2NameValue}`;
 	}
+
 
 	function startGame() {
 		if (isGameRunning) {
@@ -226,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('Successfully joined or created room');
-					socket = new WebSocket('ws://localhost:8000/ws/game/' + data.room_name + '/');
+					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
 					if (!socket) {
 						console.log('Failed to create socket');
 						return;

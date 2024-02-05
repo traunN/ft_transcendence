@@ -11,9 +11,6 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" />
 	<link rel="icon" href="{% static 'favicon.ico' %}">
 	<style>
-		body {
-			background-color: #202425;
-		}
 		.container {
 			position: relative;
 			top: 80px;
@@ -23,6 +20,7 @@
 
 <body>
 	{% include 'topbar.html' %}
+	{% include 'friendlist.html' %}
 	<input type="hidden" id="tournamentId" value="{{ tournament.id }}">
 	<input type="hidden" id="roomName" value="{{ room_name }}">
 	<div class="scrollable">
@@ -46,10 +44,8 @@
 			</div>
 		</div>
 	</div>
-	<script>
-		const csrfToken = "{{ csrf_token }}";
-	</script>
 	<script type="text/javascript" src="{% static 'js/setActive.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/friendlist.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/login42.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/tournament_game.js' %}"></script>
 </body>
