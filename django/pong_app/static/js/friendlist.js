@@ -17,6 +17,33 @@ document.addEventListener('DOMContentLoaded', function () {
 		return;
 	}
 	user = JSON.parse(sessionStorage.getItem('user'));
+	if (!user) {
+		console.log('Failed to get user from session storage');
+		return;
+	}
+	//check if user exist in db
+	fetch('/get_user/' + user.idName + '/')
+		.then(response => {
+			if (!response.ok) {
+				// If the response status is not ok, get the response text and throw an error
+				sessionStorage.removeItem('user');
+				window.location.href = '/homePage/';
+				
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data) {
+				console.log(data);
+			}
+			if (data.user) {
+				console.log('User exist');
+			} else {
+				console.log('User does not exist');
+				sessionStorage.removeItem('user');
+				window.location.href = '/homePage/';
+			}
+		});
 	socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
 	if (!socket) {
 		console.log('Failed to create socket');

@@ -9,6 +9,30 @@ document.addEventListener('DOMContentLoaded', function () {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 
+	if (user) {
+		fetch('/get_user/' + user.idName + '/')
+			.then(response => {
+				if (!response.ok) {
+					// If the response status is not ok, get the response text and throw an error
+					sessionStorage.removeItem('user');
+					window.location.href = '/homePage/';
+					
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					console.log(data);
+				}
+				if (data.user) {
+					console.log('User exist');
+				} else {
+					console.log('User does not exist');
+					sessionStorage.removeItem('user');
+					window.location.href = '/homePage/';
+				}
+			});
+	}
 	function setUserOnline(userId) {
 		fetch('/set_user_online/' + userId + '/')
 			.then(response => {
@@ -161,6 +185,8 @@ document.addEventListener('DOMContentLoaded', function () {
 						sessionStorage.setItem('user', JSON.stringify(data.user));
 						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
 						user.id = data.user.idName;
+						user.idName = data.user.idName;
+						sessionStorage.setItem('user', JSON.stringify(user));
 						loginLogout.innerHTML = 'Logout';
 						normalLogin.style.display = 'none';
 						userName.innerHTML = data.user.login;
@@ -310,11 +336,12 @@ document.addEventListener('DOMContentLoaded', function () {
 												})
 												.then(data => {
 													if (data) {
-														sessionStorage.setItem('user', JSON.stringify(data.user));
+														data.user.id = data.user.idName;
 														userImage.src = data.user.image;
 														user.image = data.user.image;
 														userName.innerHTML = data.user.login;
 														userImage.style.display = 'block';
+														sessionStorage.setItem('user', JSON.stringify(data.user));
 													}
 												})
 												.catch(error => console.error('Error:', error));
@@ -330,10 +357,11 @@ document.addEventListener('DOMContentLoaded', function () {
 								userXhr.onload = function () {
 									if (userXhr.status === 200) {
 										var user = JSON.parse(userXhr.responseText);
-										sessionStorage.setItem('user', JSON.stringify(user));
 										userName.innerHTML = user.login;
 										userImage.src = user.image;
 										userImage.style.display = 'block';
+										user.id = user.idName;
+										sessionStorage.setItem('user', JSON.stringify(user));
 									}
 								};
 							}
@@ -360,9 +388,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	window.addEventListener('beforeunload', function (event) {
-		// Check if the user is navigating away or closing the window
-		if (document.visibilityState === 'hidden') {
-			disconnectUser();
-		}
+		
 	});
 });

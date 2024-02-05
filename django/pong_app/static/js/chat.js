@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	socket.onmessage = function (e) {
 		var dataMsg = JSON.parse(e.data);
-		console.log('socket message:', dataMsg);
 		if (dataMsg.type === 'message') {
 			fetch('/check_blocked/' + dataMsg.idName + '/', {
 				method: 'POST',
@@ -37,8 +36,15 @@ document.addEventListener('DOMContentLoaded', function () {
 						return;
 					}
 					else {
-						console.log('dataMsg username:', dataMsg.username);
-						displayMessage(dataMsg.username, dataMsg.message);
+						if (dataMsg.is_whisper) {
+							if (dataMsg.whisper_to !== user.idName) {
+								return;
+							}
+							displayMessage(dataMsg.username, dataMsg.message, 1);
+						}
+						else {
+							displayMessage(dataMsg.username, dataMsg.message);
+						}
 					}
 				}
 				else {
@@ -47,6 +53,22 @@ document.addEventListener('DOMContentLoaded', function () {
 			}).catch(function (error) {
 				console.log('Error checking if user is blocked:', error);
 			});
+		}
+		else if (dataMsg.type === 'game_invite') {
+			if (dataMsg.to_user === user.idName) {
+				roomName = dataMsg.from_user + '&' + dataMsg.to_user
+				roomNameKey = dataMsg.from_user + '&' + dataMsg.to_user;
+				sessionStorage.setItem('roomNameKey', roomNameKey);
+				console.log('user id and idName:', user.id, user.idName);
+				window.location.href = '/privateGame/' + roomName + '/';
+			}
+			else if (dataMsg.from_user === user.idName) {
+				roomName = dataMsg.from_user + '&' + dataMsg.to_user
+				roomNameKey = dataMsg.from_user + '&' + dataMsg.to_user;
+				sessionStorage.setItem('roomNameKey', roomNameKey);
+				console.log('user id and idName:', user.id, user.idName);
+				window.location.href = '/privateGame/' + roomName + '/';
+			}
 		}
 	};
 
@@ -60,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		event.preventDefault();
 		var message = document.getElementById("message-input").value;
 
-		// check for command /profile <user_id> and call  window.location.href = '/profile/' + words[1] + '/';
 		var words = message.split(' ');
 		if (words[0] === '/profile') {
 			window.location.href = '/profile/' + words[1] + '/';
@@ -82,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}).then(function (data) {
 				if (data.status === 'success') {
 					console.log('User successfully blocked');
+					document.getElementById("message-input").value = "";
 				} else {
 					console.log('Error blocking user:', data);
 				}
@@ -106,12 +128,28 @@ document.addEventListener('DOMContentLoaded', function () {
 			}).then(function (data) {
 				if (data.status === 'success') {
 					console.log('User successfully unblocked');
+					document.getElementById("message-input").value = "";
 				} else {
 					console.log('Error unblocking user:', data);
 				}
 			}).catch(function (error) {
 				console.log('Error unblocking user:', error);
 			});
+			return;
+		}
+		if (words[0] === '/w') {
+			var message = words.slice(2).join(' ');
+			username = user.login + "(" + user.idName + ")";
+			var data = {
+				type: "message",
+				username: username,
+				message: message,
+				idName: user.idName,
+				is_whisper: true,
+				whisper_to: words[1]
+			};
+			socket.send(JSON.stringify(data));
+			displayMessage(username, message, 1);
 			return;
 		}
 		if (words[0] === '/invite') {
@@ -130,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}).then(function (data) {
 				if (data.status === 'success') {
 					console.log('Invitation sent');
+					document.getElementById("message-input").value = "";
 				} else {
 					console.log('Error sending invitation:', data);
 				}
@@ -146,14 +185,20 @@ document.addEventListener('DOMContentLoaded', function () {
 					'X-CSRFToken': csrfToken,
 				},
 				body: JSON.stringify({
-					'from_user': user.idName,
-					'to_user': words[1],
+					'from_user': words[1],
+					'to_user': user.idName,
 				})
 			}).then(function (response) {
 				return response.json();
 			}).then(function (data) {
 				if (data.status === 'success') {
 					console.log('Invitation accepted');
+					socket.send(JSON.stringify({
+						type: 'game_invite',
+						from_user: user.idName,
+						to_user: words[1]
+					}));
+					document.getElementById("message-input").value = "";
 				} else {
 					console.log('Error accepting invitation:', data);
 				}
@@ -196,11 +241,24 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}, false);
 
-	function displayMessage(username, message) {
-		var chatMessages = document.getElementById("chat-messages");
-		var messageElement = document.createElement('p');
-		messageElement.innerText = username + ": " + message;
-		chatMessages.appendChild(messageElement);
-		chatMessages.scrollTop = chatMessages.scrollHeight;
+	function displayMessage(username, message, nb) {
+		// if nb is 1 display in purple else display in black
+		if (nb === 1) {
+			var chatMessages = document.getElementById("chat-messages");
+			var messageElement = document.createElement('p');
+			messageElement.style.color = "purple";
+			messageElement.innerText = username + ": " + message;
+			chatMessages.appendChild(messageElement);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+			document.getElementById("message-input").value = "";
+		}
+		else {
+			var chatMessages = document.getElementById("chat-messages");
+			var messageElement = document.createElement('p');
+			messageElement.innerText = username + ": " + message;
+			chatMessages.appendChild(messageElement);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+			document.getElementById("message-input").value = "";
+		}
 	}
 });

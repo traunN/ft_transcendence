@@ -36,6 +36,8 @@ def accept(request, user_id):
 			data = json.loads(request.body.decode('utf-8'))
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
+			if to_user not in from_user.invitedUsers.all():
+				return JsonResponse({'status': 'error', 'message': 'User not invited'})
 			from_user.invitedUsers.remove(to_user)
 			from_user.save()
 			to_user.save()
@@ -51,6 +53,9 @@ def invite(request, user_id):
 			data = json.loads(request.body.decode('utf-8'))
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
+			# if already invited, return error
+			if to_user in from_user.invitedUsers.all():
+				return JsonResponse({'status': 'error', 'message': 'User already invited'})
 			from_user.invitedUsers.add(to_user)
 			from_user.save()
 			to_user.save()
@@ -568,6 +573,9 @@ def homePage(request):
 
 def login(request):
 	return render(request, 'login.html')
+
+def privateGame(request, room_name):
+	return render(request, 'privateGame.html', {'room_name': room_name})
 
 def pongGame(request):
 	return render(request, 'pongGame.html')

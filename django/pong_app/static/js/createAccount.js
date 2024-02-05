@@ -28,10 +28,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		isLogged = false;
 	}
 
+	function isAlphaNumeric(input) {
+		var regex = /^[a-z0-9]+$/i;
+		return regex.test(input);
+	}
+
 	createAccountForm.addEventListener('submit', function (event) {
 		console.log('createAccountForm submitted');
 		event.preventDefault();
 		var accountName = document.getElementById('accountName').value;
+		if (!isAlphaNumeric(accountName)) {
+			alert("Account Name must contain only alphanumeric characters (letters A-Z, a-z, and digits 0-9)");
+			event.preventDefault();
+			return;
+		}
 		var login = document.getElementById('login').value;
 		var password = document.getElementById('password').value;
 		var passwordConfirm = document.getElementById('passwordConfirm').value;
@@ -76,6 +86,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					sessionStorage.setItem('user', JSON.stringify(data));
 					user = JSON.parse(sessionStorage.getItem('user')); 
 					user.id = data.idName;
+					user.idName = data.idName;
+					sessionStorage.setItem('user', JSON.stringify(user));
 					loginLogout.innerHTML = 'Logout';
 					normalLogin.style.display = 'none';
 					userName.innerHTML = data.login;

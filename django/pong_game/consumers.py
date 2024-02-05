@@ -389,9 +389,30 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 						'type': 'message',
 						'username': text_data_json['username'],
 						'message': text_data_json['message'],
-						'idName': text_data_json['idName']
+						'idName': text_data_json['idName'],
+						'is_whisper': text_data_json['is_whisper'] if 'is_whisper' in text_data_json else False,
+						'whisper_to': text_data_json['whisper_to'] if 'whisper_to' in text_data_json else ''
 					}
 				)
+			if text_data_json['type'] == 'game_invite':
+				await self.channel_layer.group_send(
+					'rooms_page',
+					{
+						'type': 'game_invite',
+						'from_user': text_data_json['from_user'],
+						'to_user': text_data_json['to_user'],
+					}
+				)
+
+	async def game_invite(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'game_invite',
+				'from_user': event['from_user'],
+				'to_user': event['to_user'],
+			}))
+		except Exception as e:
+			print(e)
 
 	# Send message to room group
 	async def message(self, event):
@@ -399,7 +420,9 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 			'type': 'message',
 			'username': event['username'],
 			'message': event['message'],
-			'idName': event['idName']
+			'idName': event['idName'],
+			'is_whisper': event['is_whisper'] if 'is_whisper' in event else False,
+			'whisper_to': event['whisper_to'] if 'whisper_to' in event else ''
 		}))
 
 class FriendListConsumer(AsyncWebsocketConsumer):

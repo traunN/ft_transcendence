@@ -13,6 +13,7 @@ urlpatterns = [
 	path('homePage/', views.homePage, name='homePage'),
 	path('login/', views.login, name='login'),
 	path('pongGame/', views.pongGame, name='pongGame'),
+	path('privateGame/<str:room_name>/', views.privateGame, name='privateGame'),
 	path('leaderboard/', views.leaderboard, name='leaderboard'),
 	path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico')),
 	path('profile/', views.profile, name='profile'),
