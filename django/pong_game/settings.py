@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # SECRET_KEY = os.getenv('SECRET_KEY')
@@ -40,15 +41,19 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = ['localhost:8443']
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'pong_app',
-    'channels',
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
+	'pong_app',
+	'channels',
 	'corsheaders',
+	'two_factor',
+	'django_otp',
+	'django_otp.plugins.otp_totp',
+	'django_otp.plugins.otp_static',
 ]
 
 MEDIA_URL = '/media/'
@@ -62,6 +67,33 @@ CHANNEL_LAYERS = {
 	}
 }
 
+SIMPLE_JWT = {
+	'ACCESS_TOKEN_LIFETIME': timedelta(weeks=520),
+	'REFRESH_TOKEN_LIFETIME': timedelta(weeks=520),
+	'ROTATE_REFRESH_TOKENS': False,
+	'BLACKLIST_AFTER_ROTATION': True,
+	'UPDATE_LAST_LOGIN': False,
+
+	'ALGORITHM': 'HS256',
+	'SIGNING_KEY': SECRET_KEY,
+	'VERIFYING_KEY': None,
+	'AUDIENCE': None,
+	'ISSUER': None,
+
+	'AUTH_HEADER_TYPES': ('Bearer',),
+	'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+	'USER_ID_FIELD': 'id',
+	'USER_ID_CLAIM': 'user_id',
+	'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+	'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+	'TOKEN_TYPE_CLAIM': 'token_type',
+
+	'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+	'SLIDING_TOKEN_LIFETIME': timedelta(weeks=520),
+	'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(weeks=520),
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -71,6 +103,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'corsheaders.middleware.CorsMiddleware',
+	'two_factor.middleware.threadlocals.ThreadLocals',
 ]
 
 PASSWORD_HASHERS = [

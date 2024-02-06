@@ -80,14 +80,38 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data) {
-					console.log(data);
-					// add id to user object
+					user = JSON.stringify(data.user);
+					console.log('User: ' + user);
+					// add id to user object	
 					data.id = data.idName;
-					sessionStorage.setItem('user', JSON.stringify(data));
-					user = JSON.parse(sessionStorage.getItem('user')); 
-					user.id = data.idName;
+					if (data.id === undefined) {
+						data.id = data.user.idName;
+					}
+					console.log('data id: ' + data.id);
+					sessionStorage.setItem('user', data.user);
+					sessionStorage.setItem('jwt', data.access_token);
 					user.idName = data.idName;
 					sessionStorage.setItem('user', JSON.stringify(user));
+					fetch('/get_user/' + data.id + '/')
+						.then(response => {
+							if (!response.ok) {
+								return response.text().then(text => {
+									throw new Error('Server error: ' + text);
+								});
+							}
+							return response.json();
+						})
+						.then(data => {
+							if (data) {
+								data.user.id = data.user.idName;
+								userImage.src = data.user.image;
+								user.image = data.user.image;
+								userName.innerHTML = data.user.login;
+								userImage.style.display = 'block';
+								sessionStorage.setItem('user', JSON.stringify(data.user));
+							}
+						})
+						.catch(error => console.error('Error:', error));
 					loginLogout.innerHTML = 'Logout';
 					normalLogin.style.display = 'none';
 					userName.innerHTML = data.login;

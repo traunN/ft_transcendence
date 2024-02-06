@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
+	var jwtToken;
 
 	if (boardSkin === 'defaultSkin') {
 		board.classList.add('blackSkin');
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 	else {
 		startGameBtn.textContent = 'Start Game';
+		jwtToken = sessionStorage.getItem('jwt');
 	}
 	if (user.id) {
 		userId = user.id;
@@ -215,79 +217,86 @@ document.addEventListener('DOMContentLoaded', function () {
 			return;
 		}
 		let userId = user.id;
-		fetch(`/join_or_create_room/${userId}/`)
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data.status === 'success') {
-					console.log('Successfully joined or created room');
-					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
-					if (!socket) {
-						console.log('Failed to create socket');
-						return;
-					}
-					if (data.start_game) {
-						console.log('Starting the game...');
-						console.log('Joined room name:', data.room_name);
-						window.room_name = data.room_name;
-						// check if both players are in the same room
-						socket.onopen = async function (event) {
-							socket.send(JSON.stringify({ 'message': 'start_game' }));
-							socket.onmessage = function (event) {
-								const messageData = JSON.parse(event.data);
-								if (messageData.message === 'start_game') {
-									message.textContent = '';
-									const user1 = messageData.user1;
-									const user2 = messageData.user2;
-									displayNames(user1, user2);
-									// Handle the initial game state
-									const initialState = messageData.initial_state;
-									gameLoop(initialState);
-								} else {
-									// Handle other game messages
-									gameState = messageData.message;
-									// gameLoop(gameState);
-								}
-
-							};
-						};
-					} else {
-						message.textContent = 'Waiting for another player...';
-						console.log('Waiting for another player...');
-						console.log('Created room:', data.room_name);
-						window.room_name = data.room_name;
-						socket.onopen = function (event) {
-							socket.onmessage = function (event) {
-								const messageData = JSON.parse(event.data);
-								if (messageData.message === 'start_game') {
-									// Handle the initial game state
-									message.textContent = '';
-									const user1 = messageData.user1;
-									const user2 = messageData.user2;
-									displayNames(user1, user2);
-									const initialState = messageData.initial_state;
-									gameLoop(initialState);
-								} else {
-									// Handle other game messages
-									gameState = messageData.message;
-									gameLoop(gameState);
-								}
-							};
-						};
-					}
-				}
-				else {
-					console.log('Failed to join or create room', data);
+		fetch(`/join_or_create_room/${userId}/`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			}
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.status === 'success') {
+				console.log('Successfully joined or created room');
+				socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
+				if (!socket) {
+					console.log('Failed to create socket');
 					return;
 				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
+				if (data.start_game) {
+					console.log('Starting the game...');
+					console.log('Joined room name:', data.room_name);
+					window.room_name = data.room_name;
+					// check if both players are in the same room
+					socket.onopen = async function (event) {
+						socket.send(JSON.stringify({ 'message': 'start_game' }));
+						socket.onmessage = function (event) {
+							const messageData = JSON.parse(event.data);
+							if (messageData.message === 'start_game') {
+								message.textContent = '';
+								const user1 = messageData.user1;
+								const user2 = messageData.user2;
+								displayNames(user1, user2);
+								// Handle the initial game state
+								const initialState = messageData.initial_state;
+								gameLoop(initialState);
+							} else {
+								// Handle other game messages
+								gameState = messageData.message;
+								// gameLoop(gameState);
+							}
+
+						};
+					};
+				} else {
+					message.textContent = 'Waiting for another player...';
+					console.log('Waiting for another player...');
+					console.log('Created room:', data.room_name);
+					window.room_name = data.room_name;
+					socket.onopen = function (event) {
+						socket.onmessage = function (event) {
+							const messageData = JSON.parse(event.data);
+							if (messageData.message === 'start_game') {
+								// Handle the initial game state
+								message.textContent = '';
+								const user1 = messageData.user1;
+								const user2 = messageData.user2;
+								displayNames(user1, user2);
+								const initialState = messageData.initial_state;
+								gameLoop(initialState);
+							} else {
+								// Handle other game messages
+								gameState = messageData.message;
+								gameLoop(gameState);
+							}
+						};
+					};
+				}
+			}
+			else {
+				console.log('Failed to join or create room', data);
+				return;
+			}
+		})
+		.catch(error => {
+			console.error('There has been a problem with your fetch operation:', error);
+		});
 	}
 
 
@@ -300,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
 			},
 		})
 			.then(response => {

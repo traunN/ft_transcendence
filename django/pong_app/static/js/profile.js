@@ -17,6 +17,7 @@ var userAccountName = document.getElementById('accountNameProfile');
 var searchUser = document.getElementById('searchUser');
 
 var user = JSON.parse(sessionStorage.getItem('user'));
+var jwtToken;
 
 document.addEventListener('DOMContentLoaded', function () {
 	if (!user) {
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		userImage.style.display = 'none';
 		return;
 	}
+	jwtToken = sessionStorage.getItem('jwt');
 	var pathArray = window.location.pathname.split('/');
 	var userId = pathArray[pathArray.length - 2];
 	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
@@ -162,11 +164,13 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 	if (newImage) {
 		formData.append('image', newImage);
 	}
+	console.log('jwtToken', jwtToken);
 	// Make a fetch request to update the user data on the server
 	fetch('/update_user/', {
 		method: 'POST',
 		headers: {
 			'X-CSRFToken': csrfToken,
+			'Authorization': `Bearer ${jwtToken}`
 		},
 		body: formData,
 	})

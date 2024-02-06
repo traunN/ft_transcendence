@@ -16,7 +16,6 @@ from django.db.models import Count
 import random
 import time
 import string
-import faker
 import pdb;
 from django.http import HttpResponse
 import requests
@@ -29,6 +28,11 @@ from django.http import HttpResponseForbidden
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files.storage import default_storage
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import TokenError
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 def accept(request, user_id):
 	if request.method == 'POST':
@@ -213,7 +217,6 @@ def get_user_game_history(request, user_id):
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
 
-
 def record_game(request):
 	player1_id = request.POST['player1Id']
 	player2_id = request.POST['player2Id']
@@ -234,7 +237,7 @@ def record_game(request):
 	)
 	return JsonResponse({"status": "success"})
 
-
+@api_view(['POST'])
 def update_user(request):
 	if request.method == 'POST':
 		try:
@@ -243,19 +246,28 @@ def update_user(request):
 				user = User.objects.get(idName=user_id)
 			except User.DoesNotExist:
 				return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			user.login = request.POST['login']
 			user.email = request.POST['email']
 			user.firstName = request.POST['firstName']
 			user.lastName = request.POST['lastName']
 			user.campus = request.POST['campus']
-			# upload image to media folder
-			image = request.FILES['image']
-			image_name = image.name
-			image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
-			with open(image_path, 'wb+') as destination:
-				for chunk in image.chunks():
-					destination.write(chunk)
-			user.image = image_name
+			if 'image' in request.FILES:
+				image = request.FILES['image']
+				image_name = image.name
+				image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
+				with open(image_path, 'wb+') as destination:
+					for chunk in image.chunks():
+						destination.write(chunk)
+				user.image = image_name
 			user.save()
 			return JsonResponse({'status': 'success', 'message': 'User updated successfully'})
 		except Exception as e:
@@ -483,8 +495,21 @@ def create_tournament(request):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['GET'])
 def join_or_create_room(request, user_id):
 	try:
+		user = User.objects.get(idName=user_id)
+		if user is None:
+			return JsonResponse({'status': 'error', 'message': 'User not found'})
+		authorization_head = request.headers.get('Authorization')
+		if not authorization_head or not authorization_head.startswith('Bearer '):
+			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+		access_token = authorization_head.split(' ')[1]
+		jwt_authentication = JWTAuthentication()
+		decoded_token = jwt_authentication.get_validated_token(access_token)
+		token_user_id = decoded_token['user_id']
+		if token_user_id != user_id:
+			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		rooms = GameRoom.objects.filter(player_count__lt=2)
 		rooms = rooms.exclude(gameState='cancelled')
 		rooms = rooms.exclude(gameState='waiting_tournament')
@@ -501,7 +526,6 @@ def join_or_create_room(request, user_id):
 		else:
 			room = rooms.first()
 			
-		user = User.objects.get(idName=user_id)
 		room.ball_position = '0,0'
 		room.paddle1_position = '0,0'
 		room.paddle2_position = '0,0'
@@ -540,11 +564,21 @@ def broadcast_to_room(room_name, message):
 		}
 	)
 
+@api_view(['POST'])
 def cancel_room(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		if user is None:
 			return JsonResponse({'status': 'error', 'message': 'User not found'})
+		authorization_head = request.headers.get('Authorization')
+		if not authorization_head or not authorization_head.startswith('Bearer '):
+			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+		access_token = authorization_head.split(' ')[1]
+		jwt_authentication = JWTAuthentication()
+		decoded_token = jwt_authentication.get_validated_token(access_token)
+		token_user_id = decoded_token['user_id']
+		if token_user_id != user_id:
+			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		room = GameRoom.objects.filter(players=user).first()
 		if room is not None:
 			room_player = RoomPlayer.objects.get(user=user, room=room)
@@ -552,7 +586,6 @@ def cancel_room(request, user_id):
 			room.gameState = 'cancelled'
 			room.player_count -= 1
 			room.save()
-
 			# get RoomPlayer to check if there is another player in the room
 			room_player = RoomPlayer.objects.filter(room=room).first()
 			if room_player is not None:
@@ -652,7 +685,11 @@ def login_user(request):
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
-			return JsonResponse({'status': 'success', 'user': user_dict})
+			refresh = RefreshToken.for_user(user)
+			refresh['user_id'] = str(user.idName)
+			access_token = str(refresh.access_token)
+			refresh_token = str(refresh)
+			return JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
 	except User.DoesNotExist:
@@ -681,7 +718,11 @@ def save_user_profile_42(request):
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 			])
 			user_dict['image'] = str(user.image)
-			return JsonResponse({'user': user_dict}, status=200)
+			user.id = user.idName
+			refresh = RefreshToken.for_user(user)
+			access_token = str(refresh.access_token)
+			refresh_token = str(refresh)
+			return JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
 		except User.DoesNotExist:
 			user = User.objects.create(
 				login=data['login'],
@@ -697,7 +738,6 @@ def save_user_profile_42(request):
 				location='',
 				idName=data['idName'],
 			)
-			# upload image to media folder
 			image_url = data['image']
 			image_name = image_url.split('/')[-1] # get the image name from the URL
 			image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
@@ -712,7 +752,18 @@ def save_user_profile_42(request):
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
-			return HttpResponse(user_json, content_type='application/json')
+			# make sur user_id is used for access token
+			user.id = user.idName
+			refresh = RefreshToken.for_user(user)
+			refresh['user_id'] = str(user.idName)
+			access_token = str(refresh.access_token)
+			refresh_token = str(refresh)
+			response_data = {
+				'user': user_dict,
+				'access_token': access_token,
+				'refresh_token': refresh_token,
+			}
+			return JsonResponse(response_data, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -752,8 +803,16 @@ def save_user_profile_manual(request):
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
-			user_json = json.dumps(user_dict)
-			return HttpResponse(user_json, content_type='application/json')
+			refresh = RefreshToken.for_user(user)
+			refresh['user_id'] = str(user.idName)
+			access_token = str(refresh.access_token)
+			refresh_token = str(refresh)
+			response_data = {
+				'user': user_dict,
+				'access_token': access_token,
+				'refresh_token': refresh_token,
+			}
+			return JsonResponse(response_data, status=200)
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -770,62 +829,6 @@ def save_image_from_url(image_url, user):
 	else:
 		logger.error('Failed to download image from URL: ' + image_url)
 		return None
-
-def save_test_user(request):
-	user_data = generate_random_user()
-
-	try:
-		user = User.objects.create(
-			login=user_data['login'],
-			isFrom42=True,
-			password='',
-			email=user_data['email'],
-			firstName=user_data['firstName'],
-			lastName=user_data['lastName'],
-			campus=user_data['campus'],
-			level=user_data['level'],
-			wallet=user_data['wallet'],
-			correctionPoint=user_data['correctionPoint'],
-			location=user_data['location'],
-			idName=user_data['idName'],
-			image=user_data['image']
-		)
-	except Exception as e:
-		import traceback
-		return HttpResponse(str(e), status=500)
-
-
-	user_dict = model_to_dict(user)
-	user_dict['image'] = request.build_absolute_uri(user.image.url)
-	user_json = json.dumps(user_dict)
-	return HttpResponse(user_json, content_type='application/json')
-
-def generate_random_user():
-	fake = faker.Faker()
-	login = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
-	email = fake.email()
-	firstName = fake.first_name()
-	lastName = fake.last_name()
-	campus = random.choice(['Campus1', 'Campus2', 'Campus3'])
-	level = random.randint(1, 10)
-	wallet = round(random.uniform(10, 100), 2)
-	correctionPoint = random.randint(0, 10)
-	location = fake.city()
-	idName = ''.join(random.choices(string.digits, k=10))
-	image = 'https://cdn.intra.42.fr/users/5b610039b4ad44fb01cb2e6c530534f9/ntraun.jpg'
-	return {
-		'login': login,
-		'email': email,
-		'firstName': firstName,
-		'lastName': lastName,
-		'campus': campus,
-		'level': level,
-		'wallet': wallet,
-		'correctionPoint': correctionPoint,
-		'location': location,
-		'idName': idName,
-		'image': image
-	}
 
 def get_user(request, user_id):
 	try:

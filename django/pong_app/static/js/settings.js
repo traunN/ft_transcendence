@@ -61,37 +61,4 @@ document.addEventListener('DOMContentLoaded', function () {
 	} else {
 		board.classList.add('defaultSkin');
 	}
-
-	if (!user) {
-		document.getElementById('generateUser').style.display = 'block';
-		document.getElementById('deleteUser').style.display = 'none';
-	}
-	else {
-		document.getElementById('generateUser').style.display = 'none';
-		document.getElementById('deleteUser').style.display = 'block';
-	}
-	document.getElementById('generateUser').addEventListener('click', generateRandomUser);
-
-	document.getElementById('deleteUser').addEventListener('click', function () {
-		sessionStorage.removeItem('user');
-		location.reload();
-	});
-
-	function generateRandomUser() {
-		fetch('/save_test_user/')
-			.then(response => {
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}, text: ${response.statusText}`);
-				}
-				return response.json();
-			})
-			.then(data => {
-				console.log(data);
-				data.id = data.idName;
-				sessionStorage.setItem('user', JSON.stringify(data));
-				location.reload();
-			})
-			.catch(error => console.error('Error:', error));
-	}
-
 });

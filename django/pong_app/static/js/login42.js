@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
-
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
@@ -50,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error('Error:', error));
 	}
-
+	// return JsonResponse({'user': user_json, 'access_token': access_token, 'refresh_token': refresh_token}, status=200)
 	function setUserOffline(userId) {
 		fetch('/set_user_offline/' + userId + '/')
 			.then(response => {
@@ -322,9 +321,9 @@ document.addEventListener('DOMContentLoaded', function () {
 											if (data.id === undefined) {
 												data.id = data.user.idName;
 											}
-											sessionStorage.setItem('user', JSON.stringify(data.user));
-											console
-											// user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+											sessionStorage.setItem('user', data.user);
+											sessionStorage.setItem('jwt', data.access_token);
+											accessToken = sessionStorage.getItem('jwt');
 											fetch('/get_user/' + data.id + '/')
 												.then(response => {
 													if (!response.ok) {
