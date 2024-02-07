@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		username.textContent = 'Please login';
 		userInfo.style.display = 'none';
 		userImage.style.display = 'none';
+		document.getElementById('setup2FAButton').style.display = 'none';
+		document.getElementById('remove2FA').style.display = 'none';
 		return;
 	}
 	jwtToken = sessionStorage.getItem('jwt');

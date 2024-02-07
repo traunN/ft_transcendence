@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 	var jwtToken;
-
-	
+	var logged2fa = false;
 
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')
@@ -137,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				return response.json();
 			}).then(function (data) {
 				if (data.status === 'success') {
+					setUserOnline(userId);
 					// Redirect to /settings
 					window.location.href = '/homePage';
 				}
@@ -258,21 +258,29 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						data.user.id = data.user.idName;
-						sessionStorage.setItem('user', JSON.stringify(data.user));
-						sessionStorage.setItem('jwt', data.access_token);
-						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
-						user.id = data.user.idName;
-						user.idName = data.user.idName;
-						sessionStorage.setItem('user', JSON.stringify(user));
-						loginLogout.innerHTML = 'Logout';
-						normalLogin.style.display = 'none';
-						userName.innerHTML = data.user.login;
-						userImage.src = data.user.image;
-						setUserOnline(data.user.id);
-						userImage.style.display = 'block';
-						loginModal.remove();
-						location.reload();
+						try{
+							data.user.id = data.user.idName;
+							sessionStorage.setItem('user', JSON.stringify(data.user));
+							sessionStorage.setItem('jwt', data.access_token);
+							user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+							user.id = data.user.idName;
+							user.idName = data.user.idName;
+							sessionStorage.setItem('user', JSON.stringify(user));
+							if (data.user.is_2fa_enabled) {
+								show2FAConfirmationPopup();
+							}
+							loginLogout.innerHTML = 'Logout';
+							normalLogin.style.display = 'none';
+							userName.innerHTML = data.user.login;
+							userImage.src = data.user.image;
+							setUserOnline(data.user.id);
+							userImage.style.display = 'block';
+							loginModal.remove();
+							// location.reload();
+						}
+						catch(error){
+							console.log('Error:', error);
+						}
 					}
 				})
 				.catch(error => {
@@ -420,9 +428,7 @@ document.addEventListener('DOMContentLoaded', function () {
 														userName.innerHTML = data.user.login;
 														userImage.style.display = 'block';
 														sessionStorage.setItem('user', JSON.stringify(data.user));
-														console.log(data.user);
 														if (data.user.is_2fa_enabled) {
-															console.log('OHOHOH');
 															show2FAConfirmationPopup();
 														}
 													}
@@ -473,6 +479,30 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	window.addEventListener('beforeunload', function (event) {
-		
+		// check for 2fa
+		var user = JSON.parse(sessionStorage.getItem('user'));
+		if (!user) {
+			return;
+		}
+		userId = user.idName;
+		fetch('/get_user/' + userId + '/')
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					if (!data.user.is_2fa_logged && data.user.is_2fa_enabled) {
+						console.log('User is NOT logged in with 2fa');
+						disconnectUser();
+					}
+				}
+			})
+			.catch(error => console.error('Error:', error));
+
 	});
 });

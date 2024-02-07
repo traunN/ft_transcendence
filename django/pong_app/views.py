@@ -52,6 +52,7 @@ def confirm_2fa(request, user_id):
 			
 			if user_entered_code == expected_code:
 				user.is_2fa_enabled = True
+				user.is_2fa_logged = True
 				user.save()
 				return JsonResponse({'status': 'success', 'message': '2FA setup confirmed successfully'})
 			else:
@@ -330,6 +331,7 @@ def set_user_online(request, user_id):
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		user.isOnline = True
+		user.is_2fa_logged = True
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set online successfully'})
 	except Exception as e:
@@ -349,6 +351,7 @@ def set_user_offline(request, user_id):
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		user.isOnline = False
+		user.is_2fa_logged = False
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set offline successfully'})
 	except Exception as e:
@@ -848,14 +851,14 @@ def login_user(request):
 			user_dict = model_to_dict(user, fields=[
 			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
 			refresh_token = str(refresh)
-			return JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			return JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
 	except User.DoesNotExist:
@@ -881,7 +884,7 @@ def save_user_profile_42(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = str(user.image)
 			user.id = user.idName
@@ -914,7 +917,7 @@ def save_user_profile_42(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
@@ -966,7 +969,7 @@ def save_user_profile_manual(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
@@ -1002,7 +1005,7 @@ def get_user(request, user_id):
 		user_dict = model_to_dict(user, fields=[
 			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
