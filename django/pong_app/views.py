@@ -33,11 +33,82 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import TokenError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django_otp.plugins.otp_totp.models import TOTPDevice
+from django_otp.util import random_hex
+from urllib import parse
+import pyotp
 
+def confirm_2fa(request, user_id):
+	logger = logging.getLogger(__name__)
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			user_entered_code = data.get('code', '')
+			totp_secret = user.otp_secret
+			
+			# Generate the expected TOTP code using the secret
+			expected_code = pyotp.TOTP(totp_secret).now()
+			
+			if user_entered_code == expected_code:
+				user.is_2fa_enabled = True
+				user.save()
+				return JsonResponse({'status': 'success', 'message': '2FA setup confirmed successfully'})
+			else:
+				return JsonResponse({'status': 'error', 'message': 'Invalid 2FA code'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def user_two_factor_auth_data_create(user):
+	# Generate a secret key for the user
+	secret_key = pyotp.random_base32()
+
+	# Generate a TOTP object
+	totp = pyotp.TOTP(secret_key)
+
+	# Store the secret key in your user model
+	user.otp_secret = secret_key
+	user.save()
+
+	# Generate the URI for the QR code
+	uri = totp.provisioning_uri(name=user.login, issuer_name='Pong Game')
+
+	return uri
+
+def setup_2fa(request, user_id):
+	user = User.objects.get(idName=user_id)
+
+	# Generate and display QR code for  2FA setup
+	uri = user_two_factor_auth_data_create(user)
+	encoded_uri = parse.quote(uri)
+	qr_code_url = f'https://api.qrserver.com/v1/create-qr-code/?data={encoded_uri}&size=200x200'
+
+	return render(request, 'setup_2fa.html', {'qr_code_url': qr_code_url})
+
+def remove_2fa(request, user_id):
+	user = User.objects.get(idName=user_id)
+	user.otp_secret = None
+	user.is_2fa_enabled = False
+	user.save()
+	return JsonResponse({'status': 'success', 'message': '2FA removed successfully'})
+
+@api_view(['POST'])
 def accept(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
 			if to_user not in from_user.invitedUsers.all():
@@ -51,13 +122,23 @@ def accept(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def invite(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
-			# if already invited, return error
 			if to_user in from_user.invitedUsers.all():
 				return JsonResponse({'status': 'error', 'message': 'User already invited'})
 			from_user.invitedUsers.add(to_user)
@@ -69,10 +150,21 @@ def invite(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def check_blocked(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
 			if to_user in from_user.blockedUsers.all():
@@ -84,10 +176,21 @@ def check_blocked(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def unblock(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
 			from_user.blockedUsers.remove(to_user)
@@ -99,10 +202,21 @@ def unblock(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def block(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
 			from_user.blockedUsers.add(to_user)
@@ -114,11 +228,22 @@ def block(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def send_message(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			user_id = data['user_id']
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			message = data['message']
 			user = User.objects.get(idName=user_id)
 			username = f"{user.login}({user.idName})"
@@ -143,12 +268,24 @@ def get_friends(request, user_id):
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
 
+@api_view(['POST'])
 def accept_friend_request(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
+			user_id = data['to_user']
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user.friendList.add(to_user)
 			to_user.friendList.add(from_user)
 			from_user.save()
@@ -179,19 +316,38 @@ def proxy_view(request):
 		print("Empty response or server error")
 		return HttpResponse("Empty response or server error", status=500)
 
-
+@api_view(['GET'])
 def set_user_online(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
+		authorization_head = request.headers.get('Authorization')
+		if not authorization_head or not authorization_head.startswith('Bearer '):
+			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+		access_token = authorization_head.split(' ')[1]
+		jwt_authentication = JWTAuthentication()
+		decoded_token = jwt_authentication.get_validated_token(access_token)
+		token_user_id = decoded_token['user_id']
+		if token_user_id != user_id:
+			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		user.isOnline = True
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set online successfully'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
+@api_view(['GET'])
 def set_user_offline(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
+		authorization_head = request.headers.get('Authorization')
+		if not authorization_head or not authorization_head.startswith('Bearer '):
+			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+		access_token = authorization_head.split(' ')[1]
+		jwt_authentication = JWTAuthentication()
+		decoded_token = jwt_authentication.get_validated_token(access_token)
+		token_user_id = decoded_token['user_id']
+		if token_user_id != user_id:
+			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		user.isOnline = False
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set offline successfully'})
@@ -477,12 +633,22 @@ def join_tournament(request, user_id):
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
+@api_view(['POST'])
 def create_tournament(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			tournament_name = data['tournament_name']
 			user = User.objects.get(idName=data['user_id'])
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != data['user_id']:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			tournament = Tournament(name=tournament_name, creator=user)
 			tournament.status = 'available'
 			tournament.count = 1
@@ -682,7 +848,7 @@ def login_user(request):
 			user_dict = model_to_dict(user, fields=[
 			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
@@ -715,7 +881,7 @@ def save_user_profile_42(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
 			])
 			user_dict['image'] = str(user.image)
 			user.id = user.idName
@@ -748,7 +914,7 @@ def save_user_profile_42(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
@@ -800,7 +966,7 @@ def save_user_profile_manual(request):
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
@@ -836,7 +1002,7 @@ def get_user(request, user_id):
 		user_dict = model_to_dict(user, fields=[
 			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
-			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)

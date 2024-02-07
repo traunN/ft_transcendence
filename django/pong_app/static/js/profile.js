@@ -62,7 +62,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			userImage.src = data.user.image;
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
-
+			// if user has 2fa enabled, show remove 2fa button and hide setup 2fa button else do the opposite
+			console.log(data.user);
+			if (data.user.is_2fa_enabled) {
+				document.getElementById('remove2FA').style.display = 'block';
+				document.getElementById('setup2FAButton').style.display = 'none';
+			}
+			else {
+				document.getElementById('remove2FA').style.display = 'none';
+				document.getElementById('setup2FAButton').style.display = 'block';
+			}
 			fetch('/get_user_game_history/' + userId + '/')
 				.then(response => {
 					if (!response.ok) {
@@ -196,11 +205,36 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 		});
 });
 
+document.getElementById('remove2FA').addEventListener('click', function () {
+	// Make a fetch request to the server to enable 2FA
+	userId = user.idName;
+	fetch(`/remove_2fa/${userId}/`, {
+		method: 'POST',
+		headers: {
+			'X-CSRFToken': csrfToken,  // Ensure you have the CSRF token
+			'Authorization': `Bearer ${jwtToken}`
+		},
+	})
+	.then(response => response.json())
+	.then(data => {
+		console.log(data);
+	})
+	.catch(error => {
+		console.error('Error:', error);
+	});
+});
+
+document.getElementById('setup2FAButton').addEventListener('click', function () {
+	const userId = user.idName;
+	const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
+	window.location.href = url; // Navigate to the setup page
+});
+
 searchUser.addEventListener('keypress', function (event) {
 	if (event.key === "Enter") {
 		event.preventDefault();
-		var userLogin = searchUser.value;
-		fetch('/get_user_by_login/' + userLogin + '/')
+		var user_id = searchUser.value;
+		fetch('/get_user/' + user_id + '/')
 			.then(response => {
 				if (!response.ok) {
 					return response.text().then(text => {
@@ -236,6 +270,64 @@ searchUser.addEventListener('keypress', function (event) {
 					userAccountName.style.display = 'none';
 				}
 				userAccountName.textContent = 'Account name: ' + data.user.idName;
+
+				fetch('/get_user_game_history/' + data.user.idName + '/')
+				.then(response => {
+					if (!response.ok) {
+						// If the response status is not ok, get the response text and throw an error
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.games) {
+						var gameHistoryDiv = document.getElementById('gameHistory');
+						// clear game history
+						gameHistoryDiv.innerHTML = '';
+						data.games.forEach(game => {
+							var gameElement = document.createElement('div');
+							gameElement.classList.add('card');
+							var cardBody = document.createElement('div');
+							cardBody.classList.add('card-body');
+							var gameDate = document.createElement('p');
+							gameDate.classList.add('card-text');
+							var date = new Date(game.game_date);
+							var year = date.getFullYear();
+							var month = date.getMonth() + 1;
+							var day = date.getDate();
+							if (month < 10) {
+								month = '0' + month;
+							}
+							if (day < 10) {
+								day = '0' + day;
+							}
+							game.game_date = year + '-' + month + '-' + day;
+							gameDate.textContent = game.game_date;
+							var gamePlayers = document.createElement('h5');
+							gamePlayers.classList.add('card-title');
+							gamePlayers.textContent = game.player1Login + ' vs ' + game.player2Login;
+							var gameScore = document.createElement('p');
+							gameScore.classList.add('card-text');
+							gameScore.textContent = game.score1 + ' : ' + game.score2;
+							cardBody.appendChild(gamePlayers);
+							cardBody.appendChild(gameDate);
+							cardBody.appendChild(gameScore);
+							gameElement.appendChild(cardBody);
+							gameHistoryDiv.appendChild(gameElement);
+							if (user_id == game.winnerId) {
+								gameElement.style.backgroundColor = '#4CAF50';
+							}
+							else {
+								gameElement.style.backgroundColor = '#f44336';
+							}
+						});
+					}
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
 	
 			})
 			.catch(error => {

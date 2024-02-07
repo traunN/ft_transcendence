@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
 	console.log('chat.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
+	var jwtToken;
 	if (!user) {
 		console.log('Failed to get user from session storage');
 		var chatContainer = document.querySelector('.chat-container');
 		chatContainer.style.display = 'none';
 		return;
 	}
+	jwtToken = sessionStorage.getItem('jwt');
 	var socket = new WebSocket(`wss://localhost:8443/ws/rooms/${user.idName}/`);
 	socket.onopen = function (e) {
 		console.log('socket url:', socket.url);
@@ -22,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					'from_user': user.idName,
@@ -93,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					'from_user': user.idName,
@@ -118,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					'from_user': user.idName,
@@ -158,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					'from_user': user.idName,
@@ -183,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					'from_user': words[1],
@@ -221,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				},
 				body: JSON.stringify({
 					user_id: user.idName,

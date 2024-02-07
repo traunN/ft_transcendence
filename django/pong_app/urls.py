@@ -60,7 +60,10 @@ urlpatterns = [
 	path('get_friends/<str:user_id>/', views.get_friends, name='get_friends'),
 	path('is_user_online/<str:user_id>/', views.is_user_online, name='is_user_online'),
 	path('send_message/', views.send_message, name='send_message'),
-] 
+	path('remove_2fa/<str:user_id>/', views.remove_2fa, name='remove_2fa'),
+	path('setup_2fa/<str:user_id>/', views.setup_2fa, name='setup_2fa'),
+	path('confirm_2fa/<str:user_id>/', views.confirm_2fa, name='confirm_2fa'),
+]
 
 if settings.DEBUG:
 	urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,14 +1,14 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 	console.log('tournament.js loaded');
-
+	var jwtToken;
 	const socket = new WebSocket('wss://localhost:8443/ws/tournament/');
 	const form = document.getElementById('create-tournament-form');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	function isOpen(ws) {
 		return ws.readyState === ws.OPEN;
 	}
-
+	jwtToken = sessionStorage.getItem('jwt');
 	socket.onopen = function (e) {
 		refreshTournamentList();
 	};
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			return;
 		}
 		const formData = new FormData(form);
-		formData.append('user_id', user.id);
+		formData.append('user_id', user.idName);
 		formData.append('tournament_name', form.elements['tournament-name'].value);
 		// Convert FormData to plain JavaScript object
 		var object = {};
@@ -39,12 +39,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		// Convert JavaScript object to JSON string
 		var json = JSON.stringify(object);
+		console.log(json);
 
 		fetch('/create_tournament/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
 			},
 			body: json
 		})

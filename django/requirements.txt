@@ -10,3 +10,4 @@ django-otp>=0.10.0
 django-two-factor-auth>=1.10.0
 djangorestframework_simplejwt>=5.0.0
 phonenumbers>=8.12.30
+pyotp>=2.6.0

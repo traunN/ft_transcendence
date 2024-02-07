@@ -23,7 +23,9 @@ class User(models.Model):
 	friendList = models.ManyToManyField('self', blank=True)
 	blockedUsers = models.ManyToManyField('self', related_name='blockers', symmetrical=False)
 	invitedUsers = models.ManyToManyField('self', related_name='inviters', symmetrical=False)
-
+	is_2fa_enabled = models.BooleanField(default=False)
+	otp_secret = models.CharField(max_length=50, null=True, blank=True)
+	
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)
 	players = models.ManyToManyField(User, through='RoomPlayer')

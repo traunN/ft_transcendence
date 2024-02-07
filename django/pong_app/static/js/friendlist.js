@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
+	var jwtToken;
 	if (!user) {
 		if (addFriendButton) {
 			addFriendButton.style.display = 'none';
@@ -21,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('Failed to get user from session storage');
 		return;
 	}
+	jwtToken = sessionStorage.getItem('jwt');
+
 	//check if user exist in db
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
@@ -102,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					headers: {
 						'Content-Type': 'application/json',
 						'X-CSRFToken': csrfToken,
+						'Authorization': `Bearer ${jwtToken}`
 					},
 					body: JSON.stringify({
 						'from_user': data.from_user,

@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
+	var jwtToken;
+
+	
+
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
@@ -20,11 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				return response.json();
 			})
 			.then(data => {
-				if (data) {
-					console.log(data);
-				}
 				if (data.user) {
 					console.log('User exist');
+					jwtToken = sessionStorage.getItem('jwt');
 				} else {
 					console.log('User does not exist');
 					sessionStorage.removeItem('user');
@@ -33,7 +35,14 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 	function setUserOnline(userId) {
-		fetch('/set_user_online/' + userId + '/')
+		fetch('/set_user_online/' + userId + '/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			}
+		})
 			.then(response => {
 				if (!response.ok) {
 					return response.text().then(text => {
@@ -49,9 +58,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error('Error:', error));
 	}
-	// return JsonResponse({'user': user_json, 'access_token': access_token, 'refresh_token': refresh_token}, status=200)
 	function setUserOffline(userId) {
-		fetch('/set_user_offline/' + userId + '/')
+		fetch('/set_user_offline/' + userId + '/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			}
+		})
 			.then(response => {
 				if (!response.ok) {
 					return response.text().then(text => {
@@ -80,6 +95,69 @@ document.addEventListener('DOMContentLoaded', function () {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		return user !== null;
 	}
+
+	function show2FAConfirmationPopup() {
+
+		var codeInput;
+		var confirmationModal = document.createElement('div');
+		confirmationModal.style.position = 'fixed';
+		confirmationModal.style.top = '50%';
+		confirmationModal.style.left = '50%';
+		confirmationModal.style.transform = 'translate(-50%, -50%)';
+		confirmationModal.style.backgroundColor = '#151718';
+		confirmationModal.style.padding = '20px';
+		confirmationModal.style.zIndex = '1000';
+		confirmationModal.innerHTML = `
+			<div>
+				<label for="codeInput">Enter 2FA Code:</label>
+				<input type="text" id="codeInput" name="codeInput" style="width: 200px;">
+			</div>
+			<button id="confirm2FAButton" class="yellow-btn">Confirm</button>
+		`;
+		document.body.appendChild(confirmationModal);
+	
+		codeInput = document.getElementById('codeInput');
+	
+		document.getElementById('confirm2FAButton').addEventListener('click', function () {
+			var user = JSON.parse(sessionStorage.getItem('user'));
+			userId = user.idName;
+			var enteredCode = codeInput.value;
+			// Perform AJAX request to confirm 2FA code on the server
+			fetch(`/confirm_2fa/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
+				body: JSON.stringify({
+					'code': enteredCode
+				})
+			}).then(function (response) {
+				return response.json();
+			}).then(function (data) {
+				if (data.status === 'success') {
+					// Redirect to /settings
+					window.location.href = '/homePage';
+				}
+				else {
+					console.log('Error confirming 2FA setup:', data);
+				}
+			}).catch(function (error) {
+				console.log('Error confirming 2FA setup:', error);
+			});
+		});
+	
+		document.addEventListener('click', function removeConfirmationModal() {
+			confirmationModal.remove();
+			document.removeEventListener('click', removeConfirmationModal);
+		});
+	
+		confirmationModal.addEventListener('click', function (event) {
+			event.stopPropagation();
+		});
+	}
+	
 	if (isUserLoggedIn()) {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		fetch('/get_user/' + user.idName + '/')
@@ -182,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (data.status === 'success') {
 						data.user.id = data.user.idName;
 						sessionStorage.setItem('user', JSON.stringify(data.user));
+						sessionStorage.setItem('jwt', data.access_token);
 						user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
 						user.id = data.user.idName;
 						user.idName = data.user.idName;
@@ -341,6 +420,11 @@ document.addEventListener('DOMContentLoaded', function () {
 														userName.innerHTML = data.user.login;
 														userImage.style.display = 'block';
 														sessionStorage.setItem('user', JSON.stringify(data.user));
+														console.log(data.user);
+														if (data.user.is_2fa_enabled) {
+															console.log('OHOHOH');
+															show2FAConfirmationPopup();
+														}
 													}
 												})
 												.catch(error => console.error('Error:', error));
@@ -361,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
 										userImage.style.display = 'block';
 										user.id = user.idName;
 										sessionStorage.setItem('user', JSON.stringify(user));
+										console.log('AHHAHAHAHAHAHA')
 									}
 								};
 							}
@@ -382,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 		getClientData();
+		// check if 2fa is enabled if it is show 2fa code input and confirm button
 		window.history.pushState({}, null, '/homePage/');
 		isLogged = true;
 	}
