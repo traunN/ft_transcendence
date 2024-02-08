@@ -317,12 +317,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					// if (isOpen(lobbysocket)) {
-					// 	lobbysocket.send(JSON.stringify({
-					// 		'type': 'tournament_lobby_updated',
-					// 		'tournament_id': tournamentId,
-					// 	}));
-					// }
 					if (alias === '')
 						changePlayerReadyStatus();
 				}
@@ -348,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 		var alias = document.getElementById('aliasInput').value;
+		jwtToken = sessionStorage.getItem('jwt');
 		if (!alias) {
 			displayError('Please enter an alias');
 		}
@@ -361,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
 			},
 			body: JSON.stringify(Object.fromEntries(formData))
 		})
@@ -390,12 +386,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
 		reloadLeaveLobby = false;
+		jwtToken = sessionStorage.getItem('jwt');
 
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
 			},
 			body: JSON.stringify(Object.fromEntries(formData))
 		})

@@ -253,13 +253,10 @@ document.addEventListener('DOMContentLoaded', function () {
 								const user1 = messageData.user1;
 								const user2 = messageData.user2;
 								displayNames(user1, user2);
-								// Handle the initial game state
 								const initialState = messageData.initial_state;
 								gameLoop(initialState);
 							} else {
-								// Handle other game messages
 								gameState = messageData.message;
-								// gameLoop(gameState);
 							}
 
 						};
@@ -304,31 +301,34 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!socket) {
 			return;
 		}
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-		})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
+		if (isGameRunning) {
+			console.log('isGameRunning:', isGameRunning);
+			fetch(`/cancel_room/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
 			})
-			.then(data => {
-				if (data.status === 'success') {
-					console.log('Successfully cancelled room');
-					socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-					socket.close();
-				} else {
-					console.log('Failed to cancel room', data);
-				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					return response.json();
+				})
+				.then(data => {
+					if (data.status === 'success') {
+						console.log('Successfully cancelled room');
+						socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+						socket.close();
+					} else {
+						console.log('Failed to cancel room', data);
+					}
+				})
+				.catch(error => {
+					console.error('There has been a problem with your fetch operation:', error);
+				});
+		}
 	}
 });

@@ -32,5 +32,4 @@ document.addEventListener('DOMContentLoaded', function () {
 				tourney_wins.innerHTML = users[i].tournamentWins;
 			}
 		});
-	console.log('leadearboard.js loaded');
 });

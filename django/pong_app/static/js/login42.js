@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 	var jwtToken;
-	var logged2fa = false;
 
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data.user) {
-					console.log('User exist');
 					jwtToken = sessionStorage.getItem('jwt');
 				} else {
 					console.log('User does not exist');
@@ -219,19 +217,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		loginModal.style.padding = '20px';
 		loginModal.style.zIndex = '1000';
 		loginModal.innerHTML = `
-			<div>
-				<label for="username">Username:</label>
-				<input type="text" id="username" name="username" style="width: 200px;">
-			</div>
-			<div>
-				<label for="password">Password:</label>
-				<input type="password" id="password" name="password" style="width: 200px;">
-			</div>
-			<button id="loginButton" class="yellow-btn" >Login</button>
-			<button id="createAccountButton" class="yellow-btn" >Create Account</button>
+			<form id="loginForm">
+				<div>
+					<label for="username">Username:</label>
+					<input type="text" id="username" name="username" autocomplete="username" style="width:  200px;">
+				</div>
+				<div>
+					<label for="password">Password:</label>
+					<input type="password" id="password" name="password" autocomplete="current-password" style="width:   200px;">
+				</div>
+				<button type="submit" id="loginButton" class="yellow-btn">Login</button>
+				<button type="button" id="createAccountButton" class="yellow-btn">Create Account</button>
+			</form>
 		`;
 		document.body.appendChild(loginModal);
-
+		document.getElementById('username').focus();
 		document.getElementById('loginButton').addEventListener('click', function () {
 			var username = document.getElementById('username').value;
 			var password = document.getElementById('password').value;
@@ -290,6 +290,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		document.getElementById('createAccountButton').addEventListener('click', function () {
 			window.location.href = '/createAccount';
+		});
+
+		document.getElementById('loginForm').addEventListener('submit', function (event) {
+			event.preventDefault(); // Prevent the default form submission
+			var username = document.getElementById('username').value;
+			var password = document.getElementById('password').value;
+			// ... rest of your login logic
 		});
 
 		document.addEventListener('click', function removeModal() {
@@ -451,7 +458,6 @@ document.addEventListener('DOMContentLoaded', function () {
 										userImage.style.display = 'block';
 										user.id = user.idName;
 										sessionStorage.setItem('user', JSON.stringify(user));
-										console.log('AHHAHAHAHAHAHA')
 									}
 								};
 							}
@@ -484,25 +490,20 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!user) {
 			return;
 		}
+		if (user.idName === undefined) {
+			user.idName = user.id;
+		}
 		userId = user.idName;
-		fetch('/get_user/' + userId + '/')
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
+		// check if this works
+		var userXhr = new XMLHttpRequest();
+		userXhr.open('GET', '/get_user/' + userId + '/', true);
+		userXhr.onload = function () {
+			if (userXhr.status === 200) {
+				var user = JSON.parse(userXhr.responseText);
+				if (user.is_2fa_enabled && !user.is_2fa_logged) {
+					disconnectUser();
 				}
-				return response.json();
-			})
-			.then(data => {
-				if (data) {
-					if (!data.user.is_2fa_logged && data.user.is_2fa_enabled) {
-						console.log('User is NOT logged in with 2fa');
-						disconnectUser();
-					}
-				}
-			})
-			.catch(error => console.error('Error:', error));
-
+			}
+		};
 	});
 });

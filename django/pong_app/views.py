@@ -164,7 +164,7 @@ def check_blocked(request, user_id):
 			jwt_authentication = JWTAuthentication()
 			decoded_token = jwt_authentication.get_validated_token(access_token)
 			token_user_id = decoded_token['user_id']
-			if token_user_id != user_id:
+			if token_user_id != data['from_user']:
 				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
@@ -531,11 +531,21 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
+@api_view(['POST'])
 def set_player_ready(request):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			user = User.objects.get(idName=data['user_id'])
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != data['user_id']:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			tournament = Tournament.objects.get(id=data['tournament_id'])
 			player = TournamentPlayer.objects.get(user=user, tournament=tournament)
 			if user.alias != '':
@@ -578,12 +588,22 @@ def get_players_in_tournament(request, tournament_id):
 	player_data.sort(key=lambda x: x['id'])
 	return JsonResponse({'players': player_data})
 
+@api_view(['POST'])
 def leave_tournament(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			tournament_id = data['tournament_id']
 			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			user.alias = ''
 			user.save()
 			tournament = Tournament.objects.get(id=tournament_id)
@@ -618,12 +638,22 @@ def available_tournaments(request):
 		tournaments_dict.append(tournament_dict)
 	return JsonResponse({'tournaments': tournaments_dict}, safe=False)
 
+@api_view(['POST'])
 def join_tournament(request, user_id):
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			tournament_id = data['tournament_id']
 			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			tournament = Tournament.objects.get(id=tournament_id)
 			tournament_player = TournamentPlayer(user=user, tournament=tournament)
 			tournament_player.count = 1
@@ -667,6 +697,7 @@ def create_tournament(request):
 @api_view(['GET'])
 def join_or_create_room(request, user_id):
 	try:
+		logger = logging.getLogger('django')
 		user = User.objects.get(idName=user_id)
 		if user is None:
 			return JsonResponse({'status': 'error', 'message': 'User not found'})
@@ -703,8 +734,12 @@ def join_or_create_room(request, user_id):
 
 		room.player_count += 1
 		room.save()
-
 		if room.player_count == 2:
+			players = RoomPlayer.objects.filter(room=room)
+			if players[0].user.idName == user_id:
+				room.player_count -= 1
+				room.save()
+				return JsonResponse({'status': 'error', 'message': 'You cannot play against yourself'})
 			room.gameState = 'playing'
 			room.save()
 			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
@@ -713,15 +748,6 @@ def join_or_create_room(request, user_id):
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
-async def update_user_info(self, user_id, wins, loses, elo):
-	try:
-		user = User.objects.get(idName=user_id)
-		user.wins = wins
-		user.loses = loses
-		user.elo = elo
-		user.save()
-	except Exception as e:
-		print(e)
 
 def broadcast_to_room(room_name, message):
 	channel_layer = get_channel_layer()
@@ -755,12 +781,10 @@ def cancel_room(request, user_id):
 			room.gameState = 'cancelled'
 			room.player_count -= 1
 			room.save()
-			# get RoomPlayer to check if there is another player in the room
 			room_player = RoomPlayer.objects.filter(room=room).first()
 			if room_player is not None:
 				return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
 			else:
-				# if there is no other player in the room, delete the room
 				room.delete()
 
 			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})

@@ -45,9 +45,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			return response.json();
 		})
 		.then(data => {
-			if (data) {
-				console.log(data);
-			}
 			username.textContent = data.user.login;
 			username.textContent = username.textContent.charAt(0).toUpperCase() + username.textContent.slice(1);
 			userEmail.textContent = 'Email: ' + data.user.email;
@@ -65,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
 			// if user has 2fa enabled, show remove 2fa button and hide setup 2fa button else do the opposite
-			console.log(data.user);
 			if (data.user.is_2fa_enabled) {
 				document.getElementById('remove2FA').style.display = 'block';
 				document.getElementById('setup2FAButton').style.display = 'none';
@@ -86,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then(data => {
 					if (data.games) {
-						console.log(data);
 						var gameHistoryDiv = document.getElementById('gameHistory');
 						data.games.forEach(game => {
 							var gameElement = document.createElement('div');
@@ -175,8 +170,6 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 	if (newImage) {
 		formData.append('image', newImage);
 	}
-	console.log('jwtToken', jwtToken);
-	// Make a fetch request to update the user data on the server
 	fetch('/update_user/', {
 		method: 'POST',
 		headers: {

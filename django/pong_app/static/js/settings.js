@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('settings.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 
 	var savedBallSkin = sessionStorage.getItem('ballSkin');

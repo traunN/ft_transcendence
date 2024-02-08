@@ -445,13 +445,15 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
-		if text_data_json['type'] == 'friend_request':
-			if 'from_user' in text_data_json:
+		message_type = text_data_json.get('type')
+		if message_type == 'friend_request':
+			from_user = text_data_json.get('from_user')
+			if from_user:
 				await self.channel_layer.group_send(
 					f"user_{text_data_json['to_user']}",
 					{
 						'type': 'friend_request',
-						'from_user': text_data_json['from_user'],
+						'from_user': from_user,
 					}
 				)
 

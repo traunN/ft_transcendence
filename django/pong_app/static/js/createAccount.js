@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('createAccount.js loaded');
 	var loginLogout = document.getElementById('Login_Logout');
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');

@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('friendlist.js loaded');
-	// re_path(r'ws/friendList/$', consumers.FriendListConsumer.as_asgi()),
 	var user = sessionStorage.getItem('user');
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
@@ -24,11 +22,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 	jwtToken = sessionStorage.getItem('jwt');
 
-	//check if user exist in db
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
 			if (!response.ok) {
-				// If the response status is not ok, get the response text and throw an error
 				sessionStorage.removeItem('user');
 				window.location.href = '/homePage/';
 				
@@ -36,13 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			return response.json();
 		})
 		.then(data => {
-			if (data) {
-				console.log(data);
-			}
-			if (data.user) {
-				console.log('User exist');
-			} else {
-				console.log('User does not exist');
+			if (!data.user) {
 				sessionStorage.removeItem('user');
 				window.location.href = '/homePage/';
 			}
@@ -60,9 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		fetch('/get_friends/' + user.idName + '/')
 			.then(response => response.json())
 			.then(data => {
-				if (data) {
-					console.log(data);
-				}
 				var friends = data.friends;
 				if (data.friends.length === 0) {
 					return;
@@ -85,14 +72,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			});
 	}
-
-	// Call the function when the page loads
 	updateFriendList();
 
 	socket.onmessage = function (event) {
-		console.log('lol');
 		var data = JSON.parse(event.data);
-		console.log(data);
+		updateFriendList();
 		if (data.type === 'friend_request') {
 			if (data.type === 'friend_request') {
 				document.getElementById('notificationMessage').innerText = `You have received a friend request from ${data.from_user}`;
@@ -115,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					.then(response => response.json())
 					.then(data => {
 						if (data.status === 'success') {
-							// Handle success
+							updateFriendList();
 						} else {
 							// Handle failure
 						}
@@ -128,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 		}
 	};
-	// Explicitly set the display property to 'none'
 	friendListContent.style.display = 'none';
 	var isHidden = true;
 
@@ -140,12 +123,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	addFriendButton.addEventListener('click', function () {
 		var friendName = addFriendInput.value;
 		if (friendName) {
-			// Send a message to the server
-			console.log('Sending friend request')
 			socket.send(JSON.stringify({
 				'type': 'friend_request',
-				'from_user': user.idName, // Assuming 'user' contains the ID of the current user
-				'to_user': friendName // Assuming 'friendName' contains the username of the user being requested
+				'from_user': user.idName,
+				'to_user': friendName
 			}));
 
 			addFriendInput.value = '';
