@@ -26,7 +26,7 @@ class User(models.Model):
 	is_2fa_enabled = models.BooleanField(default=False)
 	is_2fa_logged = models.BooleanField(default=False)
 	otp_secret = models.CharField(max_length=50, null=True, blank=True)
-	
+
 class GameRoom(models.Model):
 	name = models.CharField(max_length=200)
 	players = models.ManyToManyField(User, through='RoomPlayer')

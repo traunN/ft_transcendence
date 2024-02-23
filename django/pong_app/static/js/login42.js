@@ -119,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			userId = user.idName;
 			var enteredCode = codeInput.value;
-			// Perform AJAX request to confirm 2FA code on the server
 			fetch(`/confirm_2fa/${userId}/`, {
 				method: 'POST',
 				headers: {

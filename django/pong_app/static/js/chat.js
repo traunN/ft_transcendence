@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	jwtToken = sessionStorage.getItem('jwt');
 	var socket = new WebSocket(`wss://localhost:8443/ws/rooms/${user.idName}/`);
 	socket.onopen = function (e) {
-		console.log('socket url:', socket.url);
-		console.log('user login:', user.login);
 		socket.send(JSON.stringify({ type: 'join', username: user.login }));
 	};
 
@@ -43,6 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
 								return;
 							}
 							displayMessage(dataMsg.username, dataMsg.message, 1);
+						}
+						else if (dataMsg.is_invite) {
+							if (dataMsg.whisper_to !== user.idName) {
+								return;
+							}
+							displayMessage(dataMsg.username, dataMsg.message, 2);
 						}
 						else {
 							displayMessage(dataMsg.username, dataMsg.message);
@@ -81,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function blockUser(user_id) {
-		fetch('/block/' + user_id + '/', {
+		fetch('/check_blocked/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -96,17 +100,44 @@ document.addEventListener('DOMContentLoaded', function () {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				console.log('User successfully blocked');
-			} else {
-				console.log('Error blocking user:', data);
+				if (data.isBlocked) {
+					console.log('User is already blocked');
+				}
+				else {
+					fetch('/block/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user.idName,
+							'to_user': user_id,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							console.log('User successfully blocked');
+						} else {
+							console.log('Error blocking user:', data);
+						}
+					}).catch(function (error) {
+						console.log('Error blocking user:', error);
+					});
+				}
+			}
+			else {
+				console.log('Error checking if user is blocked:', data);
 			}
 		}).catch(function (error) {
-			console.log('Error blocking user:', error);
+			console.log('Error checking if user is blocked:', error);
 		});
 	}
 
 	function unblockUser(user_id) {
-		fetch('/unblock/' + user_id + '/', {
+		fetch('/check_blocked/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -121,31 +152,45 @@ document.addEventListener('DOMContentLoaded', function () {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				console.log('User successfully unblocked');
-			} else {
-				console.log('Error unblocking user:', data);
+				if (data.isBlocked) {
+					fetch('/unblock/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user.idName,
+							'to_user': user_id,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							console.log('User successfully unblocked');
+						} else {
+							console.log('Error unblocking user:', data);
+						}
+					}).catch(function (error) {
+						console.log('Error unblocking user:', error);
+					});
+					return;
+				}
+				else {
+					console.log('User is not blocked');
+				}
+			}
+			else {
+				console.log('Error checking if user is blocked:', data);
 			}
 		}).catch(function (error) {
-			console.log('Error unblocking user:', error);
+			console.log('Error checking if user is blocked:', error);
 		});
 	}
 
 	function whisperUser(user_id, message) {
-		var data = {
-			type: "message",
-			username: user.login + "(" + user.idName + ")",
-			message: message,
-			idName: user.idName,
-			is_whisper: true,
-			whisper_to: user_id
-		};
-		socket.send(JSON.stringify(data));
-		to_target = user_id;
-		displayMessage(user_id, data.message, 1);
-	}
-
-	function inviteUser(user_id) {
-		fetch('/invite/' + user_id + '/', {
+		fetch('/check_blocked/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -160,17 +205,57 @@ document.addEventListener('DOMContentLoaded', function () {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				console.log('Invitation sent');
-			} else {
-				console.log('Error sending invitation:', data);
+				if (data.isBlocked) {
+					console.log('User is blocked');
+				}
+				else {
+					fetch('/whisper/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user.idName,
+							'to_user': user_id,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							from_target = "From > " + user.login + "(" + user.idName + ")";
+							var data = {
+								type: "message",
+								username: from_target,
+								message: message,
+								idName: user.idName,
+								is_whisper: true,
+								whisper_to: user_id
+							};
+							socket.send(JSON.stringify(data));
+							to_target = user_id;
+							to_target = "To > " + to_target;
+							displayMessage(to_target, data.message, 1);
+						} else {
+							displayMessage("[System] ", "Cannot whisper to this user.", 2);
+						}
+					}).catch(function (error) {
+						console.log('Error sending whisper:', error);
+					});
+				}
+			}
+			else {
+				displayMessage("[System] ", "Cannot whisper to this user.", 2);
 			}
 		}).catch(function (error) {
-			console.log('Error sending invitation:', error);
+			console.log('Error checking if user is blocked:', error);
 		});
+		
 	}
 
-	function acceptInvitation(user_id) {
-		fetch('/accept/' + user_id + '/', {
+	function inviteUser(user_id) {
+		fetch('/check_blocked/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -178,25 +263,167 @@ document.addEventListener('DOMContentLoaded', function () {
 				'Authorization': `Bearer ${jwtToken}`
 			},
 			body: JSON.stringify({
-				'from_user': user_id,
-				'to_user': user.idName,
+				'from_user': user.idName,
+				'to_user': user_id,
 			})
 		}).then(function (response) {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				console.log('Invitation accepted');
-				socket.send(JSON.stringify({
-					type: 'game_invite',
-					from_user: user.idName,
-					to_user: user_id
-				}));
-			} else {
-				console.log('Error accepting invitation:', data);
+				if (data.isBlocked) {
+					console.log('User is blocked');
+				}
+				else {
+					fetch('/invite/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user.idName,
+							'to_user': user_id,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							socket.send(JSON.stringify({
+								type: 'message',
+								username: "System",
+								message: user.idName + " invited you to play a game. type /accept " + user.idName + " to accept the invitation or /deny " + user.idName + " to deny the invitation.",
+								idName: user.idName,
+								is_invite: true,
+								whisper_to: user_id,
+							}));
+							displayMessage('System', 'Invitation sent.', 2);
+						} else {
+							console.log('Error sending invitation:', data);
+						}
+					}).catch(function (error) {
+						console.log('Error sending invitation:', error);
+					});
+				}
+			}
+			else {
+				displayMessage('System', 'Cannot send invite to this user.', 2);
 			}
 		}).catch(function (error) {
-			console.log('Error accepting invitation:', error);
+			console.log('Error checking if user is blocked:', error);
 		});
+		
+	}
+
+	function acceptInvitation(user_id) {
+		fetch('/check_blocked/' + user.idName + '/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			},
+			body: JSON.stringify({
+				'from_user': user.idName,
+				'to_user': user_id,
+			})
+		}).then(function (response) {
+			return response.json();
+		}).then(function (data) {
+			if (data.status === 'success') {
+				if (data.isBlocked) {
+					console.log('User is blocked');
+				}
+				else {
+					fetch('/accept/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user_id,
+							'to_user': user.idName,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							console.log('Invitation accepted');
+							socket.send(JSON.stringify({
+								type: 'game_invite',
+								from_user: user.idName,
+								to_user: user_id
+							}));
+						} else {
+							console.log('Error accepting invitation:', data);
+						}
+					}).catch(function (error) {
+						console.log('Error accepting invitation:', error);
+					});
+				}
+			}
+			else {
+				console.log('Error checking if user is blocked:', data);
+			}
+		}).catch(function (error) {
+			console.log('Error checking if user is blocked:', error);
+		});
+	}
+
+	function denyInvitation(user_id) {
+		fetch('/check_blocked/' + user.idName + '/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			},
+			body: JSON.stringify({
+				'from_user': user.idName,
+				'to_user': user_id,
+			})
+		}).then(function (response) {
+			return response.json();
+		}).then(function (data) {
+			if (data.status === 'success') {
+				if (data.isBlocked) {
+					console.log('User is blocked');
+				}
+				else {
+					fetch('/deny/' + user.idName + '/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': user_id,
+							'to_user': user.idName,
+						})
+					}).then(function (response) {
+						return response.json();
+					}).then(function (data) {
+						if (data.status === 'success') {
+							console.log('Invitation denied');
+							displayMessage('System', 'Invitation denied', 2);
+						} else {
+							console.log('Error denying invitation:', data);
+						}
+					}).catch(function (error) {
+						console.log('Error denying invitation:', error);
+					});
+				}
+			}
+			else {
+				displayMessage('System', 'No invitation from this user.', 2);
+			}
+		}).catch(function (error) {
+			console.log('Error checking if user is blocked:', error);
+		});
+		
 	}
 
 	function sendMessage(message) {
@@ -251,6 +478,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			case '/accept':
 				acceptInvitation(args[1]);
 				break;
+			case '/deny':
+				denyInvitation(args[1]);
+				break;
 			default:
 				sendMessage(messageInput.value);
 				break;
@@ -272,6 +502,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			var chatMessages = document.getElementById("chat-messages");
 			var messageElement = document.createElement('p');
 			messageElement.style.color = "purple";
+			messageElement.innerText = username + ": " + message;
+			chatMessages.appendChild(messageElement);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+			document.getElementById("message-input").value = "";
+		}
+		else if (nb === 2) {
+			var chatMessages = document.getElementById("chat-messages");
+			var messageElement = document.createElement('p');
+			messageElement.style.color = "orange";
+			messageElement.style.fontWeight = "bold";
 			messageElement.innerText = username + ": " + message;
 			chatMessages.appendChild(messageElement);
 			chatMessages.scrollTop = chatMessages.scrollHeight;

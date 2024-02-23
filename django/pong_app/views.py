@@ -63,13 +63,11 @@ def confirm_2fa(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def user_two_factor_auth_data_create(user):
-	# Generate a secret key for the user
 	secret_key = pyotp.random_base32()
 
 	# Generate a TOTP object
 	totp = pyotp.TOTP(secret_key)
 
-	# Store the secret key in your user model
 	user.otp_secret = secret_key
 	user.save()
 
@@ -94,6 +92,31 @@ def remove_2fa(request, user_id):
 	user.is_2fa_enabled = False
 	user.save()
 	return JsonResponse({'status': 'success', 'message': '2FA removed successfully'})
+
+@api_view(['POST'])
+def whisper(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			if not to_user:
+				return JsonResponse({'status': 'error', 'message': 'User not found'})
+			return JsonResponse({'status': 'success', 'message': 'User successfully whispered'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 @api_view(['POST'])
 def accept(request, user_id):
@@ -150,6 +173,36 @@ def invite(request, user_id):
 			return JsonResponse({'status': 'error', 'message': str(e)})
 	else:
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+
+@api_view(['POST'])
+def deny(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			if to_user not in from_user.invitedUsers.all():
+				return JsonResponse({'status': 'error', 'message': 'User not invited'})
+			from_user.invitedUsers.remove(to_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'User successfully denied'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 
 @api_view(['POST'])
 def check_blocked(request, user_id):
@@ -444,7 +497,7 @@ def exchange_token(request):
 		post_data = {
 			'grant_type': 'authorization_code',
 			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
-			'client_secret': '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',
+			'client_secret': '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',
 			'code': code,
 			'redirect_uri': redirect_uri
 		}
@@ -464,7 +517,7 @@ def exchange_token(request):
 
 def get_client_secret(request):
 	try:
-		return JsonResponse({'status': 'success', 'client_secret': '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'})
+		return JsonResponse({'status': 'success', 'client_secret': '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'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
@@ -748,19 +801,9 @@ def join_or_create_room(request, user_id):
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
-
-def broadcast_to_room(room_name, message):
-	channel_layer = get_channel_layer()
-	async_to_sync(channel_layer.group_send)(
-		f'game_{room_name}',
-		{
-			'type': 'broadcast_message',
-			'message': message,
-		}
-	)
-
 @api_view(['POST'])
 def cancel_room(request, user_id):
+	logger = logging.getLogger(__name__)
 	try:
 		user = User.objects.get(idName=user_id)
 		if user is None:
@@ -776,23 +819,13 @@ def cancel_room(request, user_id):
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		room = GameRoom.objects.filter(players=user).first()
 		if room is not None:
-			room_player = RoomPlayer.objects.get(user=user, room=room)
-			room_player.delete()
-			room.gameState = 'cancelled'
-			room.player_count -= 1
-			room.save()
-			room_player = RoomPlayer.objects.filter(room=room).first()
-			if room_player is not None:
-				return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
-			else:
-				room.delete()
-
-			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
+			RoomPlayer.objects.filter(room=room).delete()
+			room.delete()
 		else:
 			return JsonResponse({'status': 'error', 'message': 'No room found for the user'})
+		return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
-
 
 def homePage(request):
 	return render(request, 'homePage.html')
@@ -1015,7 +1048,7 @@ def save_image_from_url(image_url, user):
 	if response.status_code == 200:
 		logger.error('Image downloaded from URL: ' + image_url)
 		image_name = image_url.split('/')[-1] # get the image name from the URL
-		image_path = os.path.join(dj_settings.MEDIA_ROOT, image_name)
+		image_path = os.path.join(django_settings.MEDIA_ROOT, image_name)
 		with open(image_path, 'wb') as image_file:
 			image_file.write(response.content)
 		return image_path

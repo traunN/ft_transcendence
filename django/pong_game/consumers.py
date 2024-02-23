@@ -248,6 +248,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.room_group_name,	
 			self.channel_name
 		)
+		# having a problem where it tried to delete a seocnd time idk
+		self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
+		# if there is no game room or game is not running, return
+		if self.game_room is None or not self.isGameRunning:
+			return
+		self.game_room.gameState = 'canceled'
+		await sync_to_async(self.game_room.save)()
+		# delete game room
+		await sync_to_async(self.game_room.delete)()
 		self.isGameRunning = False
 
 	# Receive message from WebSocket
@@ -391,6 +400,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 						'message': text_data_json['message'],
 						'idName': text_data_json['idName'],
 						'is_whisper': text_data_json['is_whisper'] if 'is_whisper' in text_data_json else False,
+						'is_invite': text_data_json['is_invite'] if 'is_invite' in text_data_json else False,
 						'whisper_to': text_data_json['whisper_to'] if 'whisper_to' in text_data_json else ''
 					}
 				)
@@ -422,6 +432,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 			'message': event['message'],
 			'idName': event['idName'],
 			'is_whisper': event['is_whisper'] if 'is_whisper' in event else False,
+			'is_invite': event['is_invite'] if 'is_invite' in event else False,
 			'whisper_to': event['whisper_to'] if 'whisper_to' in event else ''
 		}))
 
