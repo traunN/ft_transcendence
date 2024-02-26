@@ -481,6 +481,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			case '/deny':
 				denyInvitation(args[1]);
 				break;
+			case '/help':
+				displayMessage('System', '/profile [user_id] - view user profile', 2);
+				displayMessage('System', '/block [user_id] - block user', 2);
+				displayMessage('System', '/unblock [user_id] - unblock user', 2);
+				displayMessage('System', '/w [user_id] [message] - whisper to user', 2);
+				displayMessage('System', '/invite [user_id] - invite user to play a game', 2);
+				displayMessage('System', '/accept [user_id] - accept game invitation', 2);
+				displayMessage('System', '/deny [user_id] - deny game invitation', 2);
+				break;
 			default:
 				sendMessage(messageInput.value);
 				break;

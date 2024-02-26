@@ -384,7 +384,10 @@ def set_user_online(request, user_id):
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		user.isOnline = True
-		user.is_2fa_logged = True
+		if (user.is_2fa_enabled and user.is_2fa_logged):
+			user.is_2fa_logged = True
+		else
+			user.is_2fa_logged = False
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set online successfully'})
 	except Exception as e:

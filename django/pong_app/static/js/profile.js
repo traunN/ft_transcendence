@@ -213,6 +213,8 @@ document.getElementById('remove2FA').addEventListener('click', function () {
 	.then(response => response.json())
 	.then(data => {
 		console.log(data);
+		if (data.status === 'success')
+			location.reload();
 	})
 	.catch(error => {
 		console.error('Error:', error);
