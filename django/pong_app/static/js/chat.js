@@ -251,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}).catch(function (error) {
 			console.log('Error checking if user is blocked:', error);
 		});
-		
 	}
 
 	function inviteUser(user_id) {
@@ -459,8 +458,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function handleCommand(command, args, messageInput) {
+		console.log('args:', args);
 		switch (command) {
 			case '/profile':
+				if (args.length > 2) {
+					displayMessage('System', 'Usage: /profile [user_id]', 2);
+					return;
+				}
+				
 				window.location.href = '/profile/' + args[1] + '/';
 				break;
 			case '/block':

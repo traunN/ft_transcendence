@@ -171,10 +171,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				}, 5000);
 				isGameRunning = false;
 				if (player1ScoreValue > player2ScoreValue) {
-					message.textContent = 'Player 1 wins!';
+					let winner = document.querySelector('.player_1_name').textContent;
+					message.textContent = winner + ' wins!';
 				}
 				else {
-					message.textContent = 'Player 2 wins!';
+					let winner = document.querySelector('.player_2_name').textContent;
+					message.textContent = winner + ' wins!';
 				}
 			}
 			else if (messageData.message === 'cancel_game_room') {
