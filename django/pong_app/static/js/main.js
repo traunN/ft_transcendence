@@ -300,38 +300,31 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!socket) {
 			return;
 		}
-		if (isGameRunning) {
-			console.log("LOOOOL");
-			console.log('isGameRunning:', isGameRunning);
-			fetch(`/cancel_room/${userId}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-					'Authorization': `Bearer ${jwtToken}`
-				},
+		fetch(`/cancel_room/${userId}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			},
+		})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+				return response.json();
 			})
-				.then(response => {
-					if (!response.ok) {
-						throw new Error('Network response was not ok');
-					}
-					return response.json();
-				})
-				.then(data => {
-					if (data.status === 'success') {
-						console.log(data);
-						socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-						socket.close();
-					} else {
-						console.log('Failed to cancel room', data);
-					}
-				})
-				.catch(error => {
-					console.error('There has been a problem with your fetch operation:', error);
-				});
-		}
-		else {
-			console.log("Booh");
-		}
+			.then(data => {
+				if (data.status === 'success') {
+					console.log(data);
+					socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+					socket.close();
+				} else {
+					console.log('Failed to cancel room', data);
+				}
+			})
+			.catch(error => {
+				console.error('There has been a problem with your fetch operation:', error);
+			});
 	}
 });

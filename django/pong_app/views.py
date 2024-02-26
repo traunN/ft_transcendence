@@ -803,7 +803,6 @@ def join_or_create_room(request, user_id):
 
 @api_view(['POST'])
 def cancel_room(request, user_id):
-	logger = logging.getLogger(__name__)
 	try:
 		user = User.objects.get(idName=user_id)
 		if user is None:
@@ -819,13 +818,22 @@ def cancel_room(request, user_id):
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 		room = GameRoom.objects.filter(players=user).first()
 		if room is not None:
-			RoomPlayer.objects.filter(room=room).delete()
-			room.delete()
+			room_player = RoomPlayer.objects.get(user=user, room=room)
+			room_player.delete()
+			room.gameState = 'cancelled'
+			room.player_count -= 1
+			room.save()
+			room_player = RoomPlayer.objects.filter(room=room).first()
+			if room_player is not None:
+				return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
+			else:
+				room.delete()
+			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'No room found for the user'})
-		return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
+
 
 def homePage(request):
 	return render(request, 'homePage.html')

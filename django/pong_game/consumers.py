@@ -59,12 +59,12 @@ class GameConsumer(AsyncWebsocketConsumer):
 			if self.game_over:
 				return
 			paddle1_position = event['paddle1_position']
-			if isinstance(paddle1_position, str):
-				try:
-					paddle1_position = json.loads(paddle1_position)
-				except json.JSONDecodeError:
-					self.logger.error(f"Invalid JSON data for paddle1_position: {paddle1_position}")
-					return
+			try:
+				paddle1_position = json.loads(paddle1_position)
+				self.logger.error(f"Paddle1 position: {paddle1_position}")
+			except json.JSONDecodeError:
+				self.logger.error(f"Invalid JSON data for paddle1_position: {paddle1_position}")
+				return
 
 			if self.game_room is None:
 				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
@@ -90,12 +90,12 @@ class GameConsumer(AsyncWebsocketConsumer):
 			if self.game_over:
 				return
 			paddle2_position = event['paddle2_position']
-			if isinstance(paddle2_position, str):
-				try:
-					paddle2_position = json.loads(paddle2_position)
-				except json.JSONDecodeError:
-					self.logger.error(f"Invalid JSON data for paddle2_position: {paddle2_position}")
-					return
+			try:
+				paddle2_position = json.loads(paddle2_position)
+				self.logger.error(f"Paddle2 position: {paddle2_position}")
+			except json.JSONDecodeError:
+				self.logger.error(f"Invalid JSON data for paddle2_position: {paddle2_position}")
+				return
 
 			if self.game_room is None:
 				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
@@ -248,15 +248,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.room_group_name,	
 			self.channel_name
 		)
-		# having a problem where it tried to delete a seocnd time idk
-		self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
-		# if there is no game room or game is not running, return
-		if self.game_room is None or not self.isGameRunning:
-			return
-		self.game_room.gameState = 'canceled'
-		await sync_to_async(self.game_room.save)()
-		# delete game room
-		await sync_to_async(self.game_room.delete)()
 		self.isGameRunning = False
 
 	# Receive message from WebSocket
