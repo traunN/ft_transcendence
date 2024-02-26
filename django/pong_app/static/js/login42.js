@@ -504,9 +504,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data) {
-					console.log('User data:', data.user)
-					console.log('2fa enabled:', data.user.is_2fa_enabled)
-					console.log('2fa logged:', data.user.is_2fa_logged)
 					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {
 						disconnectUser();
 						window.location.href = '/homePage/';
