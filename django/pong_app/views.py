@@ -386,7 +386,7 @@ def set_user_online(request, user_id):
 		user.isOnline = True
 		if (user.is_2fa_enabled and user.is_2fa_logged):
 			user.is_2fa_logged = True
-		else
+		else:
 			user.is_2fa_logged = False
 		user.save()
 		return JsonResponse({'status': 'success', 'message': 'User set online successfully'})

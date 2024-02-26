@@ -112,8 +112,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			<button id="confirm2FAButton" class="yellow-btn">Confirm</button>
 		`;
 		document.body.appendChild(confirmationModal);
-	
+		
 		codeInput = document.getElementById('codeInput');
+		document.getElementById('codeInput').focus();
 	
 		document.getElementById('confirm2FAButton').addEventListener('click', function () {
 			var user = JSON.parse(sessionStorage.getItem('user'));
@@ -219,11 +220,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			<form id="loginForm">
 				<div>
 					<label for="username">Username:</label>
-					<input type="text" id="username" name="username" autocomplete="username" style="width:  200px;">
+					<input type="text" id="username" name="username" autocomplete="username" style="width: 200px;">
 				</div>
 				<div>
 					<label for="password">Password:</label>
-					<input type="password" id="password" name="password" autocomplete="current-password" style="width:   200px;">
+					<input type="password" id="password" name="password" autocomplete="current-password" style="width: 200px;">
 				</div>
 				<button type="submit" id="loginButton" class="yellow-btn">Login</button>
 				<button type="button" id="createAccountButton" class="yellow-btn">Create Account</button>
@@ -478,7 +479,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 		getClientData();
-		// check if 2fa is enabled if it is show 2fa code input and confirm button
 		window.history.pushState({}, null, '/homePage/');
 		isLogged = true;
 	}
@@ -493,16 +493,26 @@ document.addEventListener('DOMContentLoaded', function () {
 			user.idName = user.id;
 		}
 		userId = user.idName;
-		// check if this works
-		var userXhr = new XMLHttpRequest();
-		userXhr.open('GET', '/get_user/' + userId + '/', true);
-		userXhr.onload = function () {
-			if (userXhr.status === 200) {
-				var user = JSON.parse(userXhr.responseText);
-				if (user.is_2fa_enabled && !user.is_2fa_logged) {
-					disconnectUser();
+		fetch('/get_user/' + userId + '/')
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
 				}
-			}
-		};
+				return response.json();
+			})
+			.then(data => {
+				if (data) {
+					console.log('User data:', data.user)
+					console.log('2fa enabled:', data.user.is_2fa_enabled)
+					console.log('2fa logged:', data.user.is_2fa_logged)
+					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {
+						disconnectUser();
+						window.location.href = '/homePage/';
+					}
+				}
+			})
+			.catch(error => console.error('Error:', error));
 	});
 });
