@@ -465,8 +465,14 @@ document.addEventListener('DOMContentLoaded', function () {
 					displayMessage('System', 'Usage: /profile [user_id]', 2);
 					return;
 				}
-				
-				window.location.href = '/profile/' + args[1] + '/';
+				fetch('/get_user/' + args[1] + '/')
+					.then(response => {
+						if (!response.ok) {
+							displayMessage('System', 'User not found', 2);
+						}
+						else
+							window.location.href = '/profile/' + args[1] + '/';
+					});
 				break;
 			case '/block':
 				blockUser(args[1]);
