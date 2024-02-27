@@ -6,8 +6,8 @@ let gameRoomStarted = false;
 let justReload = false;
 
 document.addEventListener('DOMContentLoaded', function () {
+	
 	let reloadLeave = true;
-	let gameLeave = false;
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
@@ -23,8 +23,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	var roomNameKey = sessionStorage.getItem('roomNameKey');
 	var jwtToken;
 
-	console.log('private game room name:', roomName);
-	console.log('private game room name key:', roomNameKey);
+	if (sessionStorage.getItem('shouldRedirect') === 'true') {
+		window.location.href = '/homePage/';
+		sessionStorage.removeItem('shouldRedirect');
+	}
 	if (roomNameKey) {
 		if (roomNameKey !== roomName) {
 			sessionStorage.setItem('roomNameKey', '');
@@ -88,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		const y = paddlePositionObj.y;
 		targetPaddle1Y = y;
 		paddle1.style.top = `${y}px`;
+		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 	}
 
 	function update_paddle2_position(updated_paddle_position) {
@@ -95,7 +98,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		const y = paddlePositionObj.y;
 		targetPaddle2Y = y;
 		paddle2.style.top = `${y}px`;
+		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
+
 	document.addEventListener('keydown', function (event) {
 		if (event.code in keys) {
 			keys[event.code] = true;
@@ -194,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				isGameRunning = false;
 				message.textContent = 'Player left the game';
 				sessionStorage.setItem('roomNameKey', '');
+				justReload = true;
 				setTimeout(function () {
 					window.location.href = '/homePage/';
 				}, 3000);
@@ -247,11 +253,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		.then(data => {
 			if (data.status === 'success') {
 				console.log('Successfully joined or created room');
-				socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
+				socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
 				if (!socket) {
 					console.log('Failed to create socket');
 					return;
 				}
+				gameRoomStarted = true;
 				if (data.start_game) {
 					console.log('Starting the game...');
 					console.log('Joined room name:', data.room_name);
@@ -315,39 +322,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 	window.onbeforeunload = function () {
-		if (justReload)
-			return;
-		if (!socket) {
+		if (gameRoomStarted) {
+			console.log('Closing the socket');
+		}
+		else
+		{
+			console.log('Socket is already closed');
 			return;
 		}
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-		})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data.status === 'success') {
-					console.log('Successfully cancelled room');
-					socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-					sessionStorage.setItem('roomNameKey', '');
-					justReload = true;
-					window.location.href = '/homePage/';
-					socket.close();
-				} else {
-					console.log('Failed to cancel room', data);
-				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
+		if (!justReload)
+		{
+			console.log('cancel_gAAAAAame_room');
+			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+			socket.close();
+			gameRoomStarted = false;
+			justReload = true;
+			sessionStorage.setItem('shouldRedirect', 'true');
+		}
+		else {
+			socket.close();
+		}
 	}
 });

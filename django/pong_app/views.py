@@ -14,6 +14,7 @@ import logging
 import json
 from django.db.models import Count
 import random
+import asyncio
 import time
 import string
 import pdb;
@@ -753,7 +754,7 @@ def create_tournament(request):
 @api_view(['GET'])
 def join_or_create_room(request, user_id):
 	try:
-		logger = logging.getLogger('django')
+		logger = logging.getLogger(__name__)
 		user = User.objects.get(idName=user_id)
 		if user is None:
 			return JsonResponse({'status': 'error', 'message': 'User not found'})
@@ -804,39 +805,37 @@ def join_or_create_room(request, user_id):
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
-@api_view(['POST'])
-def cancel_room(request, user_id):
-	try:
-		user = User.objects.get(idName=user_id)
-		if user is None:
-			return JsonResponse({'status': 'error', 'message': 'User not found'})
-		authorization_head = request.headers.get('Authorization')
-		if not authorization_head or not authorization_head.startswith('Bearer '):
-			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
-		access_token = authorization_head.split(' ')[1]
-		jwt_authentication = JWTAuthentication()
-		decoded_token = jwt_authentication.get_validated_token(access_token)
-		token_user_id = decoded_token['user_id']
-		if token_user_id != user_id:
-			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
-		room = GameRoom.objects.filter(players=user).first()
-		if room is not None:
-			room_player = RoomPlayer.objects.get(user=user, room=room)
-			room_player.delete()
-			room.gameState = 'cancelled'
-			room.player_count -= 1
-			room.save()
-			room_player = RoomPlayer.objects.filter(room=room).first()
-			if room_player is not None:
-				return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
-			else:
-				room.delete()
-			return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
-		else:
-			return JsonResponse({'status': 'error', 'message': 'No room found for the user'})
-	except Exception as e:
-		return JsonResponse({'status': 'error', 'message': str(e)})
 
+# @api_view(['POST'])
+# def cancel_room(request, user_id):
+# 	logger = logging.getLogger(__name__)
+# 	try:
+# 		user = User.objects.get(idName=user_id)
+# 		if user is None:
+# 			return JsonResponse({'status': 'error', 'message': 'User not found'})
+# 		authorization_head = request.headers.get('Authorization')
+# 		if not authorization_head or not authorization_head.startswith('Bearer '):
+# 			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+# 		access_token = authorization_head.split(' ')[1]
+# 		jwt_authentication = JWTAuthentication()
+# 		decoded_token = jwt_authentication.get_validated_token(access_token)
+# 		token_user_id = decoded_token['user_id']
+# 		if token_user_id != user_id:
+# 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+# 		# get first game room with user
+# 		room = GameRoom.objects.filter(roomplayer__user=user).first()
+# 		if room is None:
+# 			return JsonResponse({'status': 'error', 'message': 'Room not found'})
+# 		room.save()
+# 		if room.player_count == 2:
+# 			room.gameState = 'cancel'
+# 			room.save()
+# 			return JsonResponse({'status': 'success', 'message': 'Room cancelled'})
+# 		else: 
+# 			return JsonResponse({'status': 'error', 'message': 'Room not cancellable'})
+# 		return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
+# 	except Exception as e:
+# 		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def homePage(request):
 	return render(request, 'homePage.html')

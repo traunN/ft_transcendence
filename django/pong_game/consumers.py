@@ -162,7 +162,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 		try:
 			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
 			while self.isGameRunning:
-				# self.logger.error("test")
 				if self.score1 >= self.score_threshold or self.score2 >= self.score_threshold:
 					self.game_over = True
 					self.gameState = 'waiting'
@@ -287,11 +286,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		# Leave room group
+		# delete game room from db
+		if self.game_room:
+			self.logger.error(f"Deleting game room with name '{self.room_name}'")
+			await sync_to_async(self.game_room.delete)()
+		self.isGameRunning = False
 		await self.channel_layer.group_discard(
 			self.room_group_name,	
 			self.channel_name
 		)
-		self.isGameRunning = False
 
 	# Receive message from WebSocket
 	async def receive(self, text_data):

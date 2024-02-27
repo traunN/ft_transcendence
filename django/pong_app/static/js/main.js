@@ -184,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			else if (messageData.message === 'cancel_game_room') {
 				isGameRunning = false;
 				message.textContent = 'Player left the game';
+				justReload = true;
 				setTimeout(function () {
 					location.reload();
 				}, 3000);
@@ -302,34 +303,16 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	window.onbeforeunload = function () {
-		if (!socket) {
+		if (socket.readyState === WebSocket.CLOSED) {
 			return;
 		}
-		fetch(`/cancel_room/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-		})
-			.then(response => {
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data.status === 'success') {
-					console.log(data);
-					socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-					socket.close();
-				} else {
-					console.log('Failed to cancel room', data);
-				}
-			})
-			.catch(error => {
-				console.error('There has been a problem with your fetch operation:', error);
-			});
+		if (!justReload)
+		{
+			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+			socket.close();
+		}
+		else {
+			socket.close();
+		}
 	}
 });

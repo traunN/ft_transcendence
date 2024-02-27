@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					// If the response status is not ok, get the response text and throw an error
 					sessionStorage.removeItem('user');
 					window.location.href = '/homePage/';
-					
+
 				}
 				return response.json();
 			})
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 	function setUserOnline(userId) {
+		console.log('Setting user online' + userId);
 		fetch('/set_user_online/' + userId + '/', {
 			method: 'GET',
 			headers: {
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error('Error:', error));
 	}
+
 	function setUserOffline(userId) {
 		fetch('/set_user_offline/' + userId + '/', {
 			method: 'GET',
@@ -112,10 +114,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			<button id="confirm2FAButton" class="yellow-btn">Confirm</button>
 		`;
 		document.body.appendChild(confirmationModal);
-		
+
 		codeInput = document.getElementById('codeInput');
 		document.getElementById('codeInput').focus();
-	
+
 		document.getElementById('confirm2FAButton').addEventListener('click', function () {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			userId = user.idName;
@@ -145,17 +147,17 @@ document.addEventListener('DOMContentLoaded', function () {
 				console.log('Error confirming 2FA setup:', error);
 			});
 		});
-	
+
 		document.addEventListener('click', function removeConfirmationModal() {
 			confirmationModal.remove();
 			document.removeEventListener('click', removeConfirmationModal);
 		});
-	
+
 		confirmationModal.addEventListener('click', function (event) {
 			event.stopPropagation();
 		});
 	}
-	
+
 	if (isUserLoggedIn()) {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		fetch('/get_user/' + user.idName + '/')
@@ -258,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						try{
+						try {
 							data.user.id = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(data.user));
 							sessionStorage.setItem('jwt', data.access_token);
@@ -278,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
 							loginModal.remove();
 							// location.reload();
 						}
-						catch(error){
+						catch (error) {
 							console.log('Error:', error);
 						}
 					}
@@ -484,7 +486,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	window.addEventListener('beforeunload', function (event) {
-		// check for 2fa
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		if (!user) {
 			return;
