@@ -13,8 +13,8 @@ import random
 class GameConsumer(AsyncWebsocketConsumer):
 	logger = logging.getLogger(__name__)
 	ball_position = {'x': 0, 'y': 0}
-	ball_speed_x = 0
-	ball_speed_y = 0
+	ball_speed_x = 3
+	ball_speed_y = 3
 	ball_radius = 10
 	paddle1_position = {'x': 0, 'y': 0}
 	paddle2_position = {'x': 0, 'y': 0}
@@ -215,15 +215,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 				if self.ball_position['x'] - self.ball_radius <= 0:
 					self.score2 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-ball_speed_x, ball_speed_x])
-					self.ball_speed_y = random.choice([-ball_speed_y, ball_speed_y])
+					self.ball_speed_x = random.choice([self.ball_speed_x * -1, self.ball_speed_x])
+					self.ball_speed_y = random.choice([self.ball_speed_y * -1, self.ball_speed_y])
 					self.game_room.score2 += 1
 					await sync_to_async(self.game_room.save)()
 				elif self.ball_position['x'] + self.ball_radius >= 800:
 					self.score1 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-ball_speed_x, ball_speed_x])
-					self.ball_speed_y = random.choice([-ball_speed_y, ball_speed_y])
+					self.ball_speed_x = random.choice([self.ball_speed_x * -1, self.ball_speed_x])
+					self.ball_speed_y = random.choice([self.ball_speed_y * -1, self.ball_speed_y])
 					self.game_room.score1 += 1
 					await sync_to_async(self.game_room.save)()
 
@@ -286,7 +286,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		# Leave room group
-		# delete game room from db
 		if self.game_room:
 			self.logger.error(f"Deleting game room with name '{self.room_name}'")
 			await sync_to_async(self.game_room.delete)()
@@ -720,10 +719,6 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 	user1 = None
 	user2 = None
 
-	@database_sync_to_async
-	def get_game_room(self):
-		return GameRoom.objects.get(name=self.room_name)
-
 	async def ball_update(self, event):
 		try:
 			ball_position = event['ball_position']
@@ -851,15 +846,15 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 				if self.ball_position['x'] - self.ball_radius <= 0:
 					self.score2 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-3, 3])
-					self.ball_speed_y = random.choice([-3, 3])
+					self.ball_speed_x = random.choice([self.ball_speed_x * -1, self.ball_speed_x])
+					self.ball_speed_y = random.choice([self.ball_speed_y * -1, self.ball_speed_y])
 					self.game_room.score2 += 1
 					await sync_to_async(self.game_room.save)()
 				elif self.ball_position['x'] + self.ball_radius >= 800:
 					self.score1 += 1
 					self.ball_position = {'x': 400, 'y': 300}
-					self.ball_speed_x = random.choice([-3, 3])
-					self.ball_speed_y = random.choice([-3, 3])
+					self.ball_speed_x = random.choice([self.ball_speed_x * -1, self.ball_speed_x])
+					self.ball_speed_y = random.choice([self.ball_speed_y * -1, self.ball_speed_y])
 					self.game_room.score1 += 1
 					await sync_to_async(self.game_room.save)()
 
@@ -920,11 +915,14 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 		
 
 	async def disconnect(self, close_code):
+		if self.game_room:
+			self.logger.error(f"Deleting game room with name '{self.room_name}'")
+			await sync_to_async(self.game_room.delete)()
+		self.isGameRunning = False
 		await self.channel_layer.group_discard(
 			self.room_group_name,	
 			self.channel_name
 		)
-		self.isGameRunning = False
 
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)

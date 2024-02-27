@@ -1,11 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
-	var user = JSON.parse(sessionStorage.getItem('user'));
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
 	var loadingMessage = document.getElementById('loadingMessage');
 	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
 	var statusText = document.getElementById('statusText');
+	var jwtToken;
+	let user = JSON.parse(sessionStorage.getItem('user'));
+	if (!user) {
+		return;
+	}
+	else {
+		jwtToken = sessionStorage.getItem('jwt');
+	}
 	let gameStarted = true;
 	let reloadLeaveLobby = true;
 	var roomName1;
@@ -37,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		reloadLeaveLobby = false;
 		history.back();
 	}
-
+	aliasInput.focus();
 	fetch('/get_tournament_status/' + tournamentId + '/')
 		.then(response => response.text())
 		.then(data => {
@@ -52,6 +59,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				else if (response.tournament_status === 'final_match_finished') {
 					reloadLeaveLobby = false;
+					const formData = new FormData();
+					formData.append('tournament_id', tournamentId);
 					fetch('/user_win_tournament/' + user.id + '/', {
 						method: 'POST',
 						headers: {
@@ -63,9 +72,39 @@ document.addEventListener('DOMContentLoaded', function () {
 						.then(data => {
 							var response = JSON.parse(data);
 							if (response.status === 'success') {
+								// leave tournament
+								// change text to gg you win
+								document.getElementById('leaveTournamentBtn').style.display = 'none';
+								document.getElementById('startTournamentBtn').style.display = 'none';
+								document.getElementById('readyButton').style.display = 'none';
+								document.getElementById('aliasInput').style.display = 'none';
+								document.getElementById('PlayerCount').style.display = 'none';
+								document.getElementById('statusText').innerHTML = 'Congratulations! You won the tournament!';
 								setTimeout(function () {
-									window.location.href = '/tournament/';
+									fetch('/leave_tournament/' + user.id + '/', {
+										method: 'POST',
+										headers: {
+											'Content-Type': 'application/json',
+											'X-CSRFToken': csrfToken,
+											'Authorization': `Bearer ${jwtToken}`
+										},
+										body: JSON.stringify(Object.fromEntries(formData))
+									})
+										.then(response => response.text())
+										.then(data => {
+											console.log(data);
+											var response = JSON.parse(data);
+											if (response.status === 'success') {
+												window.location.href = '/tournament/';
+											}
+											else {
+												console.log('Error leaving tournament');
+												console.log(response);
+											}
+										})
+										.catch(error => console.error(error));
 								}, 3000);
+
 							}
 							else {
 								console.log('Error getting tournament status');
@@ -386,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
 		reloadLeaveLobby = false;
-		jwtToken = sessionStorage.getItem('jwt');
+		
 
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',

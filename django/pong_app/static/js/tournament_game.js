@@ -7,7 +7,6 @@ let gameRoomStarted = false;
 document.addEventListener('DOMContentLoaded', function () {
 	let reloadLeave = true;
 	let gameLeave = false;
-	var user = JSON.parse(sessionStorage.getItem('user'));
 	var tournamentId = document.getElementById('tournamentId').value;
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
@@ -21,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 	var roomNameKey = sessionStorage.getItem('roomNameKey');
+	var jwtToken;
+	let user = JSON.parse(sessionStorage.getItem('user'));
+	if (!user) {
+		return;
+	}
+	else {
+		jwtToken = sessionStorage.getItem('jwt');
+	}
 
 	console.log('tournament game room name:', roomName);
 	console.log('tournament game room name key:', roomNameKey);
@@ -220,7 +227,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				const winner = messageData.winner;
 				const loser = messageData.loser;
 				message.style.display = 'block';
-				if (Number(winner) === Number(userId)) {
+				console.log('winner:', winner);
+				console.log('loser:', loser);
+				if (userId == winner) {
 					isWinner = true;
 					message.textContent = 'You won!';
 					setTimeout(function () {
@@ -347,27 +356,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			console.log('LOST');
 		}
 		if (gameRoomStarted) {
-			fetch(`/cancel_room/${userId}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-				},
-			})
-				.then(response => response.text())
-				.then(data => {
-					var response = JSON.parse(data);
-					if (response.status === 'success') {
-						// Send a message to the tournament lobby group
-						socket.close();
-						lobbysocket.close();
-						console.log('Room canceled');
-					}
-					else {
-						console.log('Error canceling room');
-						console.log(response);
-					}
-				})
+			socket.close();
+			lobbysocket.close();
 		}
 
 		fetch('/leave_tournament/' + user.id + '/', {
@@ -375,6 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
 			},
 			body: JSON.stringify(Object.fromEntries(formData))
 		})
@@ -425,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								headers: {
 									'Content-Type': 'application/json',
 									'X-CSRFToken': csrfToken,
+									'Authorization': `Bearer ${jwtToken}`
 								},
 								body: JSON.stringify({ 'status': 'final_match_finished' })
 							})
@@ -451,6 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								headers: {
 									'Content-Type': 'application/json',
 									'X-CSRFToken': csrfToken,
+									'Authorization': `Bearer ${jwtToken}`
 								},
 								body: JSON.stringify({ 'status': 'second_match_finished' })
 							})
@@ -477,6 +470,7 @@ document.addEventListener('DOMContentLoaded', function () {
 								headers: {
 									'Content-Type': 'application/json',
 									'X-CSRFToken': csrfToken,
+									'Authorization': `Bearer ${jwtToken}`
 								},
 								body: JSON.stringify({ 'status': 'first_match_finished' })
 							})
@@ -505,25 +499,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				)
 			if (gameRoomStarted) {
-				fetch(`/cancel_room/${userId}/`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-CSRFToken': csrfToken,
-					},
-				})
-					.then(response => response.text())
-					.then(data => {
-						var response = JSON.parse(data);
-						if (response.status === 'success') {
-							socket.close();
-							console.log('Room canceled');
-						}
-						else {
-							console.log('Error canceling room');
-							console.log(response);
-						}
-					})
+				socket.close();
 			}
 		}
 	});
