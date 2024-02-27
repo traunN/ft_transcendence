@@ -493,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			user.idName = user.id;
 		}
 		userId = user.idName;
+		console.log('userId: ' + userId);
 		fetch('/get_user/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {

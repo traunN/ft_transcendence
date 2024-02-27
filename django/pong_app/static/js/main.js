@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		const y = paddlePositionObj.y;
 		targetPaddle1Y = y;
 		paddle1.style.top = `${y}px`;
+		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 	}
 
 	function update_paddle2_position(updated_paddle_position) {
@@ -79,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		const y = paddlePositionObj.y;
 		targetPaddle2Y = y;
 		paddle2.style.top = `${y}px`;
+		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
 
 
@@ -236,7 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('Successfully joined or created room');
-					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/');
+					console.log(user.id);
+					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
 					if (!socket) {
 						console.log('Failed to create socket');
 						return;

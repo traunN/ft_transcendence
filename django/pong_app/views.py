@@ -1079,6 +1079,8 @@ def get_user(request, user_id):
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
 
 def get_user_by_login(request, login):
 	try:

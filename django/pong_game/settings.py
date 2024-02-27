@@ -161,9 +161,6 @@ DATABASES = {
   }
 }
 
-# CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
-# CLIENT_ID = os.environ.get('CLIENT_ID')
-
 
 LOGGING = {
    'version': 1,
