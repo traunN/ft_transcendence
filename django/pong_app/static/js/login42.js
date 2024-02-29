@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 	function setUserOnline(userId) {
-		console.log('Setting user online' + userId);
 		fetch('/set_user_online/' + userId + '/', {
 			method: 'GET',
 			headers: {
@@ -51,7 +50,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data) {
-					console.log('User set online successfully');
+					if (data.message === 'User already online') {
+						console.log('User already online');
+					}
+					else {
+						console.log('User set online successfully');
+					}
 				}
 			})
 			.catch(error => console.error('Error:', error));
@@ -76,7 +80,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data) {
-					console.log('User set offline successfully');
+					if (data.message === 'User already offline') {
+						console.log('User already offline');
+					} else {
+						console.log('User set offline successfully');
+					}
 				}
 			})
 			.catch(error => console.error('Error:', error));
@@ -497,7 +505,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (userId === undefined) {
 			return;
 		}
-		console.log('userId: ' + userId);
 		fetch('/get_user/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {

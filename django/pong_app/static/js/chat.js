@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 		return response.json();
 	}).then(function (data) {
-		console.log(data); // Log the entire response object
 		if (data.status === 'success') {
 			var invitations = data.invitations;
 			if (invitations.length > 0) {

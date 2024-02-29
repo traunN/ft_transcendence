@@ -412,6 +412,8 @@ def set_user_online(request, user_id):
 		token_user_id = decoded_token['user_id']
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+		if user.isOnline:
+			return JsonResponse({'status': 'success', 'message': 'User already online'})
 		user.isOnline = True
 		if (user.is_2fa_enabled and user.is_2fa_logged):
 			user.is_2fa_logged = True
@@ -435,6 +437,8 @@ def set_user_offline(request, user_id):
 		token_user_id = decoded_token['user_id']
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+		if not user.isOnline:
+			return JsonResponse({'status': 'success', 'message': 'User already offline'})
 		user.isOnline = False
 		user.is_2fa_logged = False
 		user.save()
