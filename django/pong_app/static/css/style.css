@@ -4,6 +4,19 @@
 	/* Adjust the URL based on your font file's location */
 }
 
+@font-face {
+	font-family: 'Uni Sans Heavy';
+	src: url('/static/fonts/Uni Sans Heavy.otf');
+	/* Adjust the URL based on your font file's location */
+}
+
+@font-face {
+	font-family: 'GG SANS';
+	src: url('/static/fonts/ggsans-Normal.ttf');
+	/* Adjust the URL based on your font file's location */
+}
+
+
 body {
 	background-color: #202425;
 	color: #fff;
@@ -805,7 +818,7 @@ div.card.custom-bg {
 
 .chat-container {
 	width: 80%;
-	height: auto;
+	height: 600;
 	max-width: 1200px;
 	margin: 0 auto;
 	margin-top: 20px;
@@ -816,13 +829,10 @@ div.card.custom-bg {
 }
 
 #chat-messages {
-	height: 100%;
+	height: 500px;
 	max-height: 500px;
 	overflow-y: auto;
 	padding: 10px;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-	background-color: #fff;
 	color: #000;
 }
 
@@ -836,8 +846,12 @@ div.card.custom-bg {
 	flex-grow: 1;
 	margin-right: 10px;
 	padding: 5px;
-	border: 1px solid #ccc;
-	border-radius: 5px;
+	background-color: #202425;
+	border: none;
+	outline: none;
+	font-family: 'GG SANS', sans-serif;
+	caret-color: #fff;
+	color: #fff;
 }
 
 #chat-form button {

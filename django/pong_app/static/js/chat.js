@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+	
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var jwtToken;
 	if (!user) {
@@ -13,6 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		socket.send(JSON.stringify({ type: 'join', username: user.login }));
 	};
 
+
+	// get message input and focus
+	var messageInput = document.getElementById("message-input");
+	messageInput.focus();
 	socket.onmessage = function (e) {
 		var dataMsg = JSON.parse(e.data);
 		if (dataMsg.type === 'message') {
@@ -517,33 +522,41 @@ document.addEventListener('DOMContentLoaded', function () {
 	}, false);
 
 	function displayMessage(username, message, nb) {
-		// if nb is 1 display in purple else display in black
+		var chatMessages = document.getElementById("chat-messages");
+		var messageElement = document.createElement('div');
+		messageElement.style.fontFamily = "GG SANS";
+		messageElement.style.lineHeight = "1.375rem";
+		messageElement.style.fontWeight = "400";
+		messageElement.style.wordBreak = "break-word";
+		messageElement.style.whiteSpace = "break-spaces";
+		messageElement.style.marginBottom = "10px";
+	
+		var usernameElement = document.createElement('span');
+		usernameElement.style.color = "#caccce";
+		usernameElement.style.fontSize = "18px";
+		usernameElement.innerText = username + ": ";
+	
+		var messageTextElement = document.createElement('span');
+		messageTextElement.style.color = "#caccce";
+		messageTextElement.style.fontSize = "14px";
+		messageTextElement.innerText = message;
+	
+		messageElement.appendChild(usernameElement);
+		messageElement.appendChild(messageTextElement);
+	
 		if (nb === 1) {
-			var chatMessages = document.getElementById("chat-messages");
-			var messageElement = document.createElement('p');
-			messageElement.style.color = "purple";
-			messageElement.innerText = username + ": " + message;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-			document.getElementById("message-input").value = "";
+			usernameElement.style.color = "#b18fb0";
+			messageTextElement.style.color = "#b18fb0";
+		} else if (nb === 2) {
+			usernameElement.style.color = "orange";
+			messageTextElement.style.color = "orange";
+			messageTextElement.style.fontWeight = "bold";
+		} else {
 		}
-		else if (nb === 2) {
-			var chatMessages = document.getElementById("chat-messages");
-			var messageElement = document.createElement('p');
-			messageElement.style.color = "orange";
-			messageElement.style.fontWeight = "bold";
-			messageElement.innerText = username + ": " + message;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-			document.getElementById("message-input").value = "";
-		}
-		else {
-			var chatMessages = document.getElementById("chat-messages");
-			var messageElement = document.createElement('p');
-			messageElement.innerText = username + ": " + message;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-			document.getElementById("message-input").value = "";
-		}
+	
+		chatMessages.appendChild(messageElement);
+		chatMessages.scrollTop = chatMessages.scrollHeight;
+		document.getElementById("message-input").value = "";
 	}
+	
 });

@@ -398,7 +398,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 
 	@database_sync_to_async
 	def get_chat_messages(self):
-		return list(ChatMessage.objects.all().order_by('-date')[:10])
+		return list(ChatMessage.objects.all().order_by('-date')[:20])
 
 	@database_sync_to_async
 	def get_user(self, user_id):
