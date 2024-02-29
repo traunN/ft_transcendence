@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class User(models.Model):
 	login = models.CharField(max_length=50);
@@ -87,3 +88,4 @@ class ChatMessage(models.Model):
 	message = models.CharField(max_length=200)
 	date = models.DateTimeField(auto_now_add=True)
 	idName = models.CharField(max_length=50)
+	created_at = models.DateTimeField('date created', default=timezone.now)

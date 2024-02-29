@@ -14,10 +14,55 @@ document.addEventListener('DOMContentLoaded', function () {
 		socket.send(JSON.stringify({ type: 'join', username: user.login }));
 	};
 
-
+	
 	// get message input and focus
 	var messageInput = document.getElementById("message-input");
 	messageInput.focus();
+	
+	fetch('/get_pending_invitations/' + user.idName + '/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': csrfToken,
+			'Authorization': `Bearer ${jwtToken}`
+		},
+		body: JSON.stringify({
+			'user_id': user.idName
+		})
+	}).then(function (response) {
+		if (!response.ok) {
+			throw new Error('Network response was not ok');
+		}
+		return response.json();
+	}).then(function (data) {
+		console.log(data); // Log the entire response object
+		if (data.status === 'success') {
+			var invitations = data.invitations;
+			if (invitations.length > 0) {
+				for (var i = 0; i < invitations.length; i++) {
+					var invitationNotification = document.createElement('div');
+					invitationNotification.id = 'invitation-notification';
+					invitationNotification.className = 'invitation-notification';
+					var invitationText = document.createElement('p');
+					invitationText.id = 'invitation-text';
+					if (invitations[i].isInvited) {
+						invitationText.textContent = `You have a game invitation from ${invitations[i].idName}, \ntype /accept ${invitations[i].idName} to accept the invitation \nor /deny ${invitations[i].idName} to deny the invitation.`;
+					}
+					else {
+						invitationText.textContent = `Your invitation toward ${invitations[i].idName} is still pending.`;
+					}
+					invitationText.innerHTML = invitationText.textContent.replace(/\n/g, '<br>');
+					invitationNotification.appendChild(invitationText);
+					document.body.appendChild(invitationNotification);
+				}
+			}
+		
+		}
+	}).catch(function (error) {
+		console.log('Error getting pending invitations:', error);
+	});
+	
+
 	socket.onmessage = function (e) {
 		var dataMsg = JSON.parse(e.data);
 		if (dataMsg.type === 'message') {
@@ -413,6 +458,9 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (data.status === 'success') {
 							console.log('Invitation denied');
 							displayMessage('System', 'Invitation denied', 2);
+							var invitationNotification = document.getElementById('invitation-notification');
+							invitationNotification.style.display = 'none';
+
 						} else {
 							console.log('Error denying invitation:', data);
 						}

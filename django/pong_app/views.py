@@ -120,6 +120,34 @@ def whisper(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 @api_view(['POST'])
+def get_pending_invitations(request, user_id):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+			invitations = User.objects.filter(Q(invitedUsers=user) | Q(inviters=user))
+			invitations = invitations.values('idName', 'login', 'image')
+			for invitation in invitations:
+				if user in User.objects.get(idName=invitation['idName']).invitedUsers.all():
+					invitation['isInvited'] = True
+				else:
+					invitation['isInvited'] = False
+			return JsonResponse({'status': 'success', 'invitations': list(invitations)})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+@api_view(['POST'])
 def accept(request, user_id):
 	if request.method == 'POST':
 		try:
