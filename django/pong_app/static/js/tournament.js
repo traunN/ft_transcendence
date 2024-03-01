@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 			.then(response => response.json())
 			.then(data => {
-				if (data && data.tournaments) {
+				if (data && data.tournaments && data.tournaments.length > 0) {
 					var tournaments = data.tournaments;
 					var table = document.getElementById('tournament-list');
 					var tbody = table.getElementsByTagName('tbody')[0];
@@ -157,10 +157,19 @@ document.addEventListener('DOMContentLoaded', function () {
 						}
 					}
 				}
-				else {
-					console.log('no tournaments available');
-					console.log(data);
+				else if (data && data.tournaments.length === 0) {
+					var table = document.getElementById('tournament-list');
+					var tbody = table.getElementsByTagName('tbody')[0];
+					var message = document.createElement('div');
+					message.textContent = 'No tournaments available.';
+					message.style.fontFamily = 'Arial, sans-serif';
+					message.style.textShadow = '1px 1px 1px #000';
+					message.style.fontSize = '24px';
+					message.style.textAlign = 'center';
+					message.style.marginTop = '20px';
+					tbody.appendChild(message);
 				}
+				
 			})
 			.catch(error => console.error(error));
 	}

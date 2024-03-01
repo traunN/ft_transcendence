@@ -22,6 +22,9 @@
 		.btn {
 			margin: 5px;
 		}
+		.card-header {
+			font-family: 'BurbankBigCondensed-Black', sans-serif !important;
+		}
 	</style>
 </head>
 
@@ -32,7 +35,12 @@
 		<div class="container-fluid">
 			<div class="row">
 				<main role="main" class="col-md-9 ml-sm-auto col-lg-12 px-4">
-					<div class="card custom-bg no-hover flex-card-profile">
+					<div class="card custom-bg" id="pleaseLoginCard" style="display: none;">
+						<div class="card-body">
+							<h1 class="card-title">Please login to view your profile</h1>
+						</div>
+					</div>
+					<div class="card custom-bg no-hover flex-card-profile" id = "profileCard">
 						<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
 						<div class="card-body-profile">
 							<h1 class="card-title-profile" id="usernameProfile"></h1>
@@ -57,7 +65,12 @@
 							<button id="setup2FAButton" class="btn green-btn">Setup Two-Factor Authentication</button>
 						</div>
 					</div>
-					<div id="gameHistory"></div>
+					<div class="card custom-bg" id = "gameHistoryCard">
+						<div class="card-header">
+							<h2 style="font-size: 32px;">Game History</h2>
+						</div>
+						<div class="card-body" id="gameHistory"></div>
+					</div>
 				</main>
 			</div>
 		</div>
@@ -68,7 +81,7 @@
 	<script type="text/javascript" src="{% static 'js/profile.js' %}"></script>
 </body>
 
-<footer class="myFooter">
+<footer class="myFooter sticky-footer">
 </footer>
 
 </html>

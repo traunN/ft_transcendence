@@ -15,20 +15,21 @@ var userLoses = document.getElementById('losesProfile');
 var userTournamentWins = document.getElementById('tournamentWinsProfile');
 var userAccountName = document.getElementById('accountNameProfile');
 var searchUser = document.getElementById('searchUser');
-
+var gameHistoryCard = document.getElementById('gameHistoryCard');
+var profileCard = document.getElementById('profileCard');
+var pleaseLoginCard = document.getElementById('pleaseLoginCard');
 var user = JSON.parse(sessionStorage.getItem('user'));
 var jwtToken;
 
 document.addEventListener('DOMContentLoaded', function () {
 	if (!user) {
-		username.textContent = 'Please login';
-		userInfo.style.display = 'none';
-		userImage.style.display = 'none';
-		document.getElementById('setup2FAButton').style.display = 'none';
-		document.getElementById('remove2FA').style.display = 'none';
+		profileCard.style.display = 'none';
+		gameHistoryCard.style.display = 'none';
+		pleaseLoginCard.style.display = 'block';
 		return;
 	}
 	jwtToken = sessionStorage.getItem('jwt');
+	console.log(user);
 	var pathArray = window.location.pathname.split('/');
 	var userId = pathArray[pathArray.length - 2];
 	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
