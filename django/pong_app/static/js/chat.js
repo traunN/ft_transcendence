@@ -42,6 +42,13 @@ document.addEventListener('DOMContentLoaded', function () {
 					var invitationNotification = document.createElement('div');
 					invitationNotification.id = 'invitation-notification';
 					invitationNotification.className = 'invitation-notification';
+					var closeButton = document.createElement('button');
+					closeButton.className = 'close-button';
+					closeButton.textContent = '×'; // Using the HTML entity for "x"
+					closeButton.onclick = function() {
+						this.parentElement.style.display = 'none'; // Hide the notification
+					};
+					invitationNotification.appendChild(closeButton);
 					var invitationText = document.createElement('p');
 					invitationText.id = 'invitation-text';
 					if (invitations[i].isInvited) {
@@ -303,6 +310,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function inviteUser(user_id) {
+
+		if (user_id === user.idName) {
+			displayMessage('System', 'You cannot invite yourself.', 2);
+			return;
+		}
+
 		fetch('/check_blocked/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
