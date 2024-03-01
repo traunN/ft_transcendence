@@ -72,8 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						.then(data => {
 							var response = JSON.parse(data);
 							if (response.status === 'success') {
-								// leave tournament
-								// change text to gg you win
 								document.getElementById('leaveTournamentBtn').style.display = 'none';
 								document.getElementById('startTournamentBtn').style.display = 'none';
 								document.getElementById('readyButton').style.display = 'none';
@@ -124,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	lobbysocket.onopen = function (e) {
 		console.log('lobbysocket opened');
 		loadingMessage.style.display = 'block';
-		// wait a second to refresh
 		setTimeout(function () {
 			lobbysocket.send(JSON.stringify({
 				'type': 'tournament_lobby_updated',
@@ -153,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					'type': 'tournament_updated',
 				}));
 			}
-			// get room1 and room2 name
 			roomName1 = data.room_name1;
 			roomName2 = data.room_name2;
 			roomName2split = roomName2;
@@ -245,11 +241,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	};
 
 	function updatePlayersList() {
-		// Clear the current list
 		while (playersList.firstChild) {
 			playersList.removeChild(playersList.firstChild);
 		}
-		// Use AJAX to get the updated list of players
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", '/get_players_in_tournament/' + tournamentId + '/', true);
 		xhr.onreadystatechange = function () {

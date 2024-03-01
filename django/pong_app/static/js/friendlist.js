@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('Failed to get user from session storage');
 		return;
 	}
-	jwtToken = sessionStorage.getItem('jwt');
+	jwtToken = sessionStorage.getItem('jwt');	
 
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
@@ -41,9 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (!socket) {
 		console.log('Failed to create socket');
 		return;
-	}
-
-	socket.onopen = function (e) {
 	}
 
 	function updateFriendList() {
@@ -78,11 +75,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		var data = JSON.parse(event.data);
 		updateFriendList();
 		if (data.type === 'friend_request') {
-			if (data.type === 'friend_request') {
-				document.getElementById('notificationMessage').innerText = `You have received a friend request from ${data.from_user}`;
-				document.getElementById('notificationContainer').style.display = 'flex';
-			}
-
+			document.getElementById('notificationMessage').innerText = `You have received a friend request from ${data.from_user}`;
+			document.getElementById('notificationContainer').style.display = 'flex';
 			document.getElementById('acceptRequest').addEventListener('click', function () {
 				fetch('/accept_friend_request/', {
 					method: 'POST',
@@ -100,13 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
 					.then(data => {
 						if (data.status === 'success') {
 							updateFriendList();
-						} else {
-							// Handle failure
 						}
 					});
 				document.getElementById('notificationContainer').style.display = 'none';
 			});
-
 			document.getElementById('denyRequest').addEventListener('click', function () {
 				document.getElementById('notificationContainer').style.display = 'none';
 			});
@@ -128,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				'from_user': user.idName,
 				'to_user': friendName
 			}));
-
 			addFriendInput.value = '';
 		}
 	});

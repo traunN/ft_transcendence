@@ -86,19 +86,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	document.getElementById("startGameBtn").addEventListener("click", startGame);
 
+	document.addEventListener('keydown', handleKeyEvent);
+	document.addEventListener('keyup', handleKeyEvent);
 
-	document.addEventListener('keydown', function (event) {
-		if (event.code in keys) {
+	function handleKeyEvent(event) {
+		if (event.type === 'keydown') {
 			keys[event.code] = true;
-		}
-	});
-
-	// Listen for keyup events
-	document.addEventListener('keyup', function (event) {
-		if (event.code in keys) {
+		} else if (event.type === 'keyup') {
 			keys[event.code] = false;
 		}
-	});
+	}
+
 
 	function update_paddles() {
 		if (keys.ArrowUp) {
@@ -218,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		startGameBtn.style.display = 'none';
 		isGameRunning = true;
 		if (!user.id) {
-			console.log('Please login');
 			return;
 		}
 		let userId = user.id;
@@ -238,16 +235,12 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.then(data => {
 				if (data.status === 'success') {
-					console.log('Successfully joined or created room');
-					console.log(user.id);
 					socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
 					if (!socket) {
 						console.log('Failed to create socket');
 						return;
 					}
 					if (data.start_game) {
-						console.log('Starting the game...');
-						console.log('Joined room name:', data.room_name);
 						window.room_name = data.room_name;
 						// check if both players are in the same room
 						socket.onopen = async function (event) {
@@ -269,14 +262,11 @@ document.addEventListener('DOMContentLoaded', function () {
 						};
 					} else {
 						message.textContent = 'Waiting for another player...';
-						console.log('Waiting for another player...');
-						console.log('Created room:', data.room_name);
 						window.room_name = data.room_name;
 						socket.onopen = function (event) {
 							socket.onmessage = function (event) {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
-									// Handle the initial game state
 									message.textContent = '';
 									const user1 = messageData.user1;
 									const user2 = messageData.user2;
@@ -284,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function () {
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
 								} else {
-									// Handle other game messages
 									gameState = messageData.message;
 									gameLoop(gameState);
 								}

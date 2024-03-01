@@ -137,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.getElementById('editProfileButton').addEventListener('click', function () {
-	// Replace static text with input fields
 	username.innerHTML = `<input type="text" id="usernameInput" value="${username.textContent}">`;
 	userEmail.innerHTML = `<input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
 	userFirstName.innerHTML = `<input type="text" id="firstNameInput" value="${userFirstName.textContent.slice(12)}">`;
@@ -150,7 +149,6 @@ document.getElementById('editProfileButton').addEventListener('click', function 
 });
 
 document.getElementById('saveProfileButton').addEventListener('click', function () {
-	// Get the new values from the input fields
 	var newUsername = document.getElementById('usernameInput').value;
 	var newEmail = document.getElementById('emailInput').value;
 	var newFirstName = document.getElementById('firstNameInput').value;
@@ -160,7 +158,6 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 
 	var formData = new FormData();
 
-	// Append the user data and the image file to the form data
 	formData.append('id', user.id);
 	formData.append('login', newUsername);
 	formData.append('email', newEmail);
@@ -186,7 +183,6 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 			userFirstName.textContent = 'First name: ' + newFirstName;
 			userLastName.textContent = 'Last name: ' + newLastName;
 			usercampusProfile.textContent = 'Campus: ' + newCampus;
-			// update session storage user login and email
 			user.login = newUsername;
 			user.email = newEmail;
 			user.firstName = newFirstName;
@@ -201,7 +197,6 @@ document.getElementById('saveProfileButton').addEventListener('click', function 
 });
 
 document.getElementById('remove2FA').addEventListener('click', function () {
-	// Make a fetch request to the server to enable 2FA
 	userId = user.idName;
 	fetch(`/remove_2fa/${userId}/`, {
 		method: 'POST',
@@ -224,7 +219,7 @@ document.getElementById('remove2FA').addEventListener('click', function () {
 document.getElementById('setup2FAButton').addEventListener('click', function () {
 	const userId = user.idName;
 	const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
-	window.location.href = url; // Navigate to the setup page
+	window.location.href = url;
 });
 
 searchUser.addEventListener('keypress', function (event) {
@@ -271,7 +266,6 @@ searchUser.addEventListener('keypress', function (event) {
 				fetch('/get_user_game_history/' + data.user.idName + '/')
 				.then(response => {
 					if (!response.ok) {
-						// If the response status is not ok, get the response text and throw an error
 						return response.text().then(text => {
 							throw new Error('Server error: ' + text);
 						});
@@ -281,7 +275,6 @@ searchUser.addEventListener('keypress', function (event) {
 				.then(data => {
 					if (data.games) {
 						var gameHistoryDiv = document.getElementById('gameHistory');
-						// clear game history
 						gameHistoryDiv.innerHTML = '';
 						data.games.forEach(game => {
 							var gameElement = document.createElement('div');

@@ -24,8 +24,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data.user) {
 					jwtToken = sessionStorage.getItem('jwt');
+					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {	
+						disconnectUser();
+						window.location.href = '/homePage/';
+					}
 				} else {
-					console.log('User does not exist');
 					sessionStorage.removeItem('user');
 					window.location.href = '/homePage/';
 				}
@@ -505,23 +508,5 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (userId === undefined) {
 			return;
 		}
-		fetch('/get_user/' + userId + '/')
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data) {
-					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {
-						disconnectUser();
-						window.location.href = '/homePage/';
-					}
-				}
-			})
-			.catch(error => console.error('Error:', error));
 	});
 });

@@ -48,10 +48,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(response => response.text())
 			.then(data => {
 				console.log(data);
-				// Redirect to the tournament lobby page
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
 					if (isOpen(socket)) {
 						socket.send(JSON.stringify({
 							'type': 'tournament_updated',
@@ -70,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	window.onbeforeunload = function () {
-		// if socket is open, close it
 		socket.close();
 	}
 
@@ -96,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				var response = JSON.parse(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
 					if (isOpen(socket)) {
 						socket.send(JSON.stringify({
 							'type': 'tournament_updated',

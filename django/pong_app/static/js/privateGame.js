@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	ball.classList.add(ballSkin);
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
-	console.log('user infos:', user);
 	if (user.id) {
 		userId = user.id;
 	}
@@ -101,17 +100,16 @@ document.addEventListener('DOMContentLoaded', function () {
 		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
 
-	document.addEventListener('keydown', function (event) {
-		if (event.code in keys) {
-			keys[event.code] = true;
-		}
-	});
+	document.addEventListener('keydown', handleKeyEvent);
+	document.addEventListener('keyup', handleKeyEvent);
 
-	document.addEventListener('keyup', function (event) {
-		if (event.code in keys) {
+	function handleKeyEvent(event) {
+		if (event.type === 'keydown') {
+			keys[event.code] = true;
+		} else if (event.type === 'keyup') {
 			keys[event.code] = false;
 		}
-	});
+	}
 
 	document.getElementById("readyGamebtn").addEventListener("click", startGame);
 
@@ -260,8 +258,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				gameRoomStarted = true;
 				if (data.start_game) {
-					console.log('Starting the game...');
-					console.log('Joined room name:', data.room_name);
 					window.room_name = data.room_name;
 					// check if both players are in the same room
 					socket.onopen = async function (event) {
@@ -287,8 +283,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					};
 				} else {
 					message.textContent = 'Waiting for another player...';
-					console.log('Waiting for another player...');
-					console.log('Created room:', data.room_name);
 					window.room_name = data.room_name;
 					socket.onopen = function (event) {
 						socket.onmessage = function (event) {

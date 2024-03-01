@@ -777,6 +777,8 @@ def create_tournament(request):
 			tournament.save()
 			tournament_player = TournamentPlayer(user=user, tournament=tournament)
 			tournament_player.save()
+			tournament.creator = user
+			tournament.save()
 			return JsonResponse({'status': 'success', 'message': 'Tournament created successfully', 'tournament_id': tournament.id})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
