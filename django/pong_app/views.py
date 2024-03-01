@@ -712,20 +712,14 @@ def leave_tournament(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def available_tournaments(request):
-	tournaments = Tournament.objects.filter(status='available').annotate(player_count=Count('players'))
-	tournaments_dict = []
-	for tournament in tournaments:
-		tournament_dict = model_to_dict(tournament)
-		creator_id = tournament_dict.pop('creator')
-		creator = User.objects.get(id=creator_id)
-		tournament_dict['creator'] = model_to_dict(creator)
-		tournament_dict['creator']['image'] = str(tournament_dict['creator']['image'])
-		tournament_dict['players'] = [model_to_dict(player) for player in tournament.players.all()]
-		for player in tournament_dict['players']:
-			player['image'] = str(player['image'])
-		tournament_dict['count'] = tournament.player_count
-		tournaments_dict.append(tournament_dict)
-	return JsonResponse({'tournaments': tournaments_dict}, safe=False)
+	try:
+		tournaments = Tournament.objects.filter(status='available').annotate(player_count=Count('players'))
+		if not tournaments.exists():
+			return JsonResponse({'tournaments': []})
+		tournaments = tournaments.values()
+		return JsonResponse({'tournaments': list(tournaments)})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 @api_view(['POST'])
 def join_tournament(request, user_id):
@@ -777,8 +771,6 @@ def create_tournament(request):
 			tournament.save()
 			tournament_player = TournamentPlayer(user=user, tournament=tournament)
 			tournament_player.save()
-			tournament.creator = user
-			tournament.save()
 			return JsonResponse({'status': 'success', 'message': 'Tournament created successfully', 'tournament_id': tournament.id})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})

@@ -431,7 +431,6 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 				self.channel_name	
 			)
 
-	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
 		if 'type' in text_data_json:
@@ -468,7 +467,6 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
-	# Send message to room group
 	async def message(self, event):
 		await self.send(text_data=json.dumps({
 			'type': 'message',
