@@ -47,8 +47,6 @@ def confirm_2fa(request, user_id):
 			user = User.objects.get(idName=user_id)
 			user_entered_code = data.get('code', '')
 			totp_secret = user.otp_secret
-			
-			# Generate the expected TOTP code using the secret
 			expected_code = pyotp.TOTP(totp_secret).now()
 			
 			if user_entered_code == expected_code:
@@ -830,38 +828,6 @@ def join_or_create_room(request, user_id):
 			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
-
-
-# @api_view(['POST'])
-# def cancel_room(request, user_id):
-# 	logger = logging.getLogger(__name__)
-# 	try:
-# 		user = User.objects.get(idName=user_id)
-# 		if user is None:
-# 			return JsonResponse({'status': 'error', 'message': 'User not found'})
-# 		authorization_head = request.headers.get('Authorization')
-# 		if not authorization_head or not authorization_head.startswith('Bearer '):
-# 			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
-# 		access_token = authorization_head.split(' ')[1]
-# 		jwt_authentication = JWTAuthentication()
-# 		decoded_token = jwt_authentication.get_validated_token(access_token)
-# 		token_user_id = decoded_token['user_id']
-# 		if token_user_id != user_id:
-# 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
-# 		# get first game room with user
-# 		room = GameRoom.objects.filter(roomplayer__user=user).first()
-# 		if room is None:
-# 			return JsonResponse({'status': 'error', 'message': 'Room not found'})
-# 		room.save()
-# 		if room.player_count == 2:
-# 			room.gameState = 'cancel'
-# 			room.save()
-# 			return JsonResponse({'status': 'success', 'message': 'Room cancelled'})
-# 		else: 
-# 			return JsonResponse({'status': 'error', 'message': 'Room not cancellable'})
-# 		return JsonResponse({'status': 'success', 'message': 'Room cancelled successfully'})
-# 	except Exception as e:
-# 		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def homePage(request):
 	return render(request, 'homePage.html')

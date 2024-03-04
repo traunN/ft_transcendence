@@ -1,4 +1,8 @@
-document.addEventListener('DOMContentLoaded', function () {
+console.log('login42.js loaded');
+document.addEventListener('DOMContentLoaded', initializeLogin);
+
+function initializeLogin() {
+	console.log('login42.js DOMContentLoaded');
 	var isLogged;
 	var existingUser = false;
 	var loginLogout = document.getElementById('Login_Logout');
@@ -509,4 +513,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			return;
 		}
 	});
-});
+}
