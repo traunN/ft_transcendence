@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeSettings);
+
+function initializeSettings() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
@@ -23,4 +25,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			element.className = `${element.className.split(' ')[0]} ${newSkin}`;
 		});
 	}
-});
+}

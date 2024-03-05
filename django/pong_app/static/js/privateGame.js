@@ -5,7 +5,9 @@ let isWinner = false;
 let gameRoomStarted = false;
 let justReload = false;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializePrivateGame);
+
+function initializePrivateGame() {
 	
 	let reloadLeave = true;
 	var user = JSON.parse(sessionStorage.getItem('user'));
@@ -337,4 +339,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			socket.close();
 		}
 	}
-});
+}

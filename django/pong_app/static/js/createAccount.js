@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeCreateAccount);
+
+function initializeCreateAccount() {
 	var loginLogout = document.getElementById('Login_Logout');
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
@@ -70,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		})
 			.then(response => {
 				if (!response.ok) {
-					// If the response status is not ok, get the response text and throw an error
 					return response.text().then(text => {
 						throw new Error('Server error: ' + text);
 					});
@@ -80,8 +81,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(data => {
 				if (data) {
 					user = JSON.stringify(data.user);
-					console.log('User: ' + user);
-					// add id to user object	
 					data.id = data.idName;
 					if (data.id === undefined) {
 						data.id = data.user.idName;
@@ -122,4 +121,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			.catch(error => console.error('Error:', error));
 	}
 	);
-});
+}

@@ -1,6 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
 	let loadedScripts = new Set();
 
+	function loadScript(src) {
+		return new Promise((resolve, reject) => {
+			const script = document.createElement('script');
+			script.src = src;
+			script.onload = () => resolve();
+			script.onerror = () => reject(new Error(`Script load error for ${src}`));
+			document.head.appendChild(script);
+		});
+	}
+
 	function navigateToPath(path) {
 		fetch(path)
 			.then(response => response.text())
@@ -9,30 +19,80 @@ document.addEventListener('DOMContentLoaded', function () {
 				const doc = parser.parseFromString(data, 'text/html');
 				document.body.innerHTML = doc.body.innerHTML;
 				document.head.innerHTML = doc.head.innerHTML;
-				
-				initializeLogin();
+
 				const scripts = doc.head.querySelectorAll('script');
+				const loadPromises = [];
+
 				scripts.forEach(script => {
 					if (loadedScripts.has(script.src)) {
 						return;
 					}
-					const newScript = document.createElement('script');
-					newScript.src = script.src;
-					newScript.textContent = script.textContent;
-					document.head.appendChild(newScript);
-					loadedScripts.add(script.src);
+					if (script.src.includes('profile.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('main.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('chat.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('leaderboard.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('createAccount.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('privateGame.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('settings.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('setup2FA.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('tournament.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('tournament_lobby.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else if (script.src.includes('tournament_game.js')) {
+						loadPromises.push(loadScript(script.src));
+					} else {
+						const newScript = document.createElement('script');
+						newScript.src = script.src;
+						newScript.textContent = script.textContent;
+						document.head.appendChild(newScript);
+						loadedScripts.add(script.src);
+					}
 				});
-				
-				window.history.pushState({}, '', path);
-				if (path.includes('profile')) {
-					initializeProfile();
-				}
+
+				Promise.all(loadPromises)
+					.then(() => {
+						window.history.pushState({}, '', path);
+						initializeLogin();
+						initializeSetActive();
+						initializeFriends();
+						if (path.includes('profile')) {
+							initializeProfile();
+						} else if (path.includes('pongGame')) {
+							initializePongGame();
+						} else if (path.includes('chat')) {
+							initializeChat();
+						} else if (path.includes('leaderboard')) {
+							initializeLeaderboard();
+						} else if (path.includes('createAccount')) {
+							initializeCreateAccount();
+						} else if (path.includes('privateGame')) {
+							initializePrivateGame();
+						} else if (path.includes('settings')) {
+							initializeSettings();
+						} else if (path.includes('setup_2fa')) {
+							initializeSetup2FA();
+						} else if (path.includes('tournament')) {
+							initializeTournament();
+						} else if (path.includes('tournament_lobby')) {
+							initializeTournamentLobby();
+						} else if (path.includes('tournament_game')) {
+							initializeTournamentGame();
+						}
+					})
+					.catch(error => console.error('Error:', error));
 			})
 			.catch(error => console.error('Error:', error));
 	}
 
-
-	// Event delegation for handling clicks on .nav-link elements
 	document.body.addEventListener('click', function (e) {
 		const target = e.target;
 		if (target.matches('.nav-link')) {

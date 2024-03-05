@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
-	
+document.addEventListener('DOMContentLoaded', initializeChat);
+
+function initializeChat() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var jwtToken;
 	if (!user) {
@@ -619,4 +620,4 @@ document.addEventListener('DOMContentLoaded', function () {
 		document.getElementById("message-input").value = "";
 	}
 	
-});
+}

@@ -4,7 +4,9 @@ let socket;
 let isWinner = false;
 let gameRoomStarted = false;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeTournamentGame);
+
+function initializeTournamentGame() {
 	let reloadLeave = true;
 	let gameLeave = false;
 	var tournamentId = document.getElementById('tournamentId').value;
@@ -503,4 +505,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		}
 	});
-});
+}

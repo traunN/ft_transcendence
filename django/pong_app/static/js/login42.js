@@ -1,4 +1,3 @@
-console.log('login42.js loaded');
 document.addEventListener('DOMContentLoaded', initializeLogin);
 
 function initializeLogin() {

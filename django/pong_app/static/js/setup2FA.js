@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeSetup2FA);
+
+function initializeSetup2FA() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
 		console.log('Failed to get user from session storage');
@@ -37,4 +39,4 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	});
 
-});
+}

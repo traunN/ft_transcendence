@@ -1,9 +1,11 @@
-let isGameRunning = false;
-let socket;
-let userId;
-let justReload = false;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializePongGame);
+
+function initializePongGame() {
+	let isGameRunning = false;
+	let socket;
+	let userId;
+	let justReload = false;
 	const board = document.querySelector('.board');
 	const paddle1 = document.querySelector('.paddle_1');
 	const paddle2 = document.querySelector('.paddle_2');
@@ -304,4 +306,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			socket.close();
 		}
 	}
-});
+}

@@ -1,4 +1,6 @@
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', initializeSetActive);
+
+function initializeSetActive() {
 	var navLinks = document.querySelectorAll(".nav-link");
 	var currentUrl = location.href;
 

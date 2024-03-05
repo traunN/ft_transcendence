@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', initializeProfile);
+
 
 function initializeProfile() {
 	var username = document.getElementById('usernameProfile');
@@ -324,5 +326,3 @@ function initializeProfile() {
 		}
 	});
 }
-
-document.addEventListener('DOMContentLoaded', initializeProfile);

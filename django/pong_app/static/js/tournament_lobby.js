@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeTournamentLobby);
+
+function initializeTournamentLobby() {
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
@@ -502,4 +504,4 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-});
+}

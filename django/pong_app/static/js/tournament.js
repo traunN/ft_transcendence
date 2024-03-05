@@ -1,5 +1,6 @@
+document.addEventListener('DOMContentLoaded', initializeTournament);
 
-document.addEventListener('DOMContentLoaded', function () {
+function initializeTournament() {
 	var jwtToken;
 	const socket = new WebSocket('wss://localhost:8443/ws/tournament/');
 	const form = document.getElementById('create-tournament-form');
@@ -173,4 +174,4 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch(error => console.error(error));
 	}
-});
+}

@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', initializeLeaderboard);
+
+function initializeLeaderboard() {
 	fetch('/get_all_users/')
 		.then(response => response.json())
 		.then(data => {
@@ -32,4 +34,4 @@ document.addEventListener('DOMContentLoaded', function () {
 				tourney_wins.innerHTML = users[i].tournamentWins;
 			}
 		});
-});
+}

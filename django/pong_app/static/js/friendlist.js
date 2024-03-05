@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+function initializeFriends() {
 	var user = sessionStorage.getItem('user');
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
@@ -123,4 +123,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-});
+}
+
+document.addEventListener('DOMContentLoaded', initializeFriends);
