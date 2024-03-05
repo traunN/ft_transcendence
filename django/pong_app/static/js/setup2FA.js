@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', initializeSetup2FA);
 
 function initializeSetup2FA() {
+	console.log('setup2FA.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
 		console.log('Failed to get user from session storage');
@@ -28,7 +29,6 @@ function initializeSetup2FA() {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				// Redirect to /settings
 				window.location.href = '/homePage';
 			}
 			else {

@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', initializeLogin);
 
 function initializeLogin() {
-	console.log('login42.js DOMContentLoaded');
 	var isLogged;
 	var existingUser = false;
 	var loginLogout = document.getElementById('Login_Logout');

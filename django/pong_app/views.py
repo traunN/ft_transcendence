@@ -63,14 +63,9 @@ def confirm_2fa(request, user_id):
 
 def user_two_factor_auth_data_create(user):
 	secret_key = pyotp.random_base32()
-
-	# Generate a TOTP object
 	totp = pyotp.TOTP(secret_key)
-
 	user.otp_secret = secret_key
 	user.save()
-
-	# Generate the URI for the QR code
 	uri = totp.provisioning_uri(name=user.login, issuer_name='Pong Game')
 
 	return uri
@@ -78,7 +73,6 @@ def user_two_factor_auth_data_create(user):
 def setup_2fa(request, user_id):
 	user = User.objects.get(idName=user_id)
 
-	# Generate and display QR code for  2FA setup
 	uri = user_two_factor_auth_data_create(user)
 	encoded_uri = parse.quote(uri)
 	qr_code_url = f'https://api.qrserver.com/v1/create-qr-code/?data={encoded_uri}&size=200x200'

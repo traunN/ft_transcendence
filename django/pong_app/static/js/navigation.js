@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	function navigateToPath(path) {
+	function navigateToPath(path, currentPath) {
 		fetch(path)
 			.then(response => response.text())
 			.then(data => {
@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				Promise.all(loadPromises)
 					.then(() => {
+						if (currentPath.includes('pongGame')) {
+							customOnBeforeUnload();
+						}
 						window.history.pushState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
@@ -97,7 +100,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		const target = e.target;
 		if (target.matches('.nav-link')) {
 			e.preventDefault();
-			navigateToPath(target.href);
+			const targetPath = target.href;
+			const currentPath = window.location.pathname;
+			navigateToPath(targetPath, currentPath);
 		}
 	});
 });
