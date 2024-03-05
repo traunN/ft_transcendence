@@ -1,16 +1,18 @@
-let isGameRunning = false;
-let userId;
-let socket;
-let isWinner = false;
-let gameRoomStarted = false;
-let justReload = false;
 
 document.addEventListener('DOMContentLoaded', initializePrivateGame);
 
+window.privateGameData = {
+	shouldCloseSocket: false,
+	socket: null
+};
+
 function initializePrivateGame() {
-	
-	let reloadLeave = true;
-	var user = JSON.parse(sessionStorage.getItem('user'));
+	let isGameRunning = false;
+	let userId;
+	let gameSocket = window.privateGameData.socket;
+	let isWinner = false;
+	let gameRoomStarted = false;
+	let justReload = false;
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
 	const ball = document.querySelector('.ball');
@@ -24,21 +26,23 @@ function initializePrivateGame() {
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
 	var roomNameKey = sessionStorage.getItem('roomNameKey');
 	var jwtToken;
-
-	if (sessionStorage.getItem('shouldRedirect') === 'true') {
-		window.location.href = '/homePage/';
-		sessionStorage.removeItem('shouldRedirect');
+	var user = JSON.parse(sessionStorage.getItem('user'));
+	if (!user) {	
+		console.log('Failed to get user from session storage');
+		history.back();
+		return;
+	}
+	else{
+		console.log('user:', user);
 	}
 	if (roomNameKey) {
 		if (roomNameKey !== roomName) {
 			sessionStorage.setItem('roomNameKey', '');
-			reloadLeave = false;
 			history.back();
 		}
 	}
 	else {
 		sessionStorage.setItem('roomNameKey', '');
-		reloadLeave = false;
 		history.back();
 	}
 	jwtToken = sessionStorage.getItem('jwt');
@@ -91,7 +95,7 @@ function initializePrivateGame() {
 		const y = paddlePositionObj.y;
 		targetPaddle1Y = y;
 		paddle1.style.top = `${y}px`;
-		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+		gameSocket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 	}
 
 	function update_paddle2_position(updated_paddle_position) {
@@ -99,7 +103,7 @@ function initializePrivateGame() {
 		const y = paddlePositionObj.y;
 		targetPaddle2Y = y;
 		paddle2.style.top = `${y}px`;
-		socket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+		gameSocket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
 
 	document.addEventListener('keydown', handleKeyEvent);
@@ -121,28 +125,28 @@ function initializePrivateGame() {
 			if (targetPaddle2Y < 50) {
 				targetPaddle2Y = 50;
 			}
-			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+			gameSocket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 		}
 		if (keys.ArrowDown) {
 			targetPaddle2Y += 10;
 			if (targetPaddle2Y > 550) {
 				targetPaddle2Y = 550;
 			}
-			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
+			gameSocket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 		}
 		if (keys.KeyW) {
 			targetPaddle1Y -= 10;
 			if (targetPaddle1Y < 50) {
 				targetPaddle1Y = 50;
 			}
-			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+			gameSocket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
 		if (keys.KeyS) {
 			targetPaddle1Y += 10;
 			if (targetPaddle1Y > 550) {
 				targetPaddle1Y = 550;
 			}
-			socket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
+			gameSocket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
 
 		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
@@ -158,7 +162,7 @@ function initializePrivateGame() {
 			console.log('gameLoop not running');
 			return;
 		}
-		socket.onmessage = function (event) {
+		gameSocket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
 			if (messageData.message === 'start_game') {
 				const initialState = messageData.initial_state;
@@ -166,7 +170,8 @@ function initializePrivateGame() {
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
-				update_ball_position(updated_ball_position);
+				if (isGameRunning)
+					update_ball_position(updated_ball_position);
 				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
@@ -200,16 +205,13 @@ function initializePrivateGame() {
 				message.textContent = 'Player left the game';
 				sessionStorage.setItem('roomNameKey', '');
 				justReload = true;
-				setTimeout(function () {
-					window.location.href = '/homePage/';
-				}, 3000);
 			}
 			else {
 				const gameState = messageData.message;
 			}
 		};
 		update_paddles();
-		socket.onclose = function (event) {
+		gameSocket.onclose = function (event) {
 			isGameRunning = false;
 		};
 	}
@@ -253,8 +255,9 @@ function initializePrivateGame() {
 		.then(data => {
 			if (data.status === 'success') {
 				console.log('Successfully joined or created room');
-				socket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
-				if (!socket) {
+				gameSocket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
+				window.privateGameData.socket = gameSocket;
+				if (!gameSocket) {
 					console.log('Failed to create socket');
 					return;
 				}
@@ -262,9 +265,10 @@ function initializePrivateGame() {
 				if (data.start_game) {
 					window.room_name = data.room_name;
 					// check if both players are in the same room
-					socket.onopen = async function (event) {
-						socket.send(JSON.stringify({ 'message': 'start_game' }));
-						socket.onmessage = function (event) {
+					gameSocket.onopen = async function (event) {
+						sessionStorage.setItem('shouldCloseSocket', 'true');
+						gameSocket.send(JSON.stringify({ 'message': 'start_game' }));
+						gameSocket.onmessage = function (event) {
 							const messageData = JSON.parse(event.data);
 							if (messageData.message === 'start_game') {
 								isGameRunning = true;
@@ -276,9 +280,7 @@ function initializePrivateGame() {
 								const initialState = messageData.initial_state;
 								gameLoop(initialState);
 							} else {
-								// Handle other game messages
 								gameState = messageData.message;
-								// gameLoop(gameState);
 							}
 
 						};
@@ -286,8 +288,9 @@ function initializePrivateGame() {
 				} else {
 					message.textContent = 'Waiting for another player...';
 					window.room_name = data.room_name;
-					socket.onopen = function (event) {
-						socket.onmessage = function (event) {
+					gameSocket.onopen = function (event) {
+						sessionStorage.setItem('shouldCloseSocket', 'true');
+						gameSocket.onmessage = function (event) {
 							const messageData = JSON.parse(event.data);
 							if (messageData.message === 'start_game') {
 								// Handle the initial game state
@@ -298,7 +301,6 @@ function initializePrivateGame() {
 								const initialState = messageData.initial_state;
 								gameLoop(initialState);
 							} else {
-								// Handle other game messages
 								gameState = messageData.message;
 								gameLoop(gameState);
 							}
@@ -315,28 +317,24 @@ function initializePrivateGame() {
 			console.error('There has been a problem with your fetch operation:', error);
 		});
 	}
+}
 
-
-	window.onbeforeunload = function () {
-		if (gameRoomStarted) {
+function customOnBeforeUnload() {
+	if (!window.location.href.includes('privateGame')) {
+		console.log('not on privateGame');
+		return;
+	}
+	if (sessionStorage.getItem('shouldCloseSocket') === 'true') {
+		console.log('socket is :', window.privateGameData.socket)
+		if (window.privateGameData.socket) {
+			window.privateGameData.socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
+			window.privateGameData.socket.close();
 			console.log('Closing the socket');
 		}
-		else
-		{
-			console.log('Socket is already closed');
-			return;
-		}
-		if (!justReload)
-		{
-			console.log('cancel_gAAAAAame_room');
-			socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
-			socket.close();
-			gameRoomStarted = false;
-			justReload = true;
-			sessionStorage.setItem('shouldRedirect', 'true');
-		}
-		else {
-			socket.close();
-		}
+		sessionStorage.setItem('shouldCloseSocket', 'false');
+	} else {
+		console.log('Not closing the socket');
 	}
 }
+
+window.addEventListener('beforeunload', customOnBeforeUnload);

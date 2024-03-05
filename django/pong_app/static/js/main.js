@@ -11,7 +11,6 @@ function initializePongGame() {
 	let justReload = false;
 	let gameSocket = window.gameData.socket;
 	let userId;
-	justReload = false;
 	const board = document.querySelector('.board');
 	const paddle1 = document.querySelector('.paddle_1');
 	const paddle2 = document.querySelector('.paddle_2');
@@ -104,7 +103,6 @@ function initializePongGame() {
 			keys[event.code] = false;
 		}
 	}
-
 
 	function update_paddles() {
 		if (keys.ArrowUp) {
@@ -207,7 +205,6 @@ function initializePongGame() {
 				message.textContent = 'Player left the game';
 				justReload = true;
 				setTimeout(function () {
-					console.log('reloading');
 					var XHR = new XMLHttpRequest();
 					XHR.open('GET', '/pongGame/', true);
 					XHR.onload = function () {

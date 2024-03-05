@@ -66,6 +66,9 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (currentPath.includes('chat')) {
 							customOnBeforeUnload();
 						}
+						if (currentPath.includes('privateGame')) {
+							customOnBeforeUnload();
+						}
 						window.history.pushState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
