@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', initializeChat);
 
+window.chatData = {
+	socket: null
+};
+
 function initializeChat() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var jwtToken;
@@ -10,13 +14,13 @@ function initializeChat() {
 		return;
 	}
 	jwtToken = sessionStorage.getItem('jwt');
-	var socket = new WebSocket(`wss://localhost:8443/ws/rooms/${user.idName}/`);
+	window.chatData.socket = new WebSocket(`wss://localhost:8443/ws/rooms/${user.idName}/`);
+	socket = window.chatData.socket;
 	socket.onopen = function (e) {
 		socket.send(JSON.stringify({ type: 'join', username: user.login }));
 	};
 
 	
-	// get message input and focus
 	var messageInput = document.getElementById("message-input");
 	messageInput.focus();
 	
@@ -135,11 +139,7 @@ function initializeChat() {
 		}
 	};
 
-	window.onbeforeunload = function () {
-		if (socket.readyState === WebSocket.OPEN) {
-			socket.close();
-		}
-	}
+	
 
 	function blockUser(user_id) {
 		fetch('/check_blocked/' + user.idName + '/', {
@@ -514,6 +514,7 @@ function initializeChat() {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
+				console.log('message sent');
 			}
 			else {
 				console.log('error:', data);
@@ -621,3 +622,15 @@ function initializeChat() {
 	}
 	
 }
+
+function customOnBeforeUnload() {
+	if (window.location.pathname !== '/chat/') {
+		console.log('not on chat');
+		return;
+	}
+	if (window.chatData.socket) {
+		window.chatData.socket.close();
+	}
+}
+
+window.addEventListener('beforeunload', customOnBeforeUnload);

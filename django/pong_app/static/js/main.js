@@ -153,7 +153,8 @@ function initializePongGame() {
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
-				update_ball_position(updated_ball_position);
+				if (isGameRunning)
+					update_ball_position(updated_ball_position);
 				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
@@ -175,7 +176,21 @@ function initializePongGame() {
 			}
 			else if (messageData.message === 'game_over') {
 				setTimeout(function () {
-					location.reload();
+					var XHR = new XMLHttpRequest();
+					XHR.open('GET', '/pongGame/', true);
+					XHR.onload = function () {
+						if (XHR.status === 200) {
+							var parser = new DOMParser();
+							var doc = parser.parseFromString(XHR.responseText, 'text/html');
+							var newContent = doc.querySelector('#scrollable-area').innerHTML;
+							document.getElementById('scrollable-area').innerHTML = newContent;
+							customOnBeforeUnload();
+							initializePongGame();
+						} else {
+							console.error('Failed to load new page content');
+						}
+					};
+					XHR.send();
 				}, 5000);
 				isGameRunning = false;
 				if (player1ScoreValue > player2ScoreValue) {
@@ -192,7 +207,22 @@ function initializePongGame() {
 				message.textContent = 'Player left the game';
 				justReload = true;
 				setTimeout(function () {
-					location.reload();
+					console.log('reloading');
+					var XHR = new XMLHttpRequest();
+					XHR.open('GET', '/pongGame/', true);
+					XHR.onload = function () {
+						if (XHR.status === 200) {
+							var parser = new DOMParser();
+							var doc = parser.parseFromString(XHR.responseText, 'text/html');
+							var newContent = doc.querySelector('#scrollable-area').innerHTML;
+							document.getElementById('scrollable-area').innerHTML = newContent;
+							customOnBeforeUnload();
+							initializePongGame();
+						} else {
+							console.error('Failed to load new page content');
+						}
+					};
+					XHR.send();
 				}, 3000);
 			}
 			else {

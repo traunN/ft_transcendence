@@ -398,7 +398,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 
 	@database_sync_to_async
 	def get_chat_messages(self):
-		return list(ChatMessage.objects.all().order_by('created_at')[:20])
+		return list(ChatMessage.objects.all())
 
 	@database_sync_to_async
 	def get_user(self, user_id):
@@ -414,6 +414,9 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 		await self.accept()
 		await asyncio.sleep(0.1)
 		chat_messages = await self.get_chat_messages()
+		# only keep last 20 messages
+		if len(chat_messages) > 20:
+			chat_messages = chat_messages[len(chat_messages) - 20:]
 		for chat_message in chat_messages:
 			message = chat_message.message
 			username = chat_message.username

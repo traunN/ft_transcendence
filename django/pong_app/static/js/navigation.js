@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (currentPath.includes('pongGame')) {
 							customOnBeforeUnload();
 						}
+						if (currentPath.includes('chat')) {
+							customOnBeforeUnload();
+						}
 						window.history.pushState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
