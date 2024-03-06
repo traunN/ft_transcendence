@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (currentPath.includes('privateGame')) {
 							customOnBeforeUnload();
 						}
-						window.history.pushState({}, '', path);
+						window.history.replaceState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
 						initializeFriends();
@@ -135,5 +135,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	// Event history before after
+	window.addEventListener('popstate', function(event) {
+		const previousPath = window.location.pathname; 
+		navigateToPath(previousPath, previousPath); 
+	});
 });
