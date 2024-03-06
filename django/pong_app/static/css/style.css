@@ -880,11 +880,11 @@ div.card.custom-bg {
 }
 
 .close-button {
-	float: right;
-	font-size: 1.5em;
-	font-weight: bold;
-	color: #000;
-	background: transparent;
-	border: none;
-	cursor: pointer;
+		float: right;
+		font-size: 1.5em;
+		font-weight: bold;
+		color: #000;
+		background: transparent;
+		border: none;
+		cursor: pointer;
 }

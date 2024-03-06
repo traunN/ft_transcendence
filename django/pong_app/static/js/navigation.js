@@ -1,5 +1,14 @@
+function navigateToLobby(path) {
+	const event = new CustomEvent('navigateToPath', { detail: { path: path } });
+	document.dispatchEvent(event);
+}
 document.addEventListener('DOMContentLoaded', function () {
 	let loadedScripts = new Set();
+
+	document.addEventListener('navigateToPath', function (e) {
+		console.log('navigateToPath', e.detail.path, window.location.pathname);
+		navigateToPath(e.detail.path, window.location.pathname);
+	});
 
 	function loadScript(src) {
 		return new Promise((resolve, reject) => {
@@ -10,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			document.head.appendChild(script);
 		});
 	}
+
 
 	function navigateToPath(path, currentPath) {
 		fetch(path)
@@ -89,12 +99,12 @@ document.addEventListener('DOMContentLoaded', function () {
 							initializeSettings();
 						} else if (path.includes('setup_2fa')) {
 							initializeSetup2FA();
-						} else if (path.includes('tournament')) {
-							initializeTournament();
 						} else if (path.includes('tournament_lobby')) {
 							initializeTournamentLobby();
 						} else if (path.includes('tournament_game')) {
 							initializeTournamentGame();
+						} else if (path.includes('tournament')) {
+							initializeTournament();
 						}
 					})
 					.catch(error => console.error('Error:', error));

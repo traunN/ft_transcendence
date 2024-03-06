@@ -4,7 +4,6 @@ function initializeTournamentLobby() {
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
-	var loadingMessage = document.getElementById('loadingMessage');
 	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
 	var statusText = document.getElementById('statusText');
 	var jwtToken;
@@ -123,7 +122,10 @@ function initializeTournamentLobby() {
 
 	lobbysocket.onopen = function (e) {
 		console.log('lobbysocket opened');
+		var loadingMessage = document.getElementById('loadingMessage');
+		console.log('loadingMessage', loadingMessage);
 		loadingMessage.style.display = 'block';
+		loadingMessage.innerHTML = 'Loading...AAAAAA';
 		setTimeout(function () {
 			lobbysocket.send(JSON.stringify({
 				'type': 'tournament_lobby_updated',

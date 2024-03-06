@@ -220,7 +220,7 @@ function initializeProfile() {
 		const userId = user.idName;
 		const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
 		window.location.href = url;
-	});
+	});	
 
 	searchUser.addEventListener('keypress', function (event) {
 		if (event.key === "Enter") {

@@ -57,7 +57,7 @@ function initializeTournament() {
 						}));
 					}
 					sessionStorage.setItem('tournamentLobbyKey', response.tournament_id);
-					window.location.href = '/tournament_lobby/' + response.tournament_id;
+					navigateToLobby('/tournament_lobby/' + response.tournament_id);
 				}
 				else {
 					console.log('Error creating tournament');
