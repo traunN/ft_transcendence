@@ -628,6 +628,7 @@ function displayMessage(username, message, nb) {
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 	document.getElementById("message-input").value = "";
 }
+window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	if (window.location.pathname !== '/chat/') {
@@ -637,6 +638,6 @@ function customOnBeforeUnload() {
 	if (window.chatData.socket) {
 		window.chatData.socket.close();
 	}
+	// remove beforeunload event
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
 }
-
-window.addEventListener('beforeunload', customOnBeforeUnload);
