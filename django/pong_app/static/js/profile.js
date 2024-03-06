@@ -31,9 +31,8 @@ function initializeProfile() {
 		return;
 	}
 	jwtToken = sessionStorage.getItem('jwt');
-	console.log(user);
 	var pathArray = window.location.pathname.split('/');
-	var userId = pathArray[pathArray.length - 2];
+	var userId = pathArray[pathArray.length - 1];
 	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
 		userId = user.idName;
 	}

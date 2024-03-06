@@ -20,8 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			script.onerror = () => reject(new Error(`Script load error for ${src}`));
 			// Check if the script is already in the document
 			if (!document.querySelector(`script[src="${src}"]`)) {
+				console.log('Loading script');
+				console.log(script);
 				document.head.appendChild(script);
 			} else {
+				console.log('Script already loaded');
 				resolve(); // If the script is already loaded, resolve the promise
 			}
 		});
@@ -131,4 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			navigateToPath(targetPath, currentPath);
 		}
 	});
+
+	// Event history before after
 });

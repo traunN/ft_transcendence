@@ -20,7 +20,6 @@ function handleSubmit(event) {
 }
 
 function initializeChat() {
-	console.log('Initializing chat');
 	var chatForm = document.getElementById("chat-form");
 	chatForm.removeEventListener("submit", handleSubmit, false);
 	chatForm.addEventListener("submit", handleSubmit, false);
@@ -555,7 +554,7 @@ function handleCommand(command, args, messageInput) {
 						displayMessage('System', 'User not found', 2);
 					}
 					else
-						window.location.href = '/profile/' + args[1] + '/';
+						navigateToCustompath('/profile/' + args[1]);
 				});
 			break;
 		case '/block':
@@ -636,7 +635,6 @@ function customOnBeforeUnload() {
 		return;
 	}
 	if (window.chatData.socket) {
-		console.log('closing socket');
 		window.chatData.socket.close();
 	}
 }
