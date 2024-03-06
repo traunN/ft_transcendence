@@ -27,12 +27,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-
-
 	function navigateToPath(path, currentPath) {
 		fetch(path)
 			.then(response => response.text())
 			.then(data => {
+				if (currentPath.includes('chat')) {
+					customOnBeforeUnload();
+				}
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(data, 'text/html');
 				document.body.innerHTML = doc.body.innerHTML;
@@ -74,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						document.head.appendChild(newScript);
 						loadedScripts.add(script.src);
 					}
+					
 				});
 
 				Promise.all(loadPromises)
@@ -81,9 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						if (currentPath.includes('pongGame')) {
 							customOnBeforeUnload();
 						}
-						if (currentPath.includes('chat')) {
-							customOnBeforeUnload();
-						}
+						
 						if (currentPath.includes('privateGame')) {
 							customOnBeforeUnload();
 						}
