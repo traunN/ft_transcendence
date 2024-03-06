@@ -368,11 +368,20 @@ input[type="submit"] {
 	font-size: 25px;
 }
 
-#userImage {
+.user-image-container {
 	width: 60px;
 	height: 60px;
-	object-fit: cover;
 	border-radius: 50%;
+	background-color: #18181C;
+}
+
+#userImage {
+	width: 100%;
+	border-radius: 50%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+	transition: opacity 0.3s ease;
 }
 
 #userImageProfile {

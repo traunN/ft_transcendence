@@ -7,10 +7,14 @@ function initializeLogin() {
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
 	var userImage = document.getElementById('userImage');
-
+	
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 	var jwtToken;
+	userImage.style.opacity = '0';
+	userImage.onload = function() {
+		userImage.style.opacity = '1';
+	};
 
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')

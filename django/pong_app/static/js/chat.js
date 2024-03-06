@@ -156,6 +156,8 @@ function initializeChat() {
 	
 }
 function blockUser(user_id) {
+	var user = window.chatData.user;
+	var jwtToken = window.chatData.jwtToken;
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -208,6 +210,8 @@ function blockUser(user_id) {
 }
 
 function unblockUser(user_id) {
+	var user = window.chatData.user;
+	var jwtToken = window.chatData.jwtToken;
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -261,6 +265,8 @@ function unblockUser(user_id) {
 }
 
 function whisperUser(user_id, message) {
+	var user = window.chatData.user;
+	var jwtToken = window.chatData.jwtToken;
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -325,7 +331,8 @@ function whisperUser(user_id, message) {
 }
 
 function inviteUser(user_id) {
-
+	var user = window.chatData.user;
+	var jwtToken = window.chatData.jwtToken;
 	if (user_id === user.idName) {
 		displayMessage('System', 'You cannot invite yourself.', 2);
 		return;
@@ -392,6 +399,8 @@ function inviteUser(user_id) {
 }
 
 function acceptInvitation(user_id) {
+	var user = window.chatData.user;
+	var jwtToken = window.chatData.jwtToken;
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -543,7 +552,7 @@ function sendMessage(message) {
 function handleCommand(command, args, messageInput) {
 	console.log('args:', args);
 	switch (command) {
-		case '/profile':
+		case '/profile':	
 			if (args.length > 2) {
 				displayMessage('System', 'Usage: /profile [user_id]', 2);
 				return;

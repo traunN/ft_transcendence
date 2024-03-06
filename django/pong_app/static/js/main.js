@@ -346,6 +346,7 @@ function customOnBeforeUnload() {
 	} else {
 		console.log('Not closing the socket');
 	}
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
 }
 
 window.addEventListener('beforeunload', customOnBeforeUnload);
