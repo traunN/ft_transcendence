@@ -121,11 +121,8 @@ function initializeTournamentLobby() {
 		.catch(error => console.error(error));
 
 	lobbysocket.onopen = function (e) {
-		console.log('lobbysocket opened');
 		var loadingMessage = document.getElementById('loadingMessage');
-		console.log('loadingMessage', loadingMessage);
 		loadingMessage.style.display = 'block';
-		loadingMessage.innerHTML = 'Loading...AAAAAA';
 		setTimeout(function () {
 			lobbysocket.send(JSON.stringify({
 				'type': 'tournament_lobby_updated',
@@ -191,7 +188,6 @@ function initializeTournamentLobby() {
 					'player2': room2Id2,
 				}));
 			}, 1000);
-			// get userid of winner
 			var winnerId = data.winner_id;
 			if (user.id == winnerId) {
 				is_in_room1 = true;
@@ -212,7 +208,6 @@ function initializeTournamentLobby() {
 			statusText.innerHTML = 'Final Round';
 			var winnerId = data.winner_id;
 			console.log('second match finished');
-			// get last two players name
 			if (firstMatchWinnerId && winnerId) {
 				lobbysocket.send(JSON.stringify({
 					'type': 'next_players',
@@ -483,7 +478,7 @@ function initializeTournamentLobby() {
 						pagesocket.close();
 					}
 					
-					window.location.href = '/tournament/';
+					navigateToCustompath('/tournament/');
 				}
 				else {
 					console.log('Error leaving tournament');

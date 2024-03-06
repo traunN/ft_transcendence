@@ -1,13 +1,15 @@
-function navigateToLobby(path) {
+function navigateToCustompath(path) {
 	const event = new CustomEvent('navigateToPath', { detail: { path: path } });
 	document.dispatchEvent(event);
 }
+
 document.addEventListener('DOMContentLoaded', function () {
 	let loadedScripts = new Set();
 
 	document.addEventListener('navigateToPath', function (e) {
-		console.log('navigateToPath', e.detail.path, window.location.pathname);
-		navigateToPath(e.detail.path, window.location.pathname);
+		const path = e.detail.path;
+		const currentPath = window.location.pathname;
+		navigateToPath(path, currentPath);
 	});
 
 	function loadScript(src) {
@@ -16,9 +18,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			script.src = src;
 			script.onload = () => resolve();
 			script.onerror = () => reject(new Error(`Script load error for ${src}`));
-			document.head.appendChild(script);
+			// Check if the script is already in the document
+			if (!document.querySelector(`script[src="${src}"]`)) {
+				document.head.appendChild(script);
+			} else {
+				resolve(); // If the script is already loaded, resolve the promise
+			}
 		});
 	}
+
 
 
 	function navigateToPath(path, currentPath) {
@@ -55,9 +63,9 @@ document.addEventListener('DOMContentLoaded', function () {
 						loadPromises.push(loadScript(script.src));
 					} else if (script.src.includes('tournament.js')) {
 						loadPromises.push(loadScript(script.src));
-					} else if (script.src.includes('tournament_lobby.js')) {
+					} else if (path.includes('tournament_lobby')) {
 						loadPromises.push(loadScript(script.src));
-					} else if (script.src.includes('tournament_game.js')) {
+					} else if (path.includes('tournament_game')) {
 						loadPromises.push(loadScript(script.src));
 					} else {
 						const newScript = document.createElement('script');
@@ -100,10 +108,12 @@ document.addEventListener('DOMContentLoaded', function () {
 						} else if (path.includes('setup_2fa')) {
 							initializeSetup2FA();
 						} else if (path.includes('tournament_lobby')) {
+							console.log('initializeTournamentLobby');
 							initializeTournamentLobby();
 						} else if (path.includes('tournament_game')) {
 							initializeTournamentGame();
 						} else if (path.includes('tournament')) {
+							console.log('initializeTournament');
 							initializeTournament();
 						}
 					})
