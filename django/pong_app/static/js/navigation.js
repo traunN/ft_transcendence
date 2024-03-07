@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (currentPath === '/tournament/') {
 					customOnBeforeUnload();
 				}
-				
+				window.history.replaceState({}, '', path);
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(data, 'text/html');
 				document.body.innerHTML = doc.body.innerHTML;
@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (loadedScripts.has(script.src)) {
 						return;
 					}
+					console.log('path:', path);
 					if (script.src.includes('profile.js')) {
 						loadPromises.push(loadScript(script.src));
 					} else if (script.src.includes('main.js')) {
@@ -76,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					} else if (path.includes('tournament_lobby')) {
 						loadPromises.push(loadScript(script.src));
 					} else if (path.includes('tournament_game')) {
+						console.log('load tournament_game.js');
 						loadPromises.push(loadScript(script.src));
 					} else {
 						const newScript = document.createElement('script');
@@ -89,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				Promise.all(loadPromises)
 					.then(() => {
-						window.history.replaceState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
 						initializeFriends();
@@ -112,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						} else if (path.includes('tournament_lobby')) {
 							initializeTournamentLobby();
 						} else if (path.includes('tournament_game')) {
+							console.log('initializeTournamentGame');
 							initializeTournamentGame();
 						} else if (path.includes('tournament')) {
 							initializeTournament();

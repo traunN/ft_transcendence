@@ -22,7 +22,7 @@ function initializeLogin() {
 				if (!response.ok) {
 					// If the response status is not ok, get the response text and throw an error
 					sessionStorage.removeItem('user');
-					window.location.href = '/homePage/';
+					navigateToCustompath('/homePage/');
 
 				}
 				return response.json();
@@ -32,11 +32,11 @@ function initializeLogin() {
 					jwtToken = sessionStorage.getItem('jwt');
 					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {	
 						disconnectUser();
-						window.location.href = '/homePage/';
+						navigateToCustompath('/homePage/');
 					}
 				} else {
 					sessionStorage.removeItem('user');
-					window.location.href = '/homePage/';
+					navigateToCustompath('/homePage/');
 				}
 			});
 	}
@@ -155,7 +155,7 @@ function initializeLogin() {
 				if (data.status === 'success') {
 					setUserOnline(userId);
 					// Redirect to /settings
-					window.location.href = '/homePage';
+					navigateToCustompath('/homePage/');
 				}
 				else {
 					console.log('Error confirming 2FA setup:', data);
@@ -308,7 +308,7 @@ function initializeLogin() {
 		});
 
 		document.getElementById('createAccountButton').addEventListener('click', function () {
-			window.location.href = '/createAccount';
+			navigateToCustompath('/createAccount/');
 		});
 
 		document.getElementById('loginForm').addEventListener('submit', function (event) {

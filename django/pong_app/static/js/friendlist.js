@@ -26,15 +26,16 @@ function initializeFriends() {
 		.then(response => {
 			if (!response.ok) {
 				sessionStorage.removeItem('user');
-				window.location.href = '/homePage/';
-				
+				return response.text().then(text => {
+					throw new Error('Server error: ' + text);
+				});
 			}
 			return response.json();
 		})
 		.then(data => {
 			if (!data.user) {
 				sessionStorage.removeItem('user');
-				window.location.href = '/homePage/';
+				return;
 			}
 		});
 	socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');

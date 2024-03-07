@@ -949,8 +949,8 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 				{
 					'type': 'game_message',
 					'message': 'start_game',
-					'user1': self.user1.alias,
-					'user2': self.user2.alias
+					'user1': self.user1.alias + ' ' + self.user1.idName,
+					'user2': self.user2.alias + ' ' + self.user2.idName
 				}
 			)
 		elif message == 'user_left':

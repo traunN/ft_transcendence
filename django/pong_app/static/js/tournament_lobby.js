@@ -63,7 +63,8 @@ function initializeTournamentLobby() {
 					reloadLeaveLobby = false;
 					sessionStorage.setItem('roomNameKey', user.id);
 					setTimeout(function () {
-						window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
+						// window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
+						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.id + '/');
 					}, 3000);
 				}
 				else if (response.tournament_status === 'final_match_finished') {
@@ -175,7 +176,8 @@ function initializeTournamentLobby() {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName1);
 				setTimeout(function () {
-					window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+					// window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
+					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName1 + '/');
 				}, 3000);
 			}
 		}
@@ -206,7 +208,8 @@ function initializeTournamentLobby() {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName2);
 				setTimeout(function () {
-					window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+					// window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
+					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName2 + '/');
 				}, 5000);
 			}
 		}
@@ -225,13 +228,14 @@ function initializeTournamentLobby() {
 			reloadLeaveLobby = false;
 			setTimeout(function () {
 				sessionStorage.setItem('roomNameKey', winnerId);
-				window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
+				// window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
+				navigateToCustompath('/tournament_game/' + tournamentId + '/' + winnerId + '/');
 			}, 3000);
 		}
 		else if (data.type === 'cancel_lobby') {
 			console.log('cancel_lobby');
 			reloadLeaveLobby = false;
-			window.location.href = '/tournament/';
+			leaveLobby();
 		}
 		else if (data.type === 'next_players') {
 			var player1 = data.player1;
@@ -401,8 +405,8 @@ function initializeTournamentLobby() {
 			.then(response => response.json())
 			.then(data => {
 				if (data.status === 'success') {
-					if (isOpen(lobbysocket)) {
-						lobbysocket.send(JSON.stringify({
+					if (isOpen(window.tournamentLobbyData.lobbySocket)) {
+						window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 							'type': 'tournament_lobby_updated',
 							'tournament_id': tournamentId,
 						}));

@@ -29,7 +29,7 @@ function initializeSetup2FA() {
 			return response.json();
 		}).then(function (data) {
 			if (data.status === 'success') {
-				window.location.href = '/homePage';
+				navigatetoCustomedPage('/homePage/');
 			}
 			else {
 				console.log('Error confirming 2FA setup:', data);

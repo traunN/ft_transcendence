@@ -4,8 +4,8 @@ function initializeLeaderboard() {
 	fetch('/get_all_users/')
 		.then(response => response.json())
 		.then(data => {
-			if (data) {
-				console.log(data);
+			if (!data) {
+				return;
 			}
 			var users = data.users;
 			if (data.users.length === 0) {
@@ -34,4 +34,5 @@ function initializeLeaderboard() {
 				tourney_wins.innerHTML = users[i].tournamentWins;
 			}
 		});
+		
 }

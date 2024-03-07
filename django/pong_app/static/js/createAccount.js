@@ -115,7 +115,7 @@ function initializeCreateAccount() {
 					userName.innerHTML = data.login;
 					userImage.src = data.image;
 					userImage.style.display = 'block';
-					window.location.href = '/homePage/';
+					navigateToCustompath('/homePage/');
 				}
 			})
 			.catch(error => console.error('Error:', error));

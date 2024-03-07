@@ -230,7 +230,8 @@ function initializeProfile() {
 	document.getElementById('setup2FAButton').addEventListener('click', function () {
 		const userId = user.idName;
 		const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
-		window.location.href = url;
+		// window.location.href = url;
+		navigateToCustompath(url);
 	});	
 
 	searchUser.addEventListener('keypress', function (event) {

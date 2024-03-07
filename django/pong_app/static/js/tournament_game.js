@@ -1,12 +1,18 @@
-let isGameRunning = false;
-let userId;
-let socket;
-let isWinner = false;
-let gameRoomStarted = false;
 
 document.addEventListener('DOMContentLoaded', initializeTournamentGame);
 
+window.tournamentGameData = {
+	shouldCloseSocket: false,
+	socket: null
+};
+
 function initializeTournamentGame() {
+	console.log('tournament_game.js loaded');
+	let isGameRunning = false;
+	let userId;
+	let socket;
+	let isWinner = false;
+	let gameRoomStarted = false;
 	let reloadLeave = true;
 	let gameLeave = false;
 	var tournamentId = document.getElementById('tournamentId').value;
@@ -97,13 +103,15 @@ function initializeTournamentGame() {
 					isWinner = true;
 					gameLeave = true;
 					isGameRunning = false;
-					window.location.href = '/tournament_lobby/' + tournamentId;
+					// window.location.href = '/tournament_lobby/' + tournamentId;
+					navigateToCustompath('/tournament_lobby/' + tournamentId);
 				}
 				else {
 					isWinner = false;
 					gameLeave = true;
 					isGameRunning = false;
-					window.location.href = '/tournament/';
+					// window.location.href = '/tournament/';
+					navigateToCustompath('/tournament/');
 				}
 			}
 		}
@@ -112,7 +120,8 @@ function initializeTournamentGame() {
 			isWinner = false;
 			gameLeave = true;
 			isGameRunning = false;
-			window.location.href = '/tournament/';
+			// window.location.href = '/tournament/';
+			navigateToCustompath('/tournament/');
 		}
 	};
 			
@@ -235,14 +244,16 @@ function initializeTournamentGame() {
 					isWinner = true;
 					message.textContent = 'You won!';
 					setTimeout(function () {
-						window.location.href = '/tournament_lobby/' + tournamentId;
+						// window.location.href = '/tournament_lobby/' + tournamentId;
+						navigateToCustompath('/tournament_lobby/' + tournamentId);
 					}, 3000);
 				}
 				else {
 					isWinner = false;
 					message.textContent = 'You lost!';
 					setTimeout(function () {
-						window.location.href = '/tournament/';
+						// window.location.href = '/tournament/';
+						navigateToCustompath('/tournament/');
 					}, 3000);
 				}
 			}
