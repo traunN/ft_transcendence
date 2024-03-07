@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	document.removeEventListener('DOMContentLoaded', initializeTournamentLobby);
 	document.addEventListener('DOMContentLoaded', initializeTournamentLobby);
 	initializeTournamentLobby();
@@ -12,6 +12,9 @@ window.tournamentLobbyData = {
 };
 
 function initializeTournamentLobby() {
+	function isOpen(socket) {
+		return socket && socket.readyState === 1;
+	}
 	var aliasInput = document.getElementById('aliasInput');
 	var tournamentId = document.getElementById('tournamentId').value;
 	var playersList = document.getElementById('playerList');
@@ -32,16 +35,16 @@ function initializeTournamentLobby() {
 	var firstMatchWinnerId;
 	let is_in_room1 = false;
 
-	if (tournamentLobbyKey){
+	if (tournamentLobbyKey) {
 		console.log('tournamentLobbyKey', tournamentLobbyKey);
 		console.log('tournamentId', tournamentId);
-		if(tournamentLobbyKey !== tournamentId) {
+		if (tournamentLobbyKey !== tournamentId) {
 			sessionStorage.setItem('tournamentLobbyKey', '');
 			reloadLeaveLobby = false;
 			history.back();
 		}
 	}
-	else{
+	else {
 		sessionStorage.setItem('tournamentLobbyKey', '');
 		reloadLeaveLobby = false;
 		history.back();
@@ -58,7 +61,7 @@ function initializeTournamentLobby() {
 			if (response.status === 'success') {
 				if (response.tournament_status === 'second_match_finished') {
 					reloadLeaveLobby = false;
-					sessionStorage.setItem('roomNameKey', user.id );
+					sessionStorage.setItem('roomNameKey', user.id);
 					setTimeout(function () {
 						window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
 					}, 3000);
@@ -125,11 +128,11 @@ function initializeTournamentLobby() {
 		})
 		.catch(error => console.error(error));
 
-	lobbysocket.onopen = function (e) {
+	window.tournamentLobbyData.lobbySocket.onopen = function (e) {
 		var loadingMessage = document.getElementById('loadingMessage');
 		loadingMessage.style.display = 'block';
 		setTimeout(function () {
-			lobbysocket.send(JSON.stringify({
+			window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 				'type': 'tournament_lobby_updated',
 				'tournament_id': tournamentId,
 			}));
@@ -137,11 +140,11 @@ function initializeTournamentLobby() {
 		}, 600);
 	};
 
-	lobbysocket.onclose = function (e) {
+	window.tournamentLobbyData.lobbySocket.onclose = function (e) {
 		console.log('lobbysocket closed');
 	};
 
-	lobbysocket.onmessage = function (event) {
+	window.tournamentLobbyData.lobbySocket.onmessage = function (event) {
 		var data = JSON.parse(event.data);
 		if (data.type === 'tournament_lobby_updated') {
 			console.log('tournament_lobby_updated');
@@ -150,9 +153,8 @@ function initializeTournamentLobby() {
 		else if (data.type === 'tournament_lobby_game_started') {
 			statusText.innerHTML = 'Round 1';
 			gameStarted = true;
-			console.log('Game started');
-			if (isOpen(pagesocket)) {
-				pagesocket.send(JSON.stringify({
+			if (isOpen(window.tournamentLobbyData.pageSocket)) {
+				window.tournamentLobbyData.pageSocket.send(JSON.stringify({
 					'type': 'tournament_updated',
 				}));
 			}
@@ -160,9 +162,8 @@ function initializeTournamentLobby() {
 			roomName2 = data.room_name2;
 			roomName2split = roomName2;
 
-			
-			if (user.id == roomName1.split('&')[0] || user.id == roomName1.split('&')[1]) {
 
+			if (user.id == roomName1.split('&')[0] || user.id == roomName1.split('&')[1]) {
 				roomName1 = roomName1.replace('&', '');
 				is_in_room1 = true;
 			}
@@ -186,7 +187,7 @@ function initializeTournamentLobby() {
 			console.log(room2Id1);
 			console.log(room2Id2);
 			setTimeout(function () {
-				lobbysocket.send(JSON.stringify({
+				window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 					'type': 'next_players',
 					'tournament_id': tournamentId,
 					'player1': room2Id1,
@@ -214,7 +215,7 @@ function initializeTournamentLobby() {
 			var winnerId = data.winner_id;
 			console.log('second match finished');
 			if (firstMatchWinnerId && winnerId) {
-				lobbysocket.send(JSON.stringify({
+				window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 					'type': 'next_players',
 					'tournament_id': tournamentId,
 					'player1': firstMatchWinnerId,
@@ -296,7 +297,7 @@ function initializeTournamentLobby() {
 					if (allReady) {
 						roomName1 = uniquePlayers[0].idName + '&' + uniquePlayers[1].idName;
 						roomName2 = uniquePlayers[2].idName + '&' + uniquePlayers[3].idName;
-						if (isOpen(lobbysocket)) {
+						if (isOpen(window.tournamentLobbyData.lobbySocket)) {
 							fetch('/change_tournament_status/' + tournamentId + '/', {
 								method: 'POST',
 								headers: {
@@ -307,13 +308,13 @@ function initializeTournamentLobby() {
 									'status': 'started',
 								})
 							})
-							lobbysocket.send(JSON.stringify({
+							window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 								'type': 'next_players',
 								'tournament_id': tournamentId,
 								'player1': uniquePlayers[0].idName,
 								'player2': uniquePlayers[1].idName,
 							}));
-							lobbysocket.send(JSON.stringify({
+							window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 								'type': 'tournament_lobby_game_started',
 								'tournament_id': tournamentId,
 								'room_name1': roomName1,
@@ -423,7 +424,7 @@ function initializeTournamentLobby() {
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
 		reloadLeaveLobby = false;
-		
+
 
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',
@@ -439,26 +440,24 @@ function initializeTournamentLobby() {
 				console.log(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					// Send a message to the tournament lobby group
-					if (isOpen(pagesocket)) {
-						pagesocket.send(JSON.stringify({
+					if (isOpen(window.tournamentLobbyData.pageSocket)) {
+						window.tournamentLobbyData.pageSocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
-						// if tournament is anything but available then cancel lobby
 						fetch('/get_tournament_status/' + tournamentId + '/')
 							.then(response => response.text())
 							.then(data => {
 								var response = JSON.parse(data);
 								if (response.status === 'success') {
-									if (isOpen(lobbysocket)) {
-										lobbysocket.send(JSON.stringify({
+									if (isOpen(window.tournamentLobbyData.lobbySocket)) {
+										window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 											'type': 'tournament_lobby_updated',
 											'tournament_id': tournamentId,
 										}));
-										lobbysocket.close();
+										window.tournamentLobbyData.lobbySocket.close();
 									}
 									if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
-										lobbysocket.send(JSON.stringify({
+										window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 											'type': 'cancel_lobby',
 											'tournament_id': tournamentId,
 										}));
@@ -474,15 +473,10 @@ function initializeTournamentLobby() {
 										})
 									}
 								}
-								else {
-									console.log('Error getting tournament status');
-									console.log(response);
-								}
 							})
 							.catch(error => console.error(error));
-						pagesocket.close();
+						window.tournamentLobbyData.pageSocket.close();
 					}
-					
 					navigateToCustompath('/tournament/');
 				}
 				else {

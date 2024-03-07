@@ -517,10 +517,7 @@ def update_user(request):
 
 def exchange_token(request):
 	try:
-		# Get the authorization code from the request
 		code = request.GET.get('code')
-
-		# Define the redirect URI and the data for the POST request
 		redirect_uri = 'https://localhost:8443/homePage/'
 		post_data = {
 			'grant_type': 'authorization_code',
@@ -529,12 +526,8 @@ def exchange_token(request):
 			'code': code,
 			'redirect_uri': redirect_uri
 		}
-
-		# Make the POST request to exchange the code for a token
 		response = requests.post('https://api.intra.42.fr/oauth/token', data=post_data)
-		# Check if the request was successful
 		if response.status_code == 200:
-			# Return the access token to the frontend
 			response_data = response.json()
 			access_token = response_data['access_token']
 			return JsonResponse({'access_token': access_token})

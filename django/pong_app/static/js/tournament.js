@@ -11,6 +11,9 @@ window.tournamentData = {
 };
 
 function initializeTournament() {
+	function isOpen(socket) {
+		return socket && socket.readyState === 1;
+	}
 	var jwtToken = window.tournamentData.jwtToken;
 	const form = document.getElementById('create-tournament-form');
 	var user = window.tournamentData.user;

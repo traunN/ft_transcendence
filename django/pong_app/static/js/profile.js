@@ -37,6 +37,10 @@ function initializeProfile() {
 	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
 		userId = user.idName;
 	}
+	if (userId !== user.idName) {
+		userId = user.idName;
+	}
+
 	fetch('/get_user/' + userId + '/')
 		.then(response => {
 			if (!response.ok) {
@@ -136,6 +140,7 @@ function initializeProfile() {
 			userImage.style.display = 'none';
 			return;
 		});
+	
 	document.getElementById('editProfileButton').addEventListener('click', function () {
 		username.innerHTML = `<input type="text" id="usernameInput" value="${username.textContent}">`;
 		userEmail.innerHTML = `<input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
@@ -177,19 +182,25 @@ function initializeProfile() {
 		})
 			.then(response => response.json())
 			.then(data => {
-				console.log(data);
-				username.textContent = newUsername;
-				userEmail.textContent = 'Email: ' + newEmail;
-				userFirstName.textContent = 'First name: ' + newFirstName;
-				userLastName.textContent = 'Last name: ' + newLastName;
-				usercampusProfile.textContent = 'Campus: ' + newCampus;
-				user.login = newUsername;
-				user.email = newEmail;
-				user.firstName = newFirstName;
-				user.lastName = newLastName;
-				user.campus = newCampus;
-				sessionStorage.setItem('user', JSON.stringify(user));
-				location.reload();
+				if (data.status === 'success')
+				{
+					username.textContent = newUsername;
+					userEmail.textContent = 'Email: ' + newEmail;
+					userFirstName.textContent = 'First name: ' + newFirstName;
+					userLastName.textContent = 'Last name: ' + newLastName;
+					usercampusProfile.textContent = 'Campus: ' + newCampus;
+					user.login = newUsername;
+					user.email = newEmail;
+					user.firstName = newFirstName;
+					user.lastName = newLastName;
+					user.campus = newCampus;
+					sessionStorage.setItem('user', JSON.stringify(user));
+					navigateToCustompath('/profile/' + user.idName);
+				}
+				else {
+					console.log('Error updating user');
+					console.log(data);
+				}
 			})
 			.catch((error) => {
 				console.error('Error:', error);
@@ -239,6 +250,10 @@ function initializeProfile() {
 					if (data) {
 						console.log(data);
 					}
+					document.getElementById('editProfileButton').style.display = 'none';
+					document.getElementById('saveProfileButton').style.display = 'none';
+					document.getElementById('remove2FA').style.display = 'none';
+					document.getElementById('setup2FAButton').style.display = 'none';
 					userInfo.style.display = 'block';
 					userImage.style.display = 'block';
 					username.textContent = data.user.login;
