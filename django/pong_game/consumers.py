@@ -68,7 +68,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 				return
 			
 			paddle1_position['y'] = max(50, min(550, paddle1_position['y']))
-			
 			self.game_room.paddle1_position = f"{paddle1_position['x']},{paddle1_position['y']}"
 			await sync_to_async(self.game_room.save)()
 
@@ -769,6 +768,28 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			self.logger.error(f"An error occurred while updating the paddle1 position: {e}")
 
+	async def paddle1_update_lol(self, event):
+		try:
+			if self.game_over:
+				return
+			paddle1_position = event['paddle1_position']
+			try:
+				paddle1_position = json.loads(paddle1_position)
+			except json.JSONDecodeError:
+				self.logger.error(f"Invalid JSON data for paddle1_position: {paddle1_position}")
+				return
+
+			if self.game_room is None:
+				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
+				return
+			
+			paddle1_position['y'] = max(50, min(550, paddle1_position['y']))
+			self.game_room.paddle1_position = f"{paddle1_position['x']},{paddle1_position['y']}"
+			await sync_to_async(self.game_room.save)()
+
+		except Exception as e:
+			self.logger.error(f"An error occurred while updating the paddle1 position: {e}")
+
 	async def paddle2_update(self, event):
 		try:
 			if self.game_over:
@@ -797,6 +818,27 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 					'paddle2_position': json.dumps(paddle2_position)
 				}
 			)
+		except Exception as e:
+			self.logger.error(f"An error occurred while updating the paddle2 position: {e}")
+
+	async def paddle2_update_lol(self, event):
+		try:
+			if self.game_over:
+				return
+			paddle2_position = event['paddle2_position']
+			try:
+				paddle2_position = json.loads(paddle2_position)
+			except json.JSONDecodeError:
+				self.logger.error(f"Invalid JSON data for paddle2_position: {paddle2_position}")
+				return
+
+			if self.game_room is None:
+				self.logger.error(f"GameRoom with name '{self.room_name}' does not exist.")
+				return
+
+			paddle2_position['y'] = max(50, min(550, paddle2_position['y']))
+			self.game_room.paddle2_position = f"{paddle2_position['x']},{paddle2_position['y']}"
+			await sync_to_async(self.game_room.save)()
 		except Exception as e:
 			self.logger.error(f"An error occurred while updating the paddle2 position: {e}")
 
@@ -934,6 +976,13 @@ class TournamentGameConsumer(AsyncWebsocketConsumer):
 			elif text_data_json['paddle'] == 'paddle2':
 				self.paddle2_position = text_data_json['position']
 				await self.paddle2_update({'paddle2_position': self.paddle2_position})
+		elif message == 'paddle_update_lol':
+			if text_data_json['paddle'] == 'paddle1':
+				self.paddle1_position = text_data_json['position']
+				await self.paddle1_update_lol({'paddle1_position': self.paddle1_position})
+			elif text_data_json['paddle'] == 'paddle2':
+				self.paddle2_position = text_data_json['position']
+				await self.paddle2_update_lol({'paddle2_position': self.paddle2_position})
 		elif message == 'start_game':
 			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
 			self.ball_position = {'x': 400, 'y': 300}

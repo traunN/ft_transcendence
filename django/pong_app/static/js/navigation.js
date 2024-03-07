@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (currentPath === '/tournament/') {
 					customOnBeforeUnload();
 				}
+				if (currentPath === '/tournament_game/') {
+					customOnBeforeUnload();
+				}
 				window.history.replaceState({}, '', path);
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(data, 'text/html');
@@ -74,10 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
 						loadPromises.push(loadScript(script.src));
 					} else if (script.src.includes('tournament.js')) {
 						loadPromises.push(loadScript(script.src));
-					} else if (path.includes('tournament_lobby')) {
+					} else if (script.src.includes('tournament_lobby.js')) {
 						loadPromises.push(loadScript(script.src));
-					} else if (path.includes('tournament_game')) {
-						console.log('load tournament_game.js');
+					} else if (script.src.includes('tournament_game.js')) {
 						loadPromises.push(loadScript(script.src));
 					} else {
 						const newScript = document.createElement('script');
@@ -113,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						} else if (path.includes('tournament_lobby')) {
 							initializeTournamentLobby();
 						} else if (path.includes('tournament_game')) {
-							console.log('initializeTournamentGame');
 							initializeTournamentGame();
 						} else if (path.includes('tournament')) {
 							initializeTournament();

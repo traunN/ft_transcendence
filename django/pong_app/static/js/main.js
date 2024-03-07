@@ -162,7 +162,6 @@ function initializePongGame() {
 			else if (messageData.message === 'paddle2_update') {
 				const updated_paddle_position = messageData.paddle2_position;
 				update_paddle2_position(updated_paddle_position);
-
 			}
 			else if (messageData.message === 'score_update') {
 				const score1 = messageData.score1;
