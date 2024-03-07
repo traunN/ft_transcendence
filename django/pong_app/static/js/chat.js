@@ -640,6 +640,7 @@ function displayMessage(username, message, nb) {
 window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (window.location.pathname !== '/chat/') {
 		console.log('not on chat');
 		return;
@@ -647,6 +648,4 @@ function customOnBeforeUnload() {
 	if (window.chatData.socket) {
 		window.chatData.socket.close();
 	}
-	// remove beforeunload event
-	window.removeEventListener('beforeunload', customOnBeforeUnload);
 }

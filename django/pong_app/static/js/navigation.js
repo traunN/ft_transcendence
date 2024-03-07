@@ -18,14 +18,13 @@ document.addEventListener('DOMContentLoaded', function () {
 			script.src = src;
 			script.onload = () => resolve();
 			script.onerror = () => reject(new Error(`Script load error for ${src}`));
-			// Check if the script is already in the document
 			if (!document.querySelector(`script[src="${src}"]`)) {
 				console.log('Loading script');
 				console.log(script);
 				document.head.appendChild(script);
 			} else {
 				console.log('Script already loaded');
-				resolve(); // If the script is already loaded, resolve the promise
+				resolve();
 			}
 		});
 	}
@@ -35,6 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(response => response.text())
 			.then(data => {
 				if (currentPath.includes('chat')) {
+					customOnBeforeUnload();
+				}
+				if (window.location.pathname === '/tournament/') {
 					customOnBeforeUnload();
 				}
 				const parser = new DOMParser();

@@ -1,19 +1,25 @@
-document.addEventListener('DOMContentLoaded', initializeTournament);
+document.addEventListener('DOMContentLoaded', function() {
+	document.removeEventListener('DOMContentLoaded', initializeTournament);
+	document.addEventListener('DOMContentLoaded', initializeTournament);
+	initializeTournament();
+});
+
+window.tournamentData = {
+	socket: null,
+	user: JSON.parse(sessionStorage.getItem('user')),
+	jwtToken: sessionStorage.getItem('jwt')
+};
 
 function initializeTournament() {
-	var jwtToken;
-	const socket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	var jwtToken = window.tournamentData.jwtToken;
 	const form = document.getElementById('create-tournament-form');
-	var user = JSON.parse(sessionStorage.getItem('user'));
-	function isOpen(ws) {
-		return ws.readyState === ws.OPEN;
-	}
-	jwtToken = sessionStorage.getItem('jwt');
-	socket.onopen = function (e) {
+	var user = window.tournamentData.user;
+	window.tournamentData.socket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	if (window.tournamentData.socket.readyState === WebSocket.OPEN) {
 		refreshTournamentList();
-	};
+	}
 
-	socket.onmessage = function (e) {
+	window.tournamentData.socket.onmessage = function (e) {
 		var data = JSON.parse(e.data);
 		if (data.type === 'tournament_updated') {
 			refreshTournamentList();
@@ -51,8 +57,8 @@ function initializeTournament() {
 				console.log(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					if (isOpen(socket)) {
-						socket.send(JSON.stringify({
+					if (isOpen(window.tournamentData.socket)) {
+						window.tournamentData.socket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
 					}
@@ -68,9 +74,7 @@ function initializeTournament() {
 
 	});
 
-	window.onbeforeunload = function () {
-		socket.close();
-	}
+	
 
 	function joinTournament(tournamentId) {
 		if (!user) {
@@ -94,8 +98,8 @@ function initializeTournament() {
 				var response = JSON.parse(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					if (isOpen(socket)) {
-						socket.send(JSON.stringify({
+					if (isOpen(window.tournamentData.socketsocket)) {
+						window.tournamentData.socketsocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
 					}
@@ -173,5 +177,18 @@ function initializeTournament() {
 				
 			})
 			.catch(error => console.error(error));
+	}
+}
+
+window.addEventListener('beforeunload', customOnBeforeUnload);
+
+function customOnBeforeUnload() {
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
+	if (window.location.pathname !== '/tournament/') {
+		console.log('not on tournament page');
+		return;
+	}
+	if (window.tournamentData.socket) {
+		window.tournamentData.socket.close();
 	}
 }

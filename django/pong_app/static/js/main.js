@@ -329,8 +329,10 @@ function initializePongGame() {
 	}
 
 }
+window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (window.location.pathname !== '/pongGame/') {
 		console.log('not on pongGame');
 		return;
@@ -343,10 +345,5 @@ function customOnBeforeUnload() {
 			window.gameData.socket.close();
 		}
 		sessionStorage.setItem('shouldCloseSocket', 'false');
-	} else {
-		console.log('Not closing the socket');
 	}
-	window.removeEventListener('beforeunload', customOnBeforeUnload);
 }
-
-window.addEventListener('beforeunload', customOnBeforeUnload);
