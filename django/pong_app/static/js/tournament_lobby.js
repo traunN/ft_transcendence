@@ -1,4 +1,15 @@
-document.addEventListener('DOMContentLoaded', initializeTournamentLobby);
+document.addEventListener('DOMContentLoaded', function() {
+	document.removeEventListener('DOMContentLoaded', initializeTournamentLobby);
+	document.addEventListener('DOMContentLoaded', initializeTournamentLobby);
+	initializeTournamentLobby();
+});
+
+window.tournamentLobbyData = {
+	lobbySocket: null,
+	pageSocket: null,
+	user: JSON.parse(sessionStorage.getItem('user')),
+	jwtToken: sessionStorage.getItem('jwt')
+};
 
 function initializeTournamentLobby() {
 	var aliasInput = document.getElementById('aliasInput');
@@ -6,13 +17,10 @@ function initializeTournamentLobby() {
 	var playersList = document.getElementById('playerList');
 	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
 	var statusText = document.getElementById('statusText');
-	var jwtToken;
-	let user = JSON.parse(sessionStorage.getItem('user'));
+	var jwtToken = window.tournamentLobbyData.jwtToken;
+	let user = window.tournamentLobbyData.user;
 	if (!user) {
 		return;
-	}
-	else {
-		jwtToken = sessionStorage.getItem('jwt');
 	}
 	let gameStarted = true;
 	let reloadLeaveLobby = true;
@@ -23,13 +31,6 @@ function initializeTournamentLobby() {
 	var room2Id2;
 	var firstMatchWinnerId;
 	let is_in_room1 = false;
-
-
-	const pagesocket = new WebSocket('wss://localhost:8443/ws/tournament/');
-	const lobbysocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
-	function isOpen(ws) {
-		return ws.readyState === ws.OPEN;
-	}
 
 	if (tournamentLobbyKey){
 		console.log('tournamentLobbyKey', tournamentLobbyKey);
@@ -45,6 +46,10 @@ function initializeTournamentLobby() {
 		reloadLeaveLobby = false;
 		history.back();
 	}
+
+	window.tournamentLobbyData.pageSocket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+
 	aliasInput.focus();
 	fetch('/get_tournament_status/' + tournamentId + '/')
 		.then(response => response.text())
@@ -94,7 +99,7 @@ function initializeTournamentLobby() {
 											console.log(data);
 											var response = JSON.parse(data);
 											if (response.status === 'success') {
-												window.location.href = '/tournament/';
+												navigateToCustompath('/tournament/');
 											}
 											else {
 												console.log('Error leaving tournament');

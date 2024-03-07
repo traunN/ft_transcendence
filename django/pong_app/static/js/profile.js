@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', initializeProfile);
 
+//  YO WE CAN EDIT SOMEONE ELSE PROFILE ??????
 
 function initializeProfile() {
 	var username = document.getElementById('usernameProfile');

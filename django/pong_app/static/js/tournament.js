@@ -15,7 +15,7 @@ function initializeTournament() {
 	const form = document.getElementById('create-tournament-form');
 	var user = window.tournamentData.user;
 	window.tournamentData.socket = new WebSocket('wss://localhost:8443/ws/tournament/');
-	if (window.tournamentData.socket.readyState === WebSocket.OPEN) {
+	window.tournamentData.socket.onopen = function() {
 		refreshTournamentList();
 	}
 
@@ -41,8 +41,6 @@ function initializeTournament() {
 		});
 
 		var json = JSON.stringify(object);
-		console.log(json);
-
 		fetch('/create_tournament/', {
 			method: 'POST',
 			headers: {
@@ -185,7 +183,6 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (window.location.pathname !== '/tournament/') {
-		console.log('not on tournament page');
 		return;
 	}
 	if (window.tournamentData.socket) {

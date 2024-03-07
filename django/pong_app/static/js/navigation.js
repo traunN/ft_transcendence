@@ -19,11 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
 			script.onload = () => resolve();
 			script.onerror = () => reject(new Error(`Script load error for ${src}`));
 			if (!document.querySelector(`script[src="${src}"]`)) {
-				console.log('Loading script');
-				console.log(script);
 				document.head.appendChild(script);
 			} else {
-				console.log('Script already loaded');
 				resolve();
 			}
 		});
@@ -36,9 +33,16 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (currentPath.includes('chat')) {
 					customOnBeforeUnload();
 				}
-				if (window.location.pathname === '/tournament/') {
+				if (currentPath.includes('pongGame')) {
 					customOnBeforeUnload();
 				}
+				if (currentPath.includes('privateGame')) {
+					customOnBeforeUnload();
+				}
+				if (currentPath === '/tournament/') {
+					customOnBeforeUnload();
+				}
+				
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(data, 'text/html');
 				document.body.innerHTML = doc.body.innerHTML;
@@ -85,13 +89,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				Promise.all(loadPromises)
 					.then(() => {
-						if (currentPath.includes('pongGame')) {
-							customOnBeforeUnload();
-						}
-						
-						if (currentPath.includes('privateGame')) {
-							customOnBeforeUnload();
-						}
 						window.history.replaceState({}, '', path);
 						initializeLogin();
 						initializeSetActive();
@@ -113,12 +110,10 @@ document.addEventListener('DOMContentLoaded', function () {
 						} else if (path.includes('setup_2fa')) {
 							initializeSetup2FA();
 						} else if (path.includes('tournament_lobby')) {
-							console.log('initializeTournamentLobby');
 							initializeTournamentLobby();
 						} else if (path.includes('tournament_game')) {
 							initializeTournamentGame();
 						} else if (path.includes('tournament')) {
-							console.log('initializeTournament');
 							initializeTournament();
 						}
 					})
