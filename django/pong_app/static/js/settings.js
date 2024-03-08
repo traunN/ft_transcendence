@@ -11,7 +11,7 @@ function initializeSettings() {
 		ball: document.querySelector('.ball'),
 		paddle: document.querySelector('.paddle'),
 		board: document.querySelector('.board')
-	};
+	};	
 
 	applySkin(elements.board, boardSkin, 'boardSkin');
 	applySkin(elements.ball, ballSkin, 'ballSkin');
@@ -24,5 +24,8 @@ function initializeSettings() {
 			sessionStorage.setItem(storageKey, newSkin);
 			element.className = `${element.className.split(' ')[0]} ${newSkin}`;
 		});
+		if (storageKey === 'boardSkin' && skin === 'defaultSkin') {
+			element.style.backgroundColor = 'black';
+		}
 	}
 }

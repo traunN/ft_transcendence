@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
 					if (loadedScripts.has(script.src)) {
 						return;
 					}
-					console.log('path:', path);
 					if (script.src.includes('profile.js')) {
 						loadPromises.push(loadScript(script.src));
 					} else if (script.src.includes('main.js')) {
