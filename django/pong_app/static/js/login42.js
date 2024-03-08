@@ -20,7 +20,6 @@ function initializeLogin() {
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
 				if (!response.ok) {
-					// If the response status is not ok, get the response text and throw an error
 					sessionStorage.removeItem('user');
 					navigateToCustompath('/homePage/');
 				}

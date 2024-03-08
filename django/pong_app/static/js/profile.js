@@ -67,7 +67,6 @@ function initializeProfile() {
 			userImage.src = data.user.image;
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
-			// if user has 2fa enabled, show remove 2fa button and hide setup 2fa button else do the opposite
 			if (data.user.is_2fa_enabled) {
 				document.getElementById('remove2FA').style.display = 'block';
 				document.getElementById('setup2FAButton').style.display = 'none';
@@ -88,6 +87,11 @@ function initializeProfile() {
 				})
 				.then(data => {
 					if (data.games) {
+						if (data.games.length === 0) {
+							console.log('No game history');
+							var gameHistoryDiv = document.getElementById('gameHistory');
+							gameHistoryDiv.innerHTML = 'No game history';
+						}
 						var gameHistoryDiv = document.getElementById('gameHistory');
 						data.games.forEach(game => {
 							var gameElement = document.createElement('div');
@@ -211,7 +215,7 @@ function initializeProfile() {
 		fetch(`/remove_2fa/${userId}/`, {
 			method: 'POST',
 			headers: {
-				'X-CSRFToken': csrfToken,  // Ensure you have the CSRF token
+				'X-CSRFToken': csrfToken,
 				'Authorization': `Bearer ${jwtToken}`
 			},
 		})

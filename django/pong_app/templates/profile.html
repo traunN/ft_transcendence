@@ -24,6 +24,27 @@
 
 		#gameHistory {
 			text-align: center;
+			max-height: 400px;
+			overflow-y: auto;
+			margin-bottom: 20px;
+			scrollbar-width: thin;
+			scrollbar-color: #fff #3a3737;
+		}
+
+		#gameHistory::-webkit-scrollbar {
+			width: 10px;
+		}
+
+		#gameHistory::-webkit-scrollbar-track {
+			background: #3a3737;
+		}
+
+		#gameHistory::-webkit-scrollbar-thumb {
+			background: #fff;
+		}
+
+		#gameHistory::-webkit-scrollbar-thumb:hover {
+			background: #f7ff19;
 		}
 
 		.btn {

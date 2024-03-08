@@ -67,16 +67,13 @@ def user_two_factor_auth_data_create(user):
 	user.otp_secret = secret_key
 	user.save()
 	uri = totp.provisioning_uri(name=user.login, issuer_name='Pong Game')
-
 	return uri
 
 def setup_2fa(request, user_id):
 	user = User.objects.get(idName=user_id)
-
 	uri = user_two_factor_auth_data_create(user)
 	encoded_uri = parse.quote(uri)
 	qr_code_url = f'https://api.qrserver.com/v1/create-qr-code/?data={encoded_uri}&size=200x200'
-
 	return render(request, 'setup_2fa.html', {'qr_code_url': qr_code_url})
 
 def remove_2fa(request, user_id):
