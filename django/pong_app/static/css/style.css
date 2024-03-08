@@ -897,3 +897,14 @@ div.card.custom-bg {
 		border: none;
 		cursor: pointer;
 }
+
+.please-login {
+	background-color: #151718;
+	color: #fff;
+	padding: 20px;
+	border-radius: 5px;
+	margin: 20px auto;
+	max-width: 400px;
+	text-align: center;
+	display: none;
+}

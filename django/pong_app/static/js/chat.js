@@ -26,7 +26,7 @@ function initializeChat() {
 	var user = window.chatData.user;
 	var jwtToken = window.chatData.jwtToken;
 	if (!user) {
-		console.log('Failed to get user from session storage');
+		document.querySelector('.please-login').style.display = 'block';
 		var chatContainer = document.querySelector('.chat-container');
 		chatContainer.style.display = 'none';
 		return;
@@ -141,15 +141,13 @@ function initializeChat() {
 				roomName = dataMsg.from_user + '&' + dataMsg.to_user
 				roomNameKey = dataMsg.from_user + '&' + dataMsg.to_user;
 				sessionStorage.setItem('roomNameKey', roomNameKey);
-				console.log('user id and idName:', user.id, user.idName);
-				window.location.href = '/privateGame/' + roomName + '/';
+				navigateToCustompath('/privateGame/' + roomName + '/');
 			}
 			else if (dataMsg.from_user === user.idName) {
 				roomName = dataMsg.from_user + '&' + dataMsg.to_user
 				roomNameKey = dataMsg.from_user + '&' + dataMsg.to_user;
 				sessionStorage.setItem('roomNameKey', roomNameKey);
-				console.log('user id and idName:', user.id, user.idName);
-				window.location.href = '/privateGame/' + roomName + '/';
+				navigateToCustompath('/privateGame/' + roomName + '/');
 			}
 		}
 	};

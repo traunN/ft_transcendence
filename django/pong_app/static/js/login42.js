@@ -23,7 +23,6 @@ function initializeLogin() {
 					// If the response status is not ok, get the response text and throw an error
 					sessionStorage.removeItem('user');
 					navigateToCustompath('/homePage/');
-
 				}
 				return response.json();
 			})
@@ -295,7 +294,7 @@ function initializeLogin() {
 							setUserOnline(data.user.id);
 							userImage.style.display = 'block';
 							loginModal.remove();
-							// location.reload();
+							navigateToCustompath('/homePage/');
 						}
 						catch (error) {
 							console.log('Error:', error);

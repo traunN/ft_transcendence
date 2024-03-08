@@ -80,7 +80,7 @@ function initializeTournamentGame() {
 	let targetPaddle2Y = paddle2Y;
 
 	window.tournamentGameData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
-	
+
 	window.tournamentGameData.lobbySocket.onerror = function (e) {
 		console.log('tournament game lobby socket error');
 	};
@@ -94,14 +94,12 @@ function initializeTournamentGame() {
 					window.tournamentGameData.isWinner = true;
 					window.tournamentGameData.gameLeave = true;
 					window.tournamentGameData.isGameRunning = false;
-					// window.location.href = '/tournament_lobby/' + tournamentId;
 					navigateToCustompath('/tournament_lobby/' + tournamentId);
 				}
 				else {
 					window.tournamentGameData.isWinner = false;
 					window.tournamentGameData.gameLeave = true;
 					window.tournamentGameData.isGameRunning = false;
-					// window.location.href = '/tournament/';
 					navigateToCustompath('/tournament/');
 				}
 			}
@@ -111,7 +109,6 @@ function initializeTournamentGame() {
 			window.tournamentGameData.isWinner = false;
 			window.tournamentGameData.gameLeave = true;
 			window.tournamentGameData.isGameRunning = false;
-			// window.location.href = '/tournament/';
 			navigateToCustompath('/tournament/');
 		}
 	};
@@ -230,21 +227,17 @@ function initializeTournamentGame() {
 				const winner = messageData.winner;
 				const loser = messageData.loser;
 				message.style.display = 'block';
-				console.log('winner:', winner);
-				console.log('loser:', loser);
 				if (userId == winner) {
 					window.tournamentGameData.isWinner = true;
-					message.textContent = 'You won!';
+					message.textContent = winner + ' won!';
 					setTimeout(function () {
-						// window.location.href = '/tournament_lobby/' + tournamentId;
 						navigateToCustompath('/tournament_lobby/' + tournamentId);
 					}, 3000);
 				}
 				else {
 					window.tournamentGameData.isWinner = false;
-					message.textContent = 'You lost!';
+					message.textContent = winner + ' won!';
 					setTimeout(function () {
-						// window.location.href = '/tournament/';
 						navigateToCustompath('/tournament/');
 					}, 3000);
 				}
@@ -306,13 +299,10 @@ function initializeTournamentGame() {
 									const user1 = messageData.user1;
 									const user2 = messageData.user2;
 									displayNames(user1, user2);
-									// Handle the initial game state
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
 								} else {
-									// Handle other game messages
 									gameState = messageData.message;
-									// gameLoop(gameState);
 								}
 
 							};
@@ -324,7 +314,6 @@ function initializeTournamentGame() {
 							window.tournamentGameData.socket.onmessage = function (event) {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
-									// Handle the initial game state
 									message.textContent = '';
 									const user1 = messageData.user1;
 									const user2 = messageData.user2;
@@ -332,7 +321,6 @@ function initializeTournamentGame() {
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
 								} else {
-									// Handle other game messages
 									gameState = messageData.message;
 									gameLoop(gameState);
 								}
@@ -348,7 +336,7 @@ function initializeTournamentGame() {
 			.catch(error => console.error(error));
 	}
 
-	
+
 }
 function leaveLobby() {
 	var tournamentId = document.getElementById('tournamentId').value;
@@ -376,12 +364,10 @@ function leaveLobby() {
 			console.log(data);
 			var response = JSON.parse(data);
 			if (response.status === 'success') {
-				// Send a message to the tournament lobby group
 				if (window.tournamentGameData.gameRoomStarted) {
 					window.tournamentGameData.socket.close();
 				}
 				window.tournamentGameData.lobbySocket.close();
-
 			}
 			else {
 				console.log('Error leaving tournament');

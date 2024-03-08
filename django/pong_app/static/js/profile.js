@@ -220,7 +220,7 @@ function initializeProfile() {
 			.then(data => {
 				console.log(data);
 				if (data.status === 'success')
-					location.reload();
+					navigateToCustompath('/profile/' + user.idName);
 			})
 			.catch(error => {
 				console.error('Error:', error);
@@ -230,7 +230,6 @@ function initializeProfile() {
 	document.getElementById('setup2FAButton').addEventListener('click', function () {
 		const userId = user.idName;
 		const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
-		// window.location.href = url;
 		navigateToCustompath(url);
 	});	
 

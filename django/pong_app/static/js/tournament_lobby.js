@@ -63,7 +63,6 @@ function initializeTournamentLobby() {
 					reloadLeaveLobby = false;
 					sessionStorage.setItem('roomNameKey', user.id);
 					setTimeout(function () {
-						// window.location.href = '/tournament_game/' + tournamentId + '/' + user.id + '/';
 						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.id + '/');
 					}, 3000);
 				}
@@ -176,7 +175,6 @@ function initializeTournamentLobby() {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName1);
 				setTimeout(function () {
-					// window.location.href = '/tournament_game/' + tournamentId + '/' + roomName1 + '/';
 					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName1 + '/');
 				}, 3000);
 			}
@@ -208,7 +206,6 @@ function initializeTournamentLobby() {
 				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName2);
 				setTimeout(function () {
-					// window.location.href = '/tournament_game/' + tournamentId + '/' + roomName2 + '/';
 					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName2 + '/');
 				}, 5000);
 			}
@@ -228,7 +225,6 @@ function initializeTournamentLobby() {
 			reloadLeaveLobby = false;
 			setTimeout(function () {
 				sessionStorage.setItem('roomNameKey', winnerId);
-				// window.location.href = '/tournament_game/' + tournamentId + '/' + winnerId + '/';
 				navigateToCustompath('/tournament_game/' + tournamentId + '/' + winnerId + '/');
 			}, 3000);
 		}

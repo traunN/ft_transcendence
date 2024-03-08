@@ -318,8 +318,10 @@ function initializePrivateGame() {
 		});
 	}
 }
+window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
+	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (!window.location.href.includes('privateGame')) {
 		console.log('not on privateGame');
 		return;
@@ -332,9 +334,6 @@ function customOnBeforeUnload() {
 			console.log('Closing the socket');
 		}
 		sessionStorage.setItem('shouldCloseSocket', 'false');
-	} else {
-		console.log('Not closing the socket');
 	}
 }
 
-window.addEventListener('beforeunload', customOnBeforeUnload);
