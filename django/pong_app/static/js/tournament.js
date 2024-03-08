@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	document.removeEventListener('DOMContentLoaded', initializeTournament);
 	document.addEventListener('DOMContentLoaded', initializeTournament);
 	initializeTournament();
@@ -18,7 +18,7 @@ function initializeTournament() {
 	const form = document.getElementById('create-tournament-form');
 	var user = window.tournamentData.user;
 	window.tournamentData.socket = new WebSocket('wss://localhost:8443/ws/tournament/');
-	window.tournamentData.socket.onopen = function() {
+	window.tournamentData.socket.onopen = function () {
 		refreshTournamentList();
 	}
 
@@ -75,7 +75,7 @@ function initializeTournament() {
 
 	});
 
-	
+
 
 	function joinTournament(tournamentId) {
 		if (!user) {
@@ -175,7 +175,7 @@ function initializeTournament() {
 					message.style.marginTop = '20px';
 					tbody.appendChild(message);
 				}
-				
+
 			})
 			.catch(error => console.error(error));
 	}

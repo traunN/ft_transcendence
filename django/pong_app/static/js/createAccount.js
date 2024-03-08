@@ -24,7 +24,7 @@ function initializeCreateAccount() {
 		loginLogout.innerHTML = 'Logout';
 		isLogged = true;
 	}
-	else{
+	else {
 		console.log('User is not logged in');
 		isLogged = false;
 	}

@@ -30,8 +30,8 @@
 			width: 40px;
 			height: 40px;
 			position: relative;
-			top : 15px;
-			left : 165px;
+			top: 15px;
+			left: 165px;
 			animation: float 2s ease-in-out infinite;
 		}
 
@@ -68,15 +68,26 @@
 			align-items: center;
 			margin: 0 20px;
 		}
-		#ballSkin, #paddleSkin, #boardSkin {
+
+		#ballSkin,
+		#paddleSkin,
+		#boardSkin {
 			line-height: 30px;
 			text-align: center;
 		}
 
 		@keyframes float {
-			0% { transform: translateY(0px); }
-			50% { transform: translateY(-20px); }
-			100% { transform: translateY(0px); }
+			0% {
+				transform: translateY(0px);
+			}
+
+			50% {
+				transform: translateY(-20px);
+			}
+
+			100% {
+				transform: translateY(0px);
+			}
 		}
 	</style>
 </head>
@@ -130,7 +141,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 </body>
 
 <footer class="myFooter sticky-footer">

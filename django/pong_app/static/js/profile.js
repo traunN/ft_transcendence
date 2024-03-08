@@ -140,7 +140,7 @@ function initializeProfile() {
 			userImage.style.display = 'none';
 			return;
 		});
-	
+
 	document.getElementById('editProfileButton').addEventListener('click', function () {
 		username.innerHTML = `<input type="text" id="usernameInput" value="${username.textContent}">`;
 		userEmail.innerHTML = `<input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
@@ -182,8 +182,7 @@ function initializeProfile() {
 		})
 			.then(response => response.json())
 			.then(data => {
-				if (data.status === 'success')
-				{
+				if (data.status === 'success') {
 					username.textContent = newUsername;
 					userEmail.textContent = 'Email: ' + newEmail;
 					userFirstName.textContent = 'First name: ' + newFirstName;
@@ -231,7 +230,7 @@ function initializeProfile() {
 		const userId = user.idName;
 		const url = `/setup_2fa/${encodeURIComponent(userId)}/`;
 		navigateToCustompath(url);
-	});	
+	});
 
 	searchUser.addEventListener('keypress', function (event) {
 		if (event.key === "Enter") {

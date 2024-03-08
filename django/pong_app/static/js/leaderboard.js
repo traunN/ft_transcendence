@@ -34,5 +34,5 @@ function initializeLeaderboard() {
 				tourney_wins.innerHTML = users[i].tournamentWins;
 			}
 		});
-		
+
 }

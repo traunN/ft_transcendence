@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						document.head.appendChild(newScript);
 						loadedScripts.add(script.src);
 					}
-					
+
 				});
 
 				Promise.all(loadPromises)
@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	window.addEventListener('popstate', function(event) {
-		const previousPath = window.location.pathname; 
-		navigateToPath(previousPath, previousPath); 
+	window.addEventListener('popstate', function (event) {
+		const previousPath = window.location.pathname;
+		navigateToPath(previousPath, previousPath);
 	});
 });

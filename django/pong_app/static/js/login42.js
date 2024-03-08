@@ -7,12 +7,12 @@ function initializeLogin() {
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
 	var userImage = document.getElementById('userImage');
-	
+
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 	var jwtToken;
 	userImage.style.opacity = '0';
-	userImage.onload = function() {
+	userImage.onload = function () {
 		userImage.style.opacity = '1';
 	};
 
@@ -29,7 +29,7 @@ function initializeLogin() {
 			.then(data => {
 				if (data.user) {
 					jwtToken = sessionStorage.getItem('jwt');
-					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {	
+					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {
 						disconnectUser();
 						navigateToCustompath('/homePage/');
 					}

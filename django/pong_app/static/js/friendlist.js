@@ -20,7 +20,7 @@ function initializeFriends() {
 		console.log('Failed to get user from session storage');
 		return;
 	}
-	jwtToken = sessionStorage.getItem('jwt');	
+	jwtToken = sessionStorage.getItem('jwt');
 
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {

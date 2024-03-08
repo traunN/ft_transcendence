@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	document.removeEventListener('DOMContentLoaded', initializeChat);
 	document.addEventListener('DOMContentLoaded', initializeChat);
 	initializeChat();
@@ -151,7 +151,7 @@ function initializeChat() {
 			}
 		}
 	};
-	
+
 }
 function blockUser(user_id) {
 	var user = window.chatData.user;
@@ -550,7 +550,7 @@ function sendMessage(message) {
 function handleCommand(command, args, messageInput) {
 	console.log('args:', args);
 	switch (command) {
-		case '/profile':	
+		case '/profile':
 			if (args.length > 2) {
 				displayMessage('System', 'Usage: /profile [user_id]', 2);
 				return;
