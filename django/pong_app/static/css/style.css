@@ -1,19 +1,16 @@
 @font-face {
 	font-family: 'BurbankBigCondensed-Black';
 	src: url('/static/fonts/BurbankBigCondensed-Black.otf');
-	/* Adjust the URL based on your font file's location */
 }
 
 @font-face {
 	font-family: 'Uni Sans Heavy';
 	src: url('/static/fonts/Uni Sans Heavy.otf');
-	/* Adjust the URL based on your font file's location */
 }
 
 @font-face {
 	font-family: 'GG SANS';
 	src: url('/static/fonts/ggsans-Normal.ttf');
-	/* Adjust the URL based on your font file's location */
 }
 
 
@@ -102,7 +99,6 @@ body {
 .paddle_2 {
 	height: 100px;
 	width: 20px;
-	/* You can adjust the width as needed */
 	background-color: #fff;
 	position: absolute;
 	top: 50%;
@@ -450,9 +446,7 @@ input[type="search"] {
 .tournament-title {
 	font-family: 'BurbankBigCondensed-Black', sans-serif !important;
 	color: #f7ff19;
-	/* font-weight: bold; */
 	text-shadow: #f7ff19;
-	/* font-style: italic; */
 	text-align: center;
 }
 
@@ -620,7 +614,6 @@ div.card.custom-bg {
 
 .selected-player {
 	border: 2px solid #00ff00;
-	/* Change this to the desired border color */
 }
 
 .aliasSpan {

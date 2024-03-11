@@ -85,11 +85,8 @@ function initializeCreateAccount() {
 					if (data.id === undefined) {
 						data.id = data.user.idName;
 					}
-					console.log('data id: ' + data.id);
-					sessionStorage.setItem('user', data.user);
 					sessionStorage.setItem('jwt', data.access_token);
-					user.idName = data.idName;
-					sessionStorage.setItem('user', JSON.stringify(user));
+					sessionStorage.setItem('user', JSON.stringify(data.user));
 					fetch('/get_user/' + data.id + '/')
 						.then(response => {
 							if (!response.ok) {
@@ -101,6 +98,7 @@ function initializeCreateAccount() {
 						})
 						.then(data => {
 							if (data) {
+								console.log('User data: ' + JSON.stringify(data));
 								data.user.id = data.user.idName;
 								userImage.src = data.user.image;
 								user.image = data.user.image;

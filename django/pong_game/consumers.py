@@ -285,6 +285,7 @@ class GameConsumer(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		# Leave room group
+		self.logger.error(f"trying to delete game room with name '{self.room_name}'")
 		if self.game_room:
 			self.logger.error(f"Deleting game room with name '{self.room_name}'")
 			await sync_to_async(self.game_room.delete)()
@@ -293,6 +294,11 @@ class GameConsumer(AsyncWebsocketConsumer):
 			self.room_group_name,	
 			self.channel_name
 		)
+		try:
+			self.game_room = await sync_to_async(GameRoom.objects.get)(name=self.room_name)
+			self.logger.error(f"Game room with name '{self.room_name}' still exists.")
+		except GameRoom.DoesNotExist:
+			self.logger.error(f"Game room with name '{self.room_name}' does not exist.")
 
 	# Receive message from WebSocket
 	async def receive(self, text_data):
@@ -333,6 +339,15 @@ class GameConsumer(AsyncWebsocketConsumer):
 					'user2': self.user2.login
 				}
 			)
+		elif message == 'stop_game':
+			self.isGameRunning = False
+			await self.channel_layer.group_send(
+				self.room_group_name,
+				{
+					'type': 'game_message',
+					'message': 'stop_game'
+				}
+			)
 		else:
 			await self.channel_layer.group_send(
 				self.room_group_name,
@@ -353,7 +368,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 			'score1': event['score1'] if 'score1' in event else '',
 			'score2': event['score2'] if 'score2' in event else '',
 			'user1': event['user1'] if 'user1' in event else '',
-			'user2': event['user2'] if 'user2' in event else ''
+			'user2': event['user2'] if 'user2' in event else '',
+			'stop_game': event['stop_game'] if 'stop_game' in event else ''
 		}))
 
 class TournamentConsumer(AsyncWebsocketConsumer):

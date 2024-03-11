@@ -8,7 +8,6 @@ window.gameData = {
 
 function initializePongGame() {
 	let isGameRunning = false;
-	let justReload = false;
 	let gameSocket = window.gameData.socket;
 	let userId;
 	const board = document.querySelector('.board');
@@ -142,6 +141,21 @@ function initializePongGame() {
 		requestAnimationFrame(update_paddles);
 	}
 
+	// async def game_message(self, event):
+	// 	message = event['message']
+	// 	await self.send(text_data=json.dumps({
+	// 		'message': message,
+	// 		'ball_position': event['ball_position'] if 'ball_position' in event else '',
+	// 		'paddle1_position': event['paddle1_position'] if 'paddle1_position' in event else '',
+	// 		'paddle2_position': event['paddle2_position'] if 'paddle2_position' in event else '',
+	// 		'game_over': self.game_over,
+	// 		'score1': event['score1'] if 'score1' in event else '',
+	// 		'score2': event['score2'] if 'score2' in event else '',
+	// 		'user1': event['user1'] if 'user1' in event else '',
+	// 		'user2': event['user2'] if 'user2' in event else '',
+	// 		'stop_game': event['stop_game'] if 'stop_game' in event else ''
+	// 	}))
+
 	function gameLoop(gameState) {
 		gameSocket.onmessage = function (event) {
 			const messageData = JSON.parse(event.data);
@@ -172,6 +186,8 @@ function initializePongGame() {
 				player2Score.textContent = `${player2ScoreValue}`;
 			}
 			else if (messageData.message === 'game_over') {
+				isGameRunning = false;
+				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
 				setTimeout(function () {
 					var XHR = new XMLHttpRequest();
 					XHR.open('GET', '/pongGame/', true);
@@ -189,7 +205,6 @@ function initializePongGame() {
 					};
 					XHR.send();
 				}, 5000);
-				isGameRunning = false;
 				if (player1ScoreValue > player2ScoreValue) {
 					let winner = document.querySelector('.player_1_name').textContent;
 					message.textContent = winner + ' wins!';
@@ -201,8 +216,8 @@ function initializePongGame() {
 			}
 			else if (messageData.message === 'cancel_game_room') {
 				isGameRunning = false;
+				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
 				message.textContent = 'Player left the game';
-				justReload = true;
 				setTimeout(function () {
 					var XHR = new XMLHttpRequest();
 					XHR.open('GET', '/pongGame/', true);
@@ -212,8 +227,7 @@ function initializePongGame() {
 							var doc = parser.parseFromString(XHR.responseText, 'text/html');
 							var newContent = doc.querySelector('#scrollable-area').innerHTML;
 							document.getElementById('scrollable-area').innerHTML = newContent;
-							customOnBeforeUnload();
-							initializePongGame();
+							navigateToCustompath('/pongGame/');
 						} else {
 							console.error('Failed to load new page content');
 						}
