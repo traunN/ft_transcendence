@@ -59,6 +59,7 @@ urlpatterns = [
 	path('set_user_online/<str:user_id>/', views.set_user_online, name='set_user_online'),
 	path('set_user_offline/<str:user_id>/', views.set_user_offline, name='set_user_offline'),
 	path('accept_friend_request/', views.accept_friend_request, name='accept_friend_request'),
+	path('delete_friend/', views.delete_friend, name='delete_friend'),
 	path('get_friends/<str:user_id>/', views.get_friends, name='get_friends'),
 	path('is_user_online/<str:user_id>/', views.is_user_online, name='is_user_online'),
 	path('send_message/', views.send_message, name='send_message'),

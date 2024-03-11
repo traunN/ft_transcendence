@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		fetch(path)
 			.then(response => response.text())
 			.then(data => {
+				friendOnBeforeUnload();
 				if (currentPath.includes('chat')) {
 					customOnBeforeUnload();
 				}
@@ -87,9 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						document.head.appendChild(newScript);
 						loadedScripts.add(script.src);
 					}
-
 				});
-
 				Promise.all(loadPromises)
 					.then(() => {
 						initializeLogin();

@@ -513,6 +513,15 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 		except Exception as e:
 			print(e)
 
+	async def friend_request_accepted(self, event):
+		try:
+			await self.send(text_data=json.dumps({
+				'type': 'friend_request_accepted',
+				'from_user': event['from_user'],
+			}))
+		except Exception as e:
+			print(e)
+
 	# Receive message from WebSocket
 	async def receive(self, text_data):
 		text_data_json = json.loads(text_data)
@@ -527,9 +536,18 @@ class FriendListConsumer(AsyncWebsocketConsumer):
 						'from_user': from_user,
 					}
 				)
+		elif message_type == 'friend_request_accepted':
+			from_user = text_data_json.get('from_user')
+			if from_user:
+				await self.channel_layer.group_send(
+					f"user_{text_data_json['to_user']}",
+					{
+						'type': 'friend_request_accepted',
+						'from_user': from_user,
+					}
+				)
 
 	async def connect(self):
-		# connect user and add to group of it's id passed in url
 		self.user_id = self.scope['url_route']['kwargs']['user_id']
 		self.group_name = f"user_{self.user_id}"
 		await self.channel_layer.group_add(

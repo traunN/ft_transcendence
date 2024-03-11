@@ -255,8 +255,6 @@ function initializeTournamentLobby() {
 			if (xhr.readyState == 4 && xhr.status == 200) {
 				var data = JSON.parse(xhr.responseText);
 				var players = data.players;
-
-
 				for (var i = 0; i < players.length; i++) {
 					var li = document.createElement('li');
 					li.id = players[i].idName;

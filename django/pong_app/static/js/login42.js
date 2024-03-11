@@ -15,7 +15,6 @@ function initializeLogin() {
 	userImage.onload = function () {
 		userImage.style.opacity = '1';
 	};
-
 	if (user) {
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
@@ -336,6 +335,7 @@ function initializeLogin() {
 			isLogged = false;
 			userImage.src = '';
 			userImage.style.display = 'none';
+			navigateToCustompath('/homePage/');
 		} else {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {

@@ -1,11 +1,23 @@
+document.addEventListener('DOMContentLoaded', function () {
+	document.removeEventListener('DOMContentLoaded', initializeFriends);
+	document.addEventListener('DOMContentLoaded', initializeFriends);
+	initializeFriends();
+});
+
+window.friendData = {
+	socket: null,
+	user: JSON.parse(sessionStorage.getItem('user')),
+	jwtToken: sessionStorage.getItem('jwt')
+};
+
 function initializeFriends() {
-	var user = sessionStorage.getItem('user');
+	var user = window.friendData.user;
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
-	var jwtToken;
+	var jwtToken = window.friendData.jwtToken;
 	if (!user) {
 		if (addFriendButton) {
 			addFriendButton.style.display = 'none';
@@ -15,13 +27,10 @@ function initializeFriends() {
 		}
 		return;
 	}
-	user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
 		console.log('Failed to get user from session storage');
 		return;
 	}
-	jwtToken = sessionStorage.getItem('jwt');
-
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
 			if (!response.ok) {
@@ -38,8 +47,8 @@ function initializeFriends() {
 				return;
 			}
 		});
-	socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
-	if (!socket) {
+	window.friendData.socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
+	if (!window.friendData.socket) {
 		console.log('Failed to create socket');
 		return;
 	}
@@ -67,12 +76,34 @@ function initializeFriends() {
 								friend.style.color = 'red';
 							}
 						});
+					var deleteButton = document.createElement('button');
+					deleteButton.innerHTML = 'Delete';
+					deleteButton.addEventListener('click', function () {
+						fetch('/delete_friend/', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'X-CSRFToken': csrfToken,
+								'Authorization': `Bearer ${jwtToken}`
+							},
+							body: JSON.stringify({
+								'from_user': user.idName,
+								'to_user': friends[i].idName
+							}),
+						})
+							.then(response => response.json())
+							.then(data => {
+								if (data.status === 'success') {
+									updateFriendList();
+								}
+							});
+					});
 				}
 			});
 	}
 	updateFriendList();
 
-	socket.onmessage = function (event) {
+	window.friendData.socket.onmessage = function (event) {
 		var data = JSON.parse(event.data);
 		updateFriendList();
 		if (data.type === 'friend_request') {
@@ -95,6 +126,11 @@ function initializeFriends() {
 					.then(data => {
 						if (data.status === 'success') {
 							updateFriendList();
+							window.friendData.socket.send(JSON.stringify({
+								'type': 'friend_request_accepted',
+								'from_user': user.idName,
+								'to_user': data.from_user
+							}));
 						}
 					});
 				document.getElementById('notificationContainer').style.display = 'none';
@@ -102,6 +138,9 @@ function initializeFriends() {
 			document.getElementById('denyRequest').addEventListener('click', function () {
 				document.getElementById('notificationContainer').style.display = 'none';
 			});
+		}
+		if (data.type === 'friend_request_accepted') {
+			updateFriendList();
 		}
 	};
 	friendListContent.style.display = 'none';
@@ -115,7 +154,7 @@ function initializeFriends() {
 	addFriendButton.addEventListener('click', function () {
 		var friendName = addFriendInput.value;
 		if (friendName) {
-			socket.send(JSON.stringify({
+			window.friendData.socket.send(JSON.stringify({
 				'type': 'friend_request',
 				'from_user': user.idName,
 				'to_user': friendName
@@ -126,4 +165,11 @@ function initializeFriends() {
 
 }
 
-document.addEventListener('DOMContentLoaded', initializeFriends);
+window.addEventListener('beforeunload', friendOnBeforeUnload);
+
+function friendOnBeforeUnload() {
+	window.removeEventListener('beforeunload', friendOnBeforeUnload);
+	if (window.friendData.socket) {
+		window.friendData.socket.close();
+	}
+}

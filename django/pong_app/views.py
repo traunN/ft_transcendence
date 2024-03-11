@@ -340,6 +340,53 @@ def get_friends(request, user_id):
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
 
+# fetch('/delete_friend/', {
+# 							method: 'POST',
+# 							headers: {
+# 								'Content-Type': 'application/json',
+# 								'X-CSRFToken': csrfToken,
+# 								'Authorization': `Bearer ${jwtToken}`
+# 							},
+# 							body: JSON.stringify({
+# 								'from_user': user.idName,
+# 								'to_user': friends[i].idName
+# 							}),
+# 						})
+# 							.then(response => response.json())
+# 							.then(data => {
+# 								if (data.status === 'success') {
+# 									updateFriendList();
+# 								}
+# 							});
+
+@api_view(['POST'])
+def delete_friend(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			from_user = User.objects.get(idName=data['from_user'])
+			to_user = User.objects.get(idName=data['to_user'])
+			user_id = data['from_user']
+			user = User.objects.get(idName=user_id)
+			authorization_head = request.headers.get('Authorization')
+			if not authorization_head or not authorization_head.startswith('Bearer '):
+				return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+			access_token = authorization_head.split(' ')[1]
+			jwt_authentication = JWTAuthentication()
+			decoded_token = jwt_authentication.get_validated_token(access_token)
+			token_user_id = decoded_token['user_id']
+			if token_user_id != user_id:
+				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+			from_user.friendList.remove(to_user)
+			to_user.friendList.remove(from_user)
+			from_user.save()
+			to_user.save()
+			return JsonResponse({'status': 'success', 'message': 'Friend deleted successfully'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)})
+	else:
+		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
 @api_view(['POST'])
 def accept_friend_request(request):
 	if request.method == 'POST':
