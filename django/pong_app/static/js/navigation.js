@@ -43,7 +43,10 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (currentPath === '/tournament/') {
 					customOnBeforeUnload();
 				}
-				if (currentPath === '/tournament_game/') {
+				if (currentPath.includes('/tournament_lobby/')) {
+					customOnBeforeUnload();
+				}
+				if (currentPath.includes('/tournament_game/')) {
 					customOnBeforeUnload();
 				}
 				window.history.replaceState({}, '', path);
