@@ -33,12 +33,23 @@ function initializeProfile() {
 	}
 	jwtToken = sessionStorage.getItem('jwt');
 	var pathArray = window.location.pathname.split('/');
-	var userId = pathArray[pathArray.length - 1];
-	if (pathArray[pathArray.length - 2] === 'profile' && pathArray[pathArray.length - 1] === '') {
+	var userId = pathArray[pathArray.length - 2];
+	console.log(pathArray);
+	if (pathArray[pathArray.length - 3] === 'profile' && pathArray[pathArray.length - 2] === '') {
+		userId = user.idName;
+	}
+	else if (pathArray[pathArray.length - 3] === 'profile' && pathArray[pathArray.length - 2] !== '') {
+		userId = pathArray[pathArray.length - 2];
+	}
+	else {
+		console.log('not custom');
 		userId = user.idName;
 	}
 	if (userId !== user.idName) {
-		userId = user.idName;
+		document.getElementById('editProfileButton').style.display = 'none';
+		document.getElementById('saveProfileButton').style.display = 'none';
+		document.getElementById('remove2FA').style.display = 'none';
+		document.getElementById('setup2FAButton').style.display = 'none';
 	}
 
 	fetch('/get_user/' + userId + '/')

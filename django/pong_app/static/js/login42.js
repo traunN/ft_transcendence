@@ -55,14 +55,6 @@ function initializeLogin() {
 				return response.json();
 			})
 			.then(data => {
-				if (data) {
-					if (data.message === 'User already online') {
-						console.log('User already online');
-					}
-					else {
-						console.log('User set online successfully');
-					}
-				}
 			})
 			.catch(error => console.error('Error:', error));
 	}
@@ -85,13 +77,6 @@ function initializeLogin() {
 				return response.json();
 			})
 			.then(data => {
-				if (data) {
-					if (data.message === 'User already offline') {
-						console.log('User already offline');
-					} else {
-						console.log('User set offline successfully');
-					}
-				}
 			})
 			.catch(error => console.error('Error:', error));
 	}
@@ -151,7 +136,6 @@ function initializeLogin() {
 			}).then(function (data) {
 				if (data.status === 'success') {
 					setUserOnline(userId);
-					// Redirect to /settings
 					navigateToCustompath('/homePage/');
 				}
 				else {
@@ -195,7 +179,6 @@ function initializeLogin() {
 			.catch(error => console.error('Error:', error));
 		isLogged = true;
 	} else {
-		console.log('User is not logged in');
 		isLogged = false;
 	}
 	if (user) {
@@ -265,7 +248,6 @@ function initializeLogin() {
 			})
 				.then(response => {
 					if (!response.ok) {
-						// If the response status is not ok, get the response text and throw an error
 						return response.text().then(text => {
 							throw new Error('Server error: ' + text);
 						});
@@ -308,13 +290,6 @@ function initializeLogin() {
 			navigateToCustompath('/createAccount/');
 		});
 
-		document.getElementById('loginForm').addEventListener('submit', function (event) {
-			event.preventDefault(); // Prevent the default form submission
-			var username = document.getElementById('username').value;
-			var password = document.getElementById('password').value;
-			// ... rest of your login logic
-		});
-
 		document.addEventListener('click', function removeModal() {
 			loginModal.remove();
 			document.removeEventListener('click', removeModal);
@@ -326,7 +301,6 @@ function initializeLogin() {
 	});
 
 	document.getElementById("Login_Logout").addEventListener("click", function () {
-		console.log('isLogged: ' + isLogged)
 		if (isLogged) {
 			loginLogout.innerHTML = 'Login with 42';
 			disconnectUser();
@@ -340,7 +314,6 @@ function initializeLogin() {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
 				isLogged = true;
-				console.log('User is already logged in HAHA');
 			} else {
 				fetch('/get_client_id/')
 					.then(response => {
@@ -416,7 +389,6 @@ function initializeLogin() {
 								})
 									.then(response => {
 										if (!response.ok) {
-											// If the response status is not ok, get the response text and throw an error
 											return response.text().then(text => {
 												throw new Error('Server error: ' + text);
 											});
@@ -465,7 +437,6 @@ function initializeLogin() {
 										console.error('Error:', error);
 									});
 								var userXhr = new XMLHttpRequest();
-								// console log user
 								userXhr.open('GET', '/get_user/' + data.idName + '/', true);
 								userXhr.onload = function () {
 									if (userXhr.status === 200) {

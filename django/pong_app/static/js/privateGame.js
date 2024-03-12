@@ -264,7 +264,6 @@ function initializePrivateGame() {
 					gameRoomStarted = true;
 					if (data.start_game) {
 						window.room_name = data.room_name;
-						// check if both players are in the same room
 						gameSocket.onopen = async function (event) {
 							sessionStorage.setItem('shouldCloseSocket', 'true');
 							gameSocket.send(JSON.stringify({ 'message': 'start_game' }));
@@ -276,7 +275,6 @@ function initializePrivateGame() {
 									const user1 = messageData.user1;
 									const user2 = messageData.user2;
 									displayNames(user1, user2);
-									// Handle the initial game state
 									const initialState = messageData.initial_state;
 									gameLoop(initialState);
 								} else {
@@ -293,7 +291,6 @@ function initializePrivateGame() {
 							gameSocket.onmessage = function (event) {
 								const messageData = JSON.parse(event.data);
 								if (messageData.message === 'start_game') {
-									// Handle the initial game state
 									message.textContent = '';
 									const user1 = messageData.user1;
 									const user2 = messageData.user2;

@@ -141,20 +141,6 @@ function initializePongGame() {
 		requestAnimationFrame(update_paddles);
 	}
 
-	// async def game_message(self, event):
-	// 	message = event['message']
-	// 	await self.send(text_data=json.dumps({
-	// 		'message': message,
-	// 		'ball_position': event['ball_position'] if 'ball_position' in event else '',
-	// 		'paddle1_position': event['paddle1_position'] if 'paddle1_position' in event else '',
-	// 		'paddle2_position': event['paddle2_position'] if 'paddle2_position' in event else '',
-	// 		'game_over': self.game_over,
-	// 		'score1': event['score1'] if 'score1' in event else '',
-	// 		'score2': event['score2'] if 'score2' in event else '',
-	// 		'user1': event['user1'] if 'user1' in event else '',
-	// 		'user2': event['user2'] if 'user2' in event else '',
-	// 		'stop_game': event['stop_game'] if 'stop_game' in event else ''
-	// 	}))
 
 	function gameLoop(gameState) {
 		gameSocket.onmessage = function (event) {

@@ -490,7 +490,6 @@ function leaveLobby() {
 						})
 						.catch(error => console.error(error));
 					window.tournamentLobbyData.pageSocket.close();
-
 				}
 			}
 			else {

@@ -64,9 +64,9 @@ function initializeChat() {
 					invitationNotification.className = 'invitation-notification';
 					var closeButton = document.createElement('button');
 					closeButton.className = 'close-button';
-					closeButton.textContent = '×'; // Using the HTML entity for "x"
+					closeButton.textContent = '×';
 					closeButton.onclick = function () {
-						this.parentElement.style.display = 'none'; // Hide the notification
+						this.parentElement.style.display = 'none';
 					};
 					invitationNotification.appendChild(closeButton);
 					var invitationText = document.createElement('p');
@@ -561,7 +561,10 @@ function handleCommand(command, args, messageInput) {
 						displayMessage('System', 'User not found', 2);
 					}
 					else
-						navigateToCustompath('/profile/' + args[1]);
+					{
+						console.log('args[1]:', args[1]);
+						navigateToCustompath('/profile/' + args[1] + '/');
+					}
 				});
 			break;
 		case '/block':
@@ -635,6 +638,7 @@ function displayMessage(username, message, nb) {
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 	document.getElementById("message-input").value = "";
 }
+
 window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
