@@ -562,7 +562,6 @@ function handleCommand(command, args, messageInput) {
 					}
 					else
 					{
-						console.log('args[1]:', args[1]);
 						navigateToCustompath('/profile/' + args[1] + '/');
 					}
 				});

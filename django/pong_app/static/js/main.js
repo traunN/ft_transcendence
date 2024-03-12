@@ -333,12 +333,9 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (window.location.pathname !== '/pongGame/') {
-		console.log('not on pongGame');
 		return;
 	}
 	if (sessionStorage.getItem('shouldCloseSocket') === 'true') {
-		console.log('onbeforeunload socket');
-		console.log('socket is :', window.gameData.socket)
 		if (window.gameData.socket) {
 			window.gameData.socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
 			window.gameData.socket.close();

@@ -340,25 +340,6 @@ def get_friends(request, user_id):
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
 
-# fetch('/delete_friend/', {
-# 							method: 'POST',
-# 							headers: {
-# 								'Content-Type': 'application/json',
-# 								'X-CSRFToken': csrfToken,
-# 								'Authorization': `Bearer ${jwtToken}`
-# 							},
-# 							body: JSON.stringify({
-# 								'from_user': user.idName,
-# 								'to_user': friends[i].idName
-# 							}),
-# 						})
-# 							.then(response => response.json())
-# 							.then(data => {
-# 								if (data.status === 'success') {
-# 									updateFriendList();
-# 								}
-# 							});
-
 @api_view(['POST'])
 def delete_friend(request):
 	if request.method == 'POST':

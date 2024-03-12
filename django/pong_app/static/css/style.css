@@ -260,6 +260,21 @@ input[type="submit"] {
 	transform: scale(1.1);
 }
 
+.delete-friend-btn {
+	background-color: #ff1919;
+	border: none;
+	border-radius: 0.3rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-left: 10px;
+}
+
+.delete-friend-btn:hover {
+	background-color: #ff5757;
+	color: #000;
+	transform: scale(1.1);
+}
+
 .green-btn {
 	background-color: #19ff47da;
 	padding: 5px 20px;
