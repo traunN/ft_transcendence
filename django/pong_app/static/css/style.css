@@ -695,6 +695,20 @@ div.card.custom-bg {
 	flex-direction: row;
 }
 
+.center-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
+
+.flex-2facard{
+	display: flex;
+	padding: 20px;
+	width: fit-content;
+	flex: 0 1 auto;
+}
+
 .card-img-top-profile {
 	width: 50%;
 	height: auto;
@@ -704,6 +718,12 @@ div.card.custom-bg {
 .card-body-profile {
 	width: 50%;
 	padding: 20px;
+}
+
+#qrCodeContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 @keyframes pulse {

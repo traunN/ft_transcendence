@@ -15,24 +15,43 @@
 	<script type="text/javascript" src="{% static 'js/friendlist.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/login42.js' %}"></script>
 	<script type="text/javascript" src="{% static 'js/setup2FA.js' %}"></script>
+	<style>
+		h2 {
+			font-family: 'GG SANS', sans-serif;
+			font-weight: bold;
+			text-align: center;
+		}
+		p {
+			padding: 0px;
+			margin-top: 10px;
+		}
+
+		#confirm2FAButton {
+			margin-top: 10px;
+			float: right;
+		}
+	</style>
 </head>
 
 <body>
 	{% include 'topbar.html' %}
 	{% include 'friendlist.html' %}
-	<div id="setup2FAContainer">
-		<h2>Setup Two-Factor Authentication</h2>
-		<div id="qrCodeContainer">
-			<img src="{{ qr_code_url }}" alt="QR Code">
+	<div class="center-container">
+		<div class="card custom-bg no-hover flex-2facard">
+			<div id="setup2FAContainer">
+				<h2>Setup Two-Factor Authentication</h2>
+				<div id="qrCodeContainer">
+					<img src="{{ qr_code_url }}" alt="QR Code">
+				</div>
+				<p>Scan the QR code using your authenticator app.</p>
+				<div id="2faCodeContainer">
+					<label for="2faCode">Enter the 6-digit code from your authenticator app:</label>
+					<input type="text" id="2faCode" name="2faCode" required>
+				</div>
+				<button id="confirm2FAButton" class="btn yellow-btn">Confirm 2FA Setup</button>
+			</div>
 		</div>
-		<p>Scan the QR code using your authenticator app.</p>
-		<div id="2faCodeContainer">
-			<label for="2faCode">Enter the 6-digit code from your authenticator app:</label>
-			<input type="text" id="2faCode" name="2faCode" required>
-		</div>
-		<button id="confirm2FAButton">Confirm 2FA Setup</button>
 	</div>
-
 </body>
 
 <footer class="myFooter sticky-footer">

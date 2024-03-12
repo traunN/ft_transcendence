@@ -103,7 +103,9 @@ function initializeFriends() {
 										.then(data => {
 											if (data.status === 'success') {
 												window.friendData.socket.send(JSON.stringify({
-													'type': 'message'
+													'type': 'friend_request_accepted',
+													'from_user': user.idName,
+													'to_user': window.friendData.friends[index].idName
 												}));
 												updateFriendList();
 											}

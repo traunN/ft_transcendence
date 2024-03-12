@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', initializeSetup2FA);
 
 function initializeSetup2FA() {
-	console.log('setup2FA.js loaded');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
 		console.log('Failed to get user from session storage');
@@ -12,6 +11,7 @@ function initializeSetup2FA() {
 	var setup2FAContainer = document.getElementById('setup2FAContainer');
 	var confirm2FAButton = document.getElementById('confirm2FAButton');
 	var twoFactorCode = document.getElementById('2faCode');
+	twoFactorCode.focus();
 	confirm2FAButton.addEventListener('click', function () {
 		var code = twoFactorCode.value;
 		const userId = user.idName;
