@@ -19,7 +19,9 @@ function initializeSettings() {
 
 	function applySkin(element, skin, storageKey) {
 		element.classList.add(skin);
-		document.getElementById(storageKey).addEventListener('change', function () {
+		var selectElement = document.getElementById(storageKey);
+		selectElement.value = skin;
+		selectElement.addEventListener('change', function () {
 			var newSkin = this.value;
 			sessionStorage.setItem(storageKey, newSkin);
 			element.className = `${element.className.split(' ')[0]} ${newSkin}`;
@@ -29,3 +31,4 @@ function initializeSettings() {
 		}
 	}
 }
+z	
