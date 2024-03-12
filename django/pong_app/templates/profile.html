@@ -44,7 +44,7 @@
 		}
 
 		#gameHistory::-webkit-scrollbar-thumb:hover {
-			background: #f7ff19;
+			background: #fff;
 		}
 
 		.btn {
@@ -69,36 +69,38 @@
 							<h1 class="card-title">Please login to view your profile</h1>
 						</div>
 					</div>
-					<div class="card custom-bg no-hover flex-card-profile" id="profileCard">
-						<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
-						<div class="card-body-profile">
-							<h1 class="card-title-profile" id="usernameProfile"></h1>
-							<ul class="card-text" id="userInfo">
-								<li id="emailProfile"></li>
-								<li id="firstNameProfile"></li>
-								<li id="lastNameProfile"></li>
-								<li id="campusProfile"></li>
-								<li id="levelProfile"></li>
-								<li id="walletProfile"></li>
-								<li id="correctionPointProfile"></li>
-								<li id="locationProfile"></li>
-								<li id="winsProfile"></li>
-								<li id="losesProfile"></li>
-								<li id="tournamentWinsProfile"></li>
-								<li id="accountNameProfile"></li>
-							</ul>
-							<input type="search" id="searchUser" placeholder="Search for a user">
-							<button id="editProfileButton" class="btn yellow-btn">Edit Profile</button>
-							<button id="saveProfileButton" class="btn yellow-btn">Save Profile</button>
-							<button id="remove2FA" class="btn red-btn">Remove 2FA</button>
-							<button id="setup2FAButton" class="btn green-btn">Setup Two-Factor Authentication</button>
+					<div class="card-container">
+						<div class="card custom-bg no-hover flex-card-profile" id="profileCard">
+							<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
+							<div class="card-body-profile">
+								<h1 class="card-title-profile" id="usernameProfile"></h1>
+								<ul class="card-text" id="userInfo">
+									<li id="emailProfile"></li>
+									<li id="firstNameProfile"></li>
+									<li id="lastNameProfile"></li>
+									<li id="campusProfile"></li>
+									<li id="levelProfile"></li>
+									<li id="walletProfile"></li>
+									<li id="correctionPointProfile"></li>
+									<li id="locationProfile"></li>
+									<li id="winsProfile"></li>
+									<li id="losesProfile"></li>
+									<li id="tournamentWinsProfile"></li>
+									<li id="accountNameProfile"></li>
+								</ul>
+								<input type="search" id="searchUser" placeholder="Search for a user">
+								<button id="editProfileButton" class="btn yellow-btn">Edit Profile</button>
+								<button id="saveProfileButton" class="btn yellow-btn">Save Profile</button>
+								<button id="remove2FA" class="btn red-btn">Remove 2FA</button>
+								<button id="setup2FAButton" class="btn green-btn">Setup Two-Factor Authentication</button>
+							</div>
 						</div>
-					</div>
-					<div class="card custom-bg" id="gameHistoryCard">
-						<div class="card-header">
-							<h2 style="font-size: 32px;">Game History</h2>
+						<div class="card custom-bg no-hover" id="gameHistoryCard">
+							<div class="card-header">
+								<h2 style="font-size: 32px;">Game History</h2>
+							</div>
+							<div class="card-body" id="gameHistory"></div>
 						</div>
-						<div class="card-body" id="gameHistory"></div>
 					</div>
 				</main>
 			</div>
