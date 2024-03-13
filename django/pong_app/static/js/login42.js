@@ -8,7 +8,6 @@ window.getJwtFromCookie = function() {
 			return cookie.substring(4);
 		}
 	}
-	disconnectUser();
 	return null;
 };
 

@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 window.friendData = {
 	socket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: getJwtFromCookie(),
 	friends: []
 };
 
