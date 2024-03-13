@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	document.addEventListener('navigateToPath', function (e) {
 		const path = e.detail.path;
 		const currentPath = window.location.pathname;
-		navigateToPath(path, currentPath);
+		navigateToPath(path, currentPath, 0);
 	});
 
 	function loadScript(src) {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	function navigateToPath(path, currentPath) {
+	function navigateToPath(path, currentPath, isPopState) {
 		fetch(path)
 			.then(response => response.text())
 			.then(data => {
@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				if (currentPath.includes('/tournament_game/')) {
 					customOnBeforeUnload();
 				}
-				window.history.replaceState({}, '', path);
+				if (isPopState === 0)
+					window.history.pushState({page: path}, '', path);
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(data, 'text/html');
 				document.body.innerHTML = doc.body.innerHTML;
@@ -132,12 +133,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			e.preventDefault();
 			const targetPath = target.href;
 			const currentPath = window.location.pathname;
-			navigateToPath(targetPath, currentPath);
+			navigateToPath(targetPath, currentPath, 0);
 		}
 	});
 
 	window.addEventListener('popstate', function (event) {
-		const previousPath = window.location.pathname;
-		navigateToPath(previousPath, previousPath);
+		const previousState = event.state;
+		if (previousState && previousState.page) {
+			const previousPath = previousState.page;
+			const currentPath = window.location.pathname;
+			navigateToPath(previousPath, currentPath, 1);
+		}
 	});
 });

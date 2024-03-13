@@ -87,7 +87,6 @@ function initializeProfile() {
 			fetch('/get_user_game_history/' + userId + '/')
 				.then(response => {
 					if (!response.ok) {
-						// If the response status is not ok, get the response text and throw an error
 						return response.text().then(text => {
 							throw new Error('Server error: ' + text);
 						});
@@ -97,7 +96,6 @@ function initializeProfile() {
 				.then(data => {
 					if (data.games) {
 						if (data.games.length === 0) {
-							console.log('No game history');
 							var gameHistoryDiv = document.getElementById('gameHistory');
 							gameHistoryDiv.innerHTML = 'No game history';
 						}
