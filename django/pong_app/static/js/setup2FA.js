@@ -7,12 +7,13 @@ function initializeSetup2FA() {
 		return;
 	}
 
-	var jwtToken = sessionStorage.getItem('jwt');
+	var jwtToken = getJwtFromCookie();
 	var setup2FAContainer = document.getElementById('setup2FAContainer');
 	var confirm2FAButton = document.getElementById('confirm2FAButton');
 	var twoFactorCode = document.getElementById('2faCode');
 	twoFactorCode.focus();
 	confirm2FAButton.addEventListener('click', function () {
+		jwtToken = getJwtFromCookie();
 		var code = twoFactorCode.value;
 		const userId = user.idName;
 		fetch(`/confirm_2fa/${userId}/`, {

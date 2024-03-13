@@ -31,10 +31,9 @@ function initializeProfile() {
 		pleaseLoginCard.style.display = 'block';
 		return;
 	}
-	jwtToken = sessionStorage.getItem('jwt');
+	jwtToken = getJwtFromCookie();
 	var pathArray = window.location.pathname.split('/');
 	var userId = pathArray[pathArray.length - 2];
-	console.log(pathArray);
 	if (pathArray[pathArray.length - 3] === 'profile' && pathArray[pathArray.length - 2] === '') {
 		userId = user.idName;
 	}
@@ -42,7 +41,6 @@ function initializeProfile() {
 		userId = pathArray[pathArray.length - 2];
 	}
 	else {
-		console.log('not custom');
 		userId = user.idName;
 	}
 	if (userId !== user.idName) {
@@ -187,6 +185,7 @@ function initializeProfile() {
 		if (newImage) {
 			formData.append('image', newImage);
 		}
+		jwtToken = getJwtFromCookie();
 		fetch('/update_user/', {
 			method: 'POST',
 			headers: {
@@ -223,6 +222,7 @@ function initializeProfile() {
 
 	document.getElementById('remove2FA').addEventListener('click', function () {
 		userId = user.idName;
+		jwtToken = getJwtFromCookie();
 		fetch(`/remove_2fa/${userId}/`, {
 			method: 'POST',
 			headers: {

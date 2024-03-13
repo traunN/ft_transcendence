@@ -7,8 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
 window.tournamentData = {
 	socket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: sessionStorage.getItem('jwt')
+	jwtToken: getJwtFromCookie()
 };
+
+
 
 function initializeTournament() {
 	function isOpen(socket) {
@@ -43,6 +45,7 @@ function initializeTournament() {
 			object[key] = value;
 		});
 
+		jwtToken = getJwtFromCookie();
 		var json = JSON.stringify(object);
 		fetch('/create_tournament/', {
 			method: 'POST',
@@ -84,7 +87,7 @@ function initializeTournament() {
 		}
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
-
+		jwtToken = getJwtFromCookie();
 		fetch('/join_tournament/' + user.id + '/', {
 			method: 'POST',
 			headers: {

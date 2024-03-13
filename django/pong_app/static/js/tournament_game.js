@@ -6,7 +6,7 @@ window.tournamentGameData = {
 	socket: null,
 	lobbySocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: sessionStorage.getItem('jwt'),
+	jwtToken: getJwtFromCookie(),
 	reloadLeave: true,
 	gameLeave: false,
 	isWinner: false,

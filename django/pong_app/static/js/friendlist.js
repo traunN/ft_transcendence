@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 window.friendData = {
 	socket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: sessionStorage.getItem('jwt'),
+	jwtToken: getJwtFromCookie(),
 	friends: []
 };
 
@@ -18,7 +18,7 @@ function initializeFriends() {
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
-	var jwtToken = window.friendData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	if (!user) {
 		if (addFriendButton) {
 			addFriendButton.style.display = 'none';
@@ -86,6 +86,7 @@ function initializeFriends() {
 								deleteButton.className = 'delete-friend-btn';
 								var cell = row.insertCell(1);
 								cell.appendChild(deleteButton);
+								jwtToken = getJwtFromCookie();
 								deleteButton.addEventListener('click', function () {
 									fetch('/delete_friend/', {
 										method: 'POST',
@@ -127,6 +128,7 @@ function initializeFriends() {
 			document.getElementById('notificationMessage').innerText = `You have received a friend request from ${data.from_user}`;
 			document.getElementById('notificationContainer').style.display = 'flex';
 			document.getElementById('acceptRequest').addEventListener('click', function () {
+				jwtToken = getJwtFromCookie();
 				fetch('/accept_friend_request/', {
 					method: 'POST',
 					headers: {

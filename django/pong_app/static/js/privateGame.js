@@ -45,7 +45,7 @@ function initializePrivateGame() {
 		sessionStorage.setItem('roomNameKey', '');
 		history.back();
 	}
-	jwtToken = sessionStorage.getItem('jwt');
+	jwtToken = getJwtFromCookie();
 
 	if (boardSkin === 'defaultSkin') {
 		board.classList.add('blackSkin');
@@ -238,6 +238,7 @@ function initializePrivateGame() {
 			return;
 		}
 		let userId = user.id;
+		jwtToken = getJwtFromCookie();
 		fetch(`/join_or_create_room/${userId}/`, {
 			method: 'GET',
 			headers: {

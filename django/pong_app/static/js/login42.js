@@ -1,8 +1,19 @@
 document.addEventListener('DOMContentLoaded', initializeLogin);
 
+window.getJwtFromCookie = function() {
+	const cookies = document.cookie.split(';');
+	for(let i = 0; i < cookies.length; i++) {
+		const cookie = cookies[i].trim();
+		if (cookie.startsWith('jwt=')) {
+			return cookie.substring(4);
+		}
+	}
+	disconnectUser();
+	return null;
+};
+
 function initializeLogin() {
 	var isLogged;
-	var existingUser = false;
 	var loginLogout = document.getElementById('Login_Logout');
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
@@ -16,6 +27,10 @@ function initializeLogin() {
 		userImage.style.opacity = '1';
 	};
 	if (user) {
+		jwtToken = getJwtFromCookie();
+		if (!jwtToken) {
+			disconnectUser();
+		}
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
 				if (!response.ok) {
@@ -26,10 +41,8 @@ function initializeLogin() {
 			})
 			.then(data => {
 				if (data.user) {
-					jwtToken = sessionStorage.getItem('jwt');
 					if (data.user.is_2fa_enabled && !data.user.is_2fa_logged) {
 						disconnectUser();
-						navigateToCustompath('/homePage/');
 					}
 				} else {
 					sessionStorage.removeItem('user');
@@ -82,11 +95,28 @@ function initializeLogin() {
 	}
 
 	function disconnectUser() {
+		loginLogout.innerHTML = 'Login with 42';
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		if (user) {
 			setUserOffline(user.id);
 			sessionStorage.removeItem('user');
 		}
+		normalLogin.style.display = 'block';
+		userName.innerHTML = '';
+		isLogged = false;
+		userImage.src = '';
+		userImage.style.display = 'none';
+		removeJwtCookie();
+		navigateToCustompath('/homePage/');
+	}
+
+	function setJwtToCookie(jwt) {
+		console.log('Setting jwt to cookie:', jwt);
+		document.cookie = `jwt=${jwt}; path=/`;
+	}
+	
+	function removeJwtCookie() {
+		document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 	}
 
 	function isUserLoggedIn() {
@@ -95,7 +125,6 @@ function initializeLogin() {
 	}
 
 	function show2FAConfirmationPopup() {
-
 		var codeInput;
 		var confirmationModal = document.createElement('div');
 		confirmationModal.style.position = 'fixed';
@@ -184,7 +213,6 @@ function initializeLogin() {
 	if (user) {
 		for (var i = 0; i < users.length; i++) {
 			if (users[i].login === user.login) {
-				existingUser = true;
 				userName.innerHTML = user.login;
 				break;
 			}
@@ -259,8 +287,8 @@ function initializeLogin() {
 						try {
 							data.user.id = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(data.user));
-							sessionStorage.setItem('jwt', data.access_token);
-							user = JSON.parse(sessionStorage.getItem('user')); // Update the user variable
+							setJwtToCookie(data.access_token);
+							user = JSON.parse(sessionStorage.getItem('user'));
 							user.id = data.user.idName;
 							user.idName = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(user));
@@ -302,14 +330,9 @@ function initializeLogin() {
 
 	document.getElementById("Login_Logout").addEventListener("click", function () {
 		if (isLogged) {
-			loginLogout.innerHTML = 'Login with 42';
+			
 			disconnectUser();
-			normalLogin.style.display = 'block';
-			userName.innerHTML = '';
-			isLogged = false;
-			userImage.src = '';
-			userImage.style.display = 'none';
-			navigateToCustompath('/homePage/');
+			
 		} else {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
@@ -405,8 +428,8 @@ function initializeLogin() {
 												data.id = data.user.idName;
 											}
 											sessionStorage.setItem('user', data.user);
-											sessionStorage.setItem('jwt', data.access_token);
-											accessToken = sessionStorage.getItem('jwt');
+											setJwtToCookie(data.access_token);
+											accessToken = getJwtFromCookie();
 											fetch('/get_user/' + data.id + '/')
 												.then(response => {
 													if (!response.ok) {

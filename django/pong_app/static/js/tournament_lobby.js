@@ -4,11 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	initializeTournamentLobby();
 });
 
+
 window.tournamentLobbyData = {
 	lobbySocket: null,
 	pageSocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: sessionStorage.getItem('jwt'),
+	jwtToken: getJwtFromCookie(),
 	shouldLeaveLobby: true
 };
 function isOpen(socket) {
@@ -89,6 +90,7 @@ function initializeTournamentLobby() {
 								document.getElementById('PlayerCount').style.display = 'none';
 								document.getElementById('statusText').innerHTML = 'Congratulations! You won the tournament!';
 								setTimeout(function () {
+									jwtToken = getJwtFromCookie();
 									fetch('/leave_tournament/' + user.id + '/', {
 										method: 'POST',
 										headers: {
@@ -379,7 +381,7 @@ function initializeTournamentLobby() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 		var alias = document.getElementById('aliasInput').value;
-		jwtToken = sessionStorage.getItem('jwt');
+		jwtToken = getJwtFromCookie();
 		if (!alias) {
 			displayError('Please enter an alias');
 		}
@@ -429,7 +431,7 @@ function initializeTournamentLobby() {
 function leaveLobby() {
 	var user = window.tournamentLobbyData.user;
 	var tournamentId = document.getElementById('tournamentId').value;
-	var jwtToken = window.tournamentLobbyData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	window.tournamentLobbyData.shouldLeaveLobby = false;
 	if (!user) {
 		return;

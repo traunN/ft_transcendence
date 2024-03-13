@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', initializeCreateAccount);
 
+function setJwtToCookie(jwt) {
+	console.log('Setting jwt to cookie:', jwt);
+	document.cookie = `jwt=${jwt}; path=/`;
+}
+
+function removeJwtCookie() {
+	document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
 function initializeCreateAccount() {
 	var loginLogout = document.getElementById('Login_Logout');
 	var normalLogin = document.getElementById('normalLogin');
@@ -85,7 +94,7 @@ function initializeCreateAccount() {
 					if (data.id === undefined) {
 						data.id = data.user.idName;
 					}
-					sessionStorage.setItem('jwt', data.access_token);
+					setJwtToCookie(data.access_token);
 					sessionStorage.setItem('user', JSON.stringify(data.user));
 					fetch('/get_user/' + data.id + '/')
 						.then(response => {

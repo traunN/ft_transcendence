@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
 window.chatData = {
 	socket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: sessionStorage.getItem('jwt')
+	jwtToken: getJwtFromCookie()
 };
 
 function handleSubmit(event) {
@@ -91,6 +91,7 @@ function initializeChat() {
 
 	window.chatData.socket.onmessage = function (e) {
 		var dataMsg = JSON.parse(e.data);
+		jwtToken = getJwtFromCookie();
 		if (dataMsg.type === 'message') {
 			fetch('/check_blocked/' + dataMsg.idName + '/', {
 				method: 'POST',
@@ -155,7 +156,7 @@ function initializeChat() {
 }
 function blockUser(user_id) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -209,7 +210,7 @@ function blockUser(user_id) {
 
 function unblockUser(user_id) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -264,7 +265,7 @@ function unblockUser(user_id) {
 
 function whisperUser(user_id, message) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -330,7 +331,7 @@ function whisperUser(user_id, message) {
 
 function inviteUser(user_id) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	if (user_id === user.idName) {
 		displayMessage('System', 'You cannot invite yourself.', 2);
 		return;
@@ -398,7 +399,7 @@ function inviteUser(user_id) {
 
 function acceptInvitation(user_id) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -456,6 +457,8 @@ function acceptInvitation(user_id) {
 }
 
 function denyInvitation(user_id) {
+	var user = window.chatData.user;
+	var jwtToken = getJwtFromCookie();
 	fetch('/check_blocked/' + user.idName + '/', {
 		method: 'POST',
 		headers: {
@@ -514,7 +517,7 @@ function denyInvitation(user_id) {
 
 function sendMessage(message) {
 	var user = window.chatData.user;
-	var jwtToken = window.chatData.jwtToken;
+	var jwtToken = getJwtFromCookie();
 	var data = {
 		type: "message",
 		username: user.login + "(" + user.idName + ")",
@@ -537,7 +540,6 @@ function sendMessage(message) {
 		return response.json();
 	}).then(function (data) {
 		if (data.status === 'success') {
-			console.log('message sent');
 		}
 		else {
 			console.log('error:', data);
@@ -548,7 +550,6 @@ function sendMessage(message) {
 }
 
 function handleCommand(command, args, messageInput) {
-	console.log('args:', args);
 	switch (command) {
 		case '/profile':
 			if (args.length > 2) {
