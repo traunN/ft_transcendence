@@ -39,6 +39,13 @@ from django_otp.util import random_hex
 from urllib import parse
 import pyotp
 
+def get_jwt_token(request):
+	jwt_token = request.session.get('jwt_token')
+	if jwt_token:
+		return JsonResponse({'jwt': jwt_token})
+	else:
+		return JsonResponse({'error': 'No JWT token found in session'}, status=404)
+
 def confirm_2fa(request, user_id):
 	logger = logging.getLogger(__name__)
 	if request.method == 'POST':
@@ -929,7 +936,10 @@ def login_user(request):
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
 			refresh_token = str(refresh)
-			return JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			request.session['jwt_token'] = access_token
+			repsonse = JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			return response
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
 	except User.DoesNotExist:
@@ -962,7 +972,10 @@ def save_user_profile_42(request):
 			refresh = RefreshToken.for_user(user)
 			access_token = str(refresh.access_token)
 			refresh_token = str(refresh)
-			return JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			request.session['jwt_token'] = access_token
+			response = JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			return response
 		except User.DoesNotExist:
 			user = User.objects.create(
 				login=data['login'],
@@ -992,7 +1005,6 @@ def save_user_profile_42(request):
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 			user_json = json.dumps(user_dict)
-			# make sur user_id is used for access token
 			user.id = user.idName
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
@@ -1003,7 +1015,10 @@ def save_user_profile_42(request):
 				'access_token': access_token,
 				'refresh_token': refresh_token,
 			}
-			return JsonResponse(response_data, status=200)
+			request.session['jwt_token'] = access_token
+			response = JsonResponse(response_data)
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			return response
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -1018,7 +1033,12 @@ def save_user_profile_manual(request):
 		user_id = data['accountName']
 		try:
 			user = User.objects.get(idName=user_id)
-			return JsonResponse({'error': 'User already exists'}, status=200)
+			refresh = RefreshToken.for_user(user)
+			refresh['user_id'] = str(user.idName)
+			access_token = str(refresh.access_token)
+			request.session['jwt_token'] = access_token
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			return response
 		except User.DoesNotExist:
 			hashed_password = make_password(data['password'])
 			user = User.objects.create(
@@ -1052,7 +1072,10 @@ def save_user_profile_manual(request):
 				'access_token': access_token,
 				'refresh_token': refresh_token,
 			}
-			return JsonResponse(response_data, status=200)
+			request.session['jwt_token'] = access_token
+			response = JsonResponse(response_data)
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			return response
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
 

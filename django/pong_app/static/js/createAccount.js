@@ -1,12 +1,8 @@
 document.addEventListener('DOMContentLoaded', initializeCreateAccount);
 
-function setJwtToCookie(jwt) {
-	console.log('Setting jwt to cookie:', jwt);
-	document.cookie = `jwt=${jwt}; path=/`;
-}
-
 function removeJwtCookie() {
 	document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+	sessionStorage.removeItem('jwt');
 }
 
 function initializeCreateAccount() {
@@ -94,7 +90,6 @@ function initializeCreateAccount() {
 					if (data.id === undefined) {
 						data.id = data.user.idName;
 					}
-					setJwtToCookie(data.access_token);
 					sessionStorage.setItem('user', JSON.stringify(data.user));
 					fetch('/get_user/' + data.id + '/')
 						.then(response => {
@@ -107,7 +102,6 @@ function initializeCreateAccount() {
 						})
 						.then(data => {
 							if (data) {
-								console.log('User data: ' + JSON.stringify(data));
 								data.user.id = data.user.idName;
 								userImage.src = data.user.image;
 								user.image = data.user.image;

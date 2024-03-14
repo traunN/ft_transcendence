@@ -38,7 +38,7 @@ function initializePongGame() {
 	}
 	else {
 		startGameBtn.textContent = 'Start Game';
-		jwtToken = getJwtFromCookie();
+		jwtToken = sessionStorage.getItem('jwt');
 	}
 	if (user.id) {
 		userId = user.id;
@@ -253,7 +253,7 @@ function initializePongGame() {
 			return;
 		}
 		let userId = user.id;
-		jwtToken = getJwtFromCookie();
+		jwtToken = sessionStorage.getItem('jwt');
 		fetch(`/join_or_create_room/${userId}/`, {
 			method: 'GET',
 			headers: {

@@ -1,14 +1,30 @@
 document.addEventListener('DOMContentLoaded', initializeLogin);
 
-window.getJwtFromCookie = function() {
-	const cookies = document.cookie.split(';');
-	for(let i = 0; i < cookies.length; i++) {
-		const cookie = cookies[i].trim();
-		if (cookie.startsWith('jwt=')) {
-			return cookie.substring(4);
+window.getJwtFromCookie = function () {
+	fetch('/get_jwt_token/', {
+		method: 'GET',
+		credentials: 'include',
+		headers: {
+			'Content-Type': 'application/json',
+			// 'X-CSRFToken': csrfToken,
 		}
-	}
-	return null;
+	})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data && data.jwt) {
+				sessionStorage.setItem('jwt', data.jwt);
+			} else {
+				console.log('No JWT token received');
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
 };
 
 function initializeLogin() {
@@ -26,7 +42,9 @@ function initializeLogin() {
 		userImage.style.opacity = '1';
 	};
 	if (user) {
-		jwtToken = getJwtFromCookie();
+		getJwtFromCookie();
+		jwtToken = sessionStorage.getItem('jwt');
+		console.log('jwtToken:', jwtToken);
 		if (!jwtToken) {
 			disconnectUser();
 		}
@@ -108,14 +126,10 @@ function initializeLogin() {
 		removeJwtCookie();
 		navigateToCustompath('/homePage/');
 	}
-
-	function setJwtToCookie(jwt) {
-		console.log('Setting jwt to cookie:', jwt);
-		document.cookie = `jwt=${jwt}; path=/`;
-	}
 	
 	function removeJwtCookie() {
 		document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+		sessionStorage.removeItem('jwt');
 	}
 
 	function isUserLoggedIn() {
@@ -282,11 +296,11 @@ function initializeLogin() {
 					return response.json();
 				})
 				.then(data => {
+					console.log('data:', data);
 					if (data.status === 'success') {
 						try {
 							data.user.id = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(data.user));
-							setJwtToCookie(data.access_token);
 							user = JSON.parse(sessionStorage.getItem('user'));
 							user.id = data.user.idName;
 							user.idName = data.user.idName;
@@ -427,7 +441,6 @@ function initializeLogin() {
 												data.id = data.user.idName;
 											}
 											sessionStorage.setItem('user', data.user);
-											setJwtToCookie(data.access_token);
 											accessToken = getJwtFromCookie();
 											fetch('/get_user/' + data.id + '/')
 												.then(response => {
