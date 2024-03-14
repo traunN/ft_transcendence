@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', initializeLogin);
 
 window.getJwtFromCookie = function () {
-	fetch('/get_jwt_token/', {
+	return fetch('/get_jwt_token/', {
 		method: 'GET',
 		credentials: 'include',
 		headers: {
@@ -17,13 +17,14 @@ window.getJwtFromCookie = function () {
 		})
 		.then(data => {
 			if (data && data.jwt) {
-				sessionStorage.setItem('jwt', data.jwt);
+				return data.jwt;
 			} else {
-				console.log('No JWT token received');
+				throw new Error('JWT token not found in response');
 			}
 		})
 		.catch(error => {
 			console.error('Error:', error);
+			throw error; // Propagate the error further
 		});
 };
 
@@ -36,18 +37,18 @@ function initializeLogin() {
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var users = JSON.parse(sessionStorage.getItem('users')) || [];
-	var jwtToken;
 	userImage.style.opacity = '0';
 	userImage.onload = function () {
 		userImage.style.opacity = '1';
 	};
 	if (user) {
-		getJwtFromCookie();
-		jwtToken = sessionStorage.getItem('jwt');
-		console.log('jwtToken:', jwtToken);
-		if (!jwtToken) {
+		getJwtFromCookie().then(jwtToken => {
+			if (!jwtToken) {
+				disconnectUser();
+			}
+		}).catch(error => {
 			disconnectUser();
-		}
+		});
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
 				if (!response.ok) {
@@ -67,48 +68,55 @@ function initializeLogin() {
 				}
 			});
 	}
+	
 	function setUserOnline(userId) {
-		fetch('/set_user_online/' + userId + '/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			}
-		})
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
+		getJwtFromCookie().then(jwtToken => {
+			fetch('/set_user_online/' + userId + '/', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				}
-				return response.json();
 			})
-			.then(data => {
-			})
-			.catch(error => console.error('Error:', error));
+				.then(response => {
+					if (!response.ok) {
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+				})
+				.catch(error => console.error('Error:', error));
+		}).catch(error => {
+		});
 	}
 
 	function setUserOffline(userId) {
-		fetch('/set_user_offline/' + userId + '/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			}
-		})
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
+		getJwtFromCookie().then(jwtToken => {
+			fetch('/set_user_offline/' + userId + '/', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
 				}
-				return response.json();
 			})
-			.then(data => {
-			})
-			.catch(error => console.error('Error:', error));
+				.then(response => {
+					if (!response.ok) {
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+				})
+				.catch(error => console.error('Error:', error));
+		}).catch(error => {
+		});
 	}
 
 	function disconnectUser() {
@@ -129,7 +137,6 @@ function initializeLogin() {
 	
 	function removeJwtCookie() {
 		document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-		sessionStorage.removeItem('jwt');
 	}
 
 	function isUserLoggedIn() {
@@ -163,28 +170,33 @@ function initializeLogin() {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			userId = user.idName;
 			var enteredCode = codeInput.value;
-			fetch(`/confirm_2fa/${userId}/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': csrfToken,
-					'Authorization': `Bearer ${jwtToken}`
-				},
-				body: JSON.stringify({
-					'code': enteredCode
-				})
-			}).then(function (response) {
-				return response.json();
-			}).then(function (data) {
-				if (data.status === 'success') {
-					setUserOnline(userId);
-					navigateToCustompath('/homePage/');
-				}
-				else {
-					console.log('Error confirming 2FA setup:', data);
-				}
-			}).catch(function (error) {
-				console.log('Error confirming 2FA setup:', error);
+			getJwtFromCookie().then(jwtToken => {
+				fetch(`/confirm_2fa/${userId}/`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrfToken,
+						'Authorization': `Bearer ${jwtToken}`
+					},
+					body: JSON.stringify({
+						'code': enteredCode
+					})
+				}).then(function (response) {
+					return response.json();
+				}).then(function (data) {
+					if (data.status === 'success') {
+						setUserOnline(userId);
+						navigateToCustompath('/homePage/');
+					}
+					else {
+						console.log('Error confirming 2FA setup:', data);
+					}
+				}).catch(function (error) {
+					console.log('Error confirming 2FA setup:', error);
+				});
+			}
+			).catch(error => {
+				console.error('Error:', error);
 			});
 		});
 
