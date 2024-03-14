@@ -24,14 +24,12 @@ function initializeProfile() {
 	var profileCard = document.getElementById('profileCard');
 	var pleaseLoginCard = document.getElementById('pleaseLoginCard');
 	var user = JSON.parse(sessionStorage.getItem('user'));
-	var jwtToken;
 	if (!user) {
 		profileCard.style.display = 'none';
 		gameHistoryCard.style.display = 'none';
 		pleaseLoginCard.style.display = 'block';
 		return;
 	}
-	jwtToken = getJwtFromCookie();
 	var pathArray = window.location.pathname.split('/');
 	var userId = pathArray[pathArray.length - 2];
 	if (pathArray[pathArray.length - 3] === 'profile' && pathArray[pathArray.length - 2] === '') {
@@ -183,60 +181,66 @@ function initializeProfile() {
 		if (newImage) {
 			formData.append('image', newImage);
 		}
-		jwtToken = getJwtFromCookie();
-		fetch('/update_user/', {
-			method: 'POST',
-			headers: {
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-			body: formData,
-		})
-			.then(response => response.json())
-			.then(data => {
-				if (data.status === 'success') {
-					username.textContent = newUsername;
-					userEmail.textContent = 'Email: ' + newEmail;
-					userFirstName.textContent = 'First name: ' + newFirstName;
-					userLastName.textContent = 'Last name: ' + newLastName;
-					usercampusProfile.textContent = 'Campus: ' + newCampus;
-					user.login = newUsername;
-					user.email = newEmail;
-					user.firstName = newFirstName;
-					user.lastName = newLastName;
-					user.campus = newCampus;
-					sessionStorage.setItem('user', JSON.stringify(user));
-					navigateToCustompath('/profile/' + user.idName);
-				}
-				else {
-					console.log('Error updating user');
-					console.log(data);
-				}
+		getJwtFromCookie().then(jwtToken => {
+			fetch('/update_user/', {
+				method: 'POST',
+				headers: {
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
+				body: formData,
 			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'success') {
+						username.textContent = newUsername;
+						userEmail.textContent = 'Email: ' + newEmail;
+						userFirstName.textContent = 'First name: ' + newFirstName;
+						userLastName.textContent = 'Last name: ' + newLastName;
+						usercampusProfile.textContent = 'Campus: ' + newCampus;
+						user.login = newUsername;
+						user.email = newEmail;
+						user.firstName = newFirstName;
+						user.lastName = newLastName;
+						user.campus = newCampus;
+						sessionStorage.setItem('user', JSON.stringify(user));
+						navigateToCustompath('/profile/' + user.idName);
+					}
+					else {
+						console.log('Error updating user');
+						console.log(data);
+					}
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+				});
+		}
+		).catch(error => {
+		});
 	});
 
 	document.getElementById('remove2FA').addEventListener('click', function () {
 		userId = user.idName;
-		jwtToken = getJwtFromCookie();
-		fetch(`/remove_2fa/${userId}/`, {
-			method: 'POST',
-			headers: {
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-		})
-			.then(response => response.json())
-			.then(data => {
-				console.log(data);
-				if (data.status === 'success')
-					navigateToCustompath('/profile/' + user.idName);
+		getJwtFromCookie().then(jwtToken => {
+			fetch(`/remove_2fa/${userId}/`, {
+				method: 'POST',
+				headers: {
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
 			})
-			.catch(error => {
-				console.error('Error:', error);
-			});
+				.then(response => response.json())
+				.then(data => {
+					console.log(data);
+					if (data.status === 'success')
+						navigateToCustompath('/profile/' + user.idName);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+				});
+		}
+		).catch(error => {
+		});
 	});
 
 	document.getElementById('setup2FAButton').addEventListener('click', function () {

@@ -9,7 +9,6 @@ window.tournamentLobbyData = {
 	lobbySocket: null,
 	pageSocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	jwtToken: getJwtFromCookie(),
 	shouldLeaveLobby: true
 };
 function isOpen(socket) {
@@ -22,7 +21,6 @@ function initializeTournamentLobby() {
 	var playersList = document.getElementById('playerList');
 	var tournamentLobbyKey = sessionStorage.getItem('tournamentLobbyKey');
 	var statusText = document.getElementById('statusText');
-	var jwtToken = window.tournamentLobbyData.jwtToken;
 	let user = window.tournamentLobbyData.user;
 	if (!user) {
 		return;
@@ -90,29 +88,33 @@ function initializeTournamentLobby() {
 								document.getElementById('PlayerCount').style.display = 'none';
 								document.getElementById('statusText').innerHTML = 'Congratulations! You won the tournament!';
 								setTimeout(function () {
-									jwtToken = getJwtFromCookie();
-									fetch('/leave_tournament/' + user.id + '/', {
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json',
-											'X-CSRFToken': csrfToken,
-											'Authorization': `Bearer ${jwtToken}`
-										},
-										body: JSON.stringify(Object.fromEntries(formData))
-									})
-										.then(response => response.text())
-										.then(data => {
-											console.log(data);
-											var response = JSON.parse(data);
-											if (response.status === 'success') {
-												navigateToCustompath('/tournament/');
-											}
-											else {
-												console.log('Error leaving tournament');
-												console.log(response);
-											}
+									getJwtFromCookie().then(jwtToken => {
+										fetch('/leave_tournament/' + user.id + '/', {
+											method: 'POST',
+											headers: {
+												'Content-Type': 'application/json',
+												'X-CSRFToken': csrfToken,
+												'Authorization': `Bearer ${jwtToken}`
+											},
+											body: JSON.stringify(Object.fromEntries(formData))
 										})
-										.catch(error => console.error(error));
+											.then(response => response.text())
+											.then(data => {
+												console.log(data);
+												var response = JSON.parse(data);
+												if (response.status === 'success') {
+													navigateToCustompath('/tournament/');
+												}
+												else {
+													console.log('Error leaving tournament');
+													console.log(response);
+												}
+											})
+											.catch(error => console.error(error));
+									}
+									).catch(error => {
+										console.log('Error getting jwt token');
+									});
 								}, 3000);
 
 							}
@@ -381,7 +383,6 @@ function initializeTournamentLobby() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
 		var tournamentId = document.getElementById('tournamentId').value;
 		var alias = document.getElementById('aliasInput').value;
-		jwtToken = getJwtFromCookie();
 		if (!alias) {
 			displayError('Please enter an alias');
 		}
@@ -389,32 +390,36 @@ function initializeTournamentLobby() {
 		formData.append('alias', alias);
 		formData.append('tournament_id', tournamentId);
 		formData.append('user_id', user.id);
-
-		fetch('/set_player_ready/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-			body: JSON.stringify(Object.fromEntries(formData))
-		})
-			.then(response => response.json())
-			.then(data => {
-				if (data.status === 'success') {
-					if (isOpen(window.tournamentLobbyData.lobbySocket)) {
-						window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
-							'type': 'tournament_lobby_updated',
-							'tournament_id': tournamentId,
-						}));
-					}
-				}
-				else {
-					console.log('Error setting player ready');
-					console.log(data);
-				}
+		getJwtFromCookie().then(jwtToken => {
+			fetch('/set_player_ready/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			.catch(error => console.error(error));
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'success') {
+						if (isOpen(window.tournamentLobbyData.lobbySocket)) {
+							window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
+								'type': 'tournament_lobby_updated',
+								'tournament_id': tournamentId,
+							}));
+						}
+					}
+					else {
+						console.log('Error setting player ready');
+						console.log(data);
+					}
+				})
+				.catch(error => console.error(error));
+		}
+		).catch(error => {
+			console.log('Error getting jwt token');
+		});
 	}
 
 	document.getElementById('readyButton').addEventListener('click', function () {
@@ -431,7 +436,6 @@ function initializeTournamentLobby() {
 function leaveLobby() {
 	var user = window.tournamentLobbyData.user;
 	var tournamentId = document.getElementById('tournamentId').value;
-	var jwtToken = getJwtFromCookie();
 	window.tournamentLobbyData.shouldLeaveLobby = false;
 	if (!user) {
 		return;
@@ -440,66 +444,70 @@ function leaveLobby() {
 	formData.append('tournament_id', tournamentId);
 	reloadLeaveLobby = false;
 
-
-	fetch('/leave_tournament/' + user.id + '/', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-CSRFToken': csrfToken,
-			'Authorization': `Bearer ${jwtToken}`
-		},
-		body: JSON.stringify(Object.fromEntries(formData))
-	})
-		.then(response => response.text())
-		.then(data => {
-			console.log(data);
-			var response = JSON.parse(data);
-			if (response.status === 'success') {
-				console.log('window.tournamentLobbyData.pageSocket', window.tournamentLobbyData.pageSocket);
-				if (isOpen(window.tournamentLobbyData.pageSocket)) {
-					window.tournamentLobbyData.pageSocket.send(JSON.stringify({
-						'type': 'tournament_updated',
-					}));
-					fetch('/get_tournament_status/' + tournamentId + '/')
-						.then(response => response.text())
-						.then(data => {
-							var response = JSON.parse(data);
-							if (response.status === 'success') {
-								if (isOpen(window.tournamentLobbyData.lobbySocket)) {
-									window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
-										'type': 'tournament_lobby_updated',
-										'tournament_id': tournamentId,
-									}));
-									window.tournamentLobbyData.lobbySocket.close();
-								}
-								if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
-									window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
-										'type': 'cancel_lobby',
-										'tournament_id': tournamentId,
-									}));
-									fetch('/change_tournament_status/' + tournamentId + '/', {
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json',
-											'X-CSRFToken': csrfToken,
-										},
-										body: JSON.stringify({
-											'status': 'canceled',
-										})
-									})
-								}
-							}
-						})
-						.catch(error => console.error(error));
-					window.tournamentLobbyData.pageSocket.close();
-				}
-			}
-			else {
-				console.log('Error leaving tournament');
-				console.log(response);
-			}
+	getJwtFromCookie().then(jwtToken => {
+		fetch('/leave_tournament/' + user.id + '/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+				'Authorization': `Bearer ${jwtToken}`
+			},
+			body: JSON.stringify(Object.fromEntries(formData))
 		})
-		.catch(error => console.error(error));
+			.then(response => response.text())
+			.then(data => {
+				console.log(data);
+				var response = JSON.parse(data);
+				if (response.status === 'success') {
+					console.log('window.tournamentLobbyData.pageSocket', window.tournamentLobbyData.pageSocket);
+					if (isOpen(window.tournamentLobbyData.pageSocket)) {
+						window.tournamentLobbyData.pageSocket.send(JSON.stringify({
+							'type': 'tournament_updated',
+						}));
+						fetch('/get_tournament_status/' + tournamentId + '/')
+							.then(response => response.text())
+							.then(data => {
+								var response = JSON.parse(data);
+								if (response.status === 'success') {
+									if (isOpen(window.tournamentLobbyData.lobbySocket)) {
+										window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
+											'type': 'tournament_lobby_updated',
+											'tournament_id': tournamentId,
+										}));
+										window.tournamentLobbyData.lobbySocket.close();
+									}
+									if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
+										window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
+											'type': 'cancel_lobby',
+											'tournament_id': tournamentId,
+										}));
+										fetch('/change_tournament_status/' + tournamentId + '/', {
+											method: 'POST',
+											headers: {
+												'Content-Type': 'application/json',
+												'X-CSRFToken': csrfToken,
+											},
+											body: JSON.stringify({
+												'status': 'canceled',
+											})
+										})
+									}
+								}
+							})
+							.catch(error => console.error(error));
+						window.tournamentLobbyData.pageSocket.close();
+					}
+				}
+				else {
+					console.log('Error leaving tournament');
+					console.log(response);
+				}
+			})
+			.catch(error => console.error(error));
+	}
+	).catch(error => {
+		console.log('Error getting jwt token');
+	});
 }
 
 function customOnBeforeUnload() {

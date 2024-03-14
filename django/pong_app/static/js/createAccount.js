@@ -1,10 +1,5 @@
 document.addEventListener('DOMContentLoaded', initializeCreateAccount);
 
-function removeJwtCookie() {
-	document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-	sessionStorage.removeItem('jwt');
-}
-
 function initializeCreateAccount() {
 	var loginLogout = document.getElementById('Login_Logout');
 	var normalLogin = document.getElementById('normalLogin');

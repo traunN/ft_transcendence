@@ -17,7 +17,6 @@ function initializeFriends() {
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
-	var jwtToken = getJwtFromCookie();
 	if (!user) {
 		if (addFriendButton) {
 			addFriendButton.style.display = 'none';
@@ -85,31 +84,34 @@ function initializeFriends() {
 								deleteButton.className = 'delete-friend-btn';
 								var cell = row.insertCell(1);
 								cell.appendChild(deleteButton);
-								jwtToken = getJwtFromCookie();
 								deleteButton.addEventListener('click', function () {
-									fetch('/delete_friend/', {
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json',
-											'X-CSRFToken': csrfToken,
-											'Authorization': `Bearer ${jwtToken}`
-										},
-										body: JSON.stringify({
-											'from_user': user.idName,
-											'to_user': window.friendData.friends[index].idName
-										}),
-									})
-										.then(response => response.json())
-										.then(data => {
-											if (data.status === 'success') {
-												window.friendData.socket.send(JSON.stringify({
-													'type': 'friend_request_accepted',
-													'from_user': user.idName,
-													'to_user': window.friendData.friends[index].idName
-												}));
-												updateFriendList();
-											}
-										});
+									getJwtFromCookie().then(jwtToken => {
+										fetch('/delete_friend/', {
+											method: 'POST',
+											headers: {
+												'Content-Type': 'application/json',
+												'X-CSRFToken': csrfToken,
+												'Authorization': `Bearer ${jwtToken}`
+											},
+											body: JSON.stringify({
+												'from_user': user.idName,
+												'to_user': window.friendData.friends[index].idName
+											}),
+										})
+											.then(response => response.json())
+											.then(data => {
+												if (data.status === 'success') {
+													window.friendData.socket.send(JSON.stringify({
+														'type': 'friend_request_accepted',
+														'from_user': user.idName,
+														'to_user': window.friendData.friends[index].idName
+													}));
+													updateFriendList();
+												}
+											});
+									}
+									).catch(error => {
+									});
 								});
 							});
 					})(i);
@@ -127,32 +129,35 @@ function initializeFriends() {
 			document.getElementById('notificationMessage').innerText = `You have received a friend request from ${data.from_user}`;
 			document.getElementById('notificationContainer').style.display = 'flex';
 			document.getElementById('acceptRequest').addEventListener('click', function () {
-				jwtToken = getJwtFromCookie();
-				fetch('/accept_friend_request/', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-CSRFToken': csrfToken,
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					body: JSON.stringify({
-						'from_user': data.from_user,
-						'to_user': user.idName,
-					}),
-				})
-					.then(response => response.json())
-					.then(data => {
-						if (data.status === 'success') {
-							updateFriendList();
-							console.log('sending friend request to ' + from_user);
-							window.friendData.socket.send(JSON.stringify({
-								'type': 'friend_request_accepted',
-								'from_user': user.idName,
-								'to_user': from_user
-							}));
-						}
-					});
-				document.getElementById('notificationContainer').style.display = 'none';
+				getJwtFromCookie().then(jwtToken => {
+					fetch('/accept_friend_request/', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': csrfToken,
+							'Authorization': `Bearer ${jwtToken}`
+						},
+						body: JSON.stringify({
+							'from_user': data.from_user,
+							'to_user': user.idName,
+						}),
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.status === 'success') {
+								updateFriendList();
+								console.log('sending friend request to ' + from_user);
+								window.friendData.socket.send(JSON.stringify({
+									'type': 'friend_request_accepted',
+									'from_user': user.idName,
+									'to_user': from_user
+								}));
+							}
+						});
+					document.getElementById('notificationContainer').style.display = 'none';
+				}
+				).catch(error => {
+				});
 			});
 			document.getElementById('denyRequest').addEventListener('click', function () {
 				document.getElementById('notificationContainer').style.display = 'none';
