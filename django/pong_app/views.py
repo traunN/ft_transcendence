@@ -551,10 +551,11 @@ def exchange_token(request):
 	try:
 		code = request.GET.get('code')
 		redirect_uri = 'https://localhost:8443/homePage/'
+		client_secret = os.environ.get('CLIENT_SECRET')
 		post_data = {
 			'grant_type': 'authorization_code',
 			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
-			'client_secret': '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',
+			'client_secret':  client_secret,
 			'code': code,
 			'redirect_uri': redirect_uri
 		}
@@ -570,7 +571,8 @@ def exchange_token(request):
 
 def get_client_secret(request):
 	try:
-		return JsonResponse({'status': 'success', 'client_secret': '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'})
+		client_secret = os.environ.get('CLIENT_SECRET')
+		return JsonResponse({'status': 'success', 'client_secret': client_secret})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
