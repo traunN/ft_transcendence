@@ -39,6 +39,14 @@ from django_otp.util import random_hex
 from urllib import parse
 import pyotp
 
+def remove_jwt_token(request):
+	jwt_token = request.session.get('jwt_token')
+	if jwt_token:
+		del request.session['jwt_token']
+		return JsonResponse({'status': 'success', 'message': 'JWT token removed successfully'})
+	else:
+		return JsonResponse({'error': 'No JWT token found in session'}, status=404)
+
 def get_jwt_token(request):
 	jwt_token = request.session.get('jwt_token')
 	if jwt_token:

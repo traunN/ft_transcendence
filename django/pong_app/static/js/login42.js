@@ -6,7 +6,6 @@ window.getJwtFromCookie = function () {
 		credentials: 'include',
 		headers: {
 			'Content-Type': 'application/json',
-			// 'X-CSRFToken': csrfToken,
 		}
 	})
 		.then(response => {
@@ -24,7 +23,7 @@ window.getJwtFromCookie = function () {
 		})
 		.catch(error => {
 			console.error('Error:', error);
-			throw error; // Propagate the error further
+			throw error;
 		});
 };
 
@@ -136,7 +135,25 @@ function initializeLogin() {
 	}
 	
 	function removeJwtCookie() {
-		document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+		fetch('/remove_jwt_token/', {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			}
+		})
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+			})
+			.catch(error => console.error('Error:', error));
 	}
 
 	function isUserLoggedIn() {
