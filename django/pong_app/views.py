@@ -554,7 +554,7 @@ def exchange_token(request):
 		post_data = {
 			'grant_type': 'authorization_code',
 			'client_id': 'u-s4t2ud-7c5080717dbb44d8ad2439acf51e0d576db8aaf6f49ef1866fc422e96ca86dd2',
-			'client_secret': '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',
+			'client_secret': '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',
 			'code': code,
 			'redirect_uri': redirect_uri
 		}
@@ -570,7 +570,7 @@ def exchange_token(request):
 
 def get_client_secret(request):
 	try:
-		return JsonResponse({'status': 'success', 'client_secret': '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'})
+		return JsonResponse({'status': 'success', 'client_secret': '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'})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
