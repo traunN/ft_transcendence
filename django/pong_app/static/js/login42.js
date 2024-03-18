@@ -67,7 +67,50 @@ function initializeLogin() {
 				}
 			});
 	}
-	
+	else {
+		getJwtFromCookie().then(jwtToken => {
+			if (!jwtToken) {
+				disconnectUser();
+			}
+			else {
+				fetch('/get_user_by_jwt/', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrfToken,
+						'Authorization': `Bearer ${jwtToken}`
+					}
+				})
+					.then(response => {
+						if (!response.ok) {
+							return response.text().then(text => {
+								throw new Error('Server error: ' + text);
+							});
+						}
+						return response.json();
+					})
+					.then(data => {
+						if (data.user) {
+							sessionStorage.setItem('user', JSON.stringify(data.user));
+							loginLogout.innerHTML = 'Logout';
+							normalLogin.style.display = 'none';
+							userName.innerHTML = data.user.login;
+							console.log('data:', data.user);
+							userImage.src = data.user.image;
+							userImage.style.display = 'block';
+							isLogged = true;
+						}
+					})
+					.catch(error => {
+						console.error('Error:', error);
+					});
+			}
+		}).catch(error => {
+			console.error('Error:', error);
+		}
+		);
+	}
+
 	function setUserOnline(userId) {
 		getJwtFromCookie().then(jwtToken => {
 			fetch('/set_user_online/' + userId + '/', {

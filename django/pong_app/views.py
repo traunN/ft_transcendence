@@ -39,6 +39,23 @@ from django_otp.util import random_hex
 from urllib import parse
 import pyotp
 
+def get_user_by_jwt(request):
+	authorization_head = request.headers.get('Authorization')
+	if not authorization_head or not authorization_head.startswith('Bearer '):
+		return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+	access_token = authorization_head.split(' ')[1]
+	jwt_authentication = JWTAuthentication()
+	decoded_token = jwt_authentication.get_validated_token(access_token)
+	user_id = decoded_token['user_id']
+	user = User.objects.get(idName=user_id)
+	user_dict = model_to_dict(user)
+	user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+	repsonse_data = {
+		'status': 'success',
+		'user': user_dict
+	}
+	return JsonResponse(repsonse_data)
+
 def remove_jwt_token(request):
 	jwt_token = request.session.get('jwt_token')
 	if jwt_token:

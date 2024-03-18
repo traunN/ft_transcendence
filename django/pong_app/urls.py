@@ -55,6 +55,7 @@ urlpatterns = [
 	path('get_client_secret/', views.get_client_secret, name='get_client_secret'),
 	path('exchange_token/', views.exchange_token, name='exchange_token'),
 	path('remove_jwt_token/', views.remove_jwt_token, name='remove_jwt_token'),
+	path('get_user_by_jwt/', views.get_user_by_jwt, name='get_user_by_jwt'),
 	path('update_user/', views.update_user, name='update_user'),
 	path('record_game/', views.record_game, name='record_game'),
 	path('get_user_game_history/<str:user_id>/', views.get_user_game_history, name='get_user_game_history'),
