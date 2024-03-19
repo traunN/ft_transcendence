@@ -339,7 +339,8 @@ function initializeLogin() {
 		userImage.style.display = 'none';
 	}
 
-	document.getElementById('normalLogin').addEventListener('click', function () {
+	document.getElementById('normalLogin').addEventListener('click', function (event) {
+		event.preventDefault();
 		event.stopPropagation();
 		var loginModal = document.createElement('div');
 		loginModal.style.position = 'fixed';
@@ -363,6 +364,10 @@ function initializeLogin() {
 				<button type="button" id="createAccountButton" class="yellow-btn">Create Account</button>
 			</form>
 		`;
+		// prevent default loginForm
+		loginModal.addEventListener('submit', function (event) {
+			event.preventDefault();
+		});
 		document.body.appendChild(loginModal);
 		document.getElementById('username').focus();
 		document.getElementById('loginButton').addEventListener('click', function () {
@@ -389,7 +394,6 @@ function initializeLogin() {
 					return response.json();
 				})
 				.then(data => {
-					console.log(data);
 					if (data.status === 'success') {
 						try {
 							data.user.id = data.user.idName;
@@ -408,6 +412,8 @@ function initializeLogin() {
 							setUserOnline(data.user.id);
 							userImage.style.display = 'block';
 							loginModal.remove();
+							isLogged = true;
+							// remove password and login info from url
 							navigateToCustompath('/homePage/');
 						}
 						catch (error) {
