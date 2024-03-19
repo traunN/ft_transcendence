@@ -293,25 +293,9 @@ function initializeLogin() {
 
 	if (isUserLoggedIn()) {
 		var user = JSON.parse(sessionStorage.getItem('user'));
-		fetch('/get_user/' + user.idName + '/')
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
-				}
-				return response.json();
-			})
-			.then(data => {
-				if (data) {
-					userImage.src = data.user.image;
-					user.image = data.user.image;
-					userName.innerHTML = data.user.login;
-					userImage.style.display = 'block';
-					setUserOnline(user.idName);
-				}
-			})
-			.catch(error => console.error('Error:', error));
+		userImage.src = user.image;
+		userName.innerHTML = user.login;
+		userImage.style.display = 'block';
 		isLogged = true;
 	} else {
 		isLogged = false;
@@ -439,11 +423,10 @@ function initializeLogin() {
 		});
 	});
 
-	document.getElementById("Login_Logout").addEventListener("click", function () {
+	document.getElementById("Login_Logout").addEventListener("click", function (event) {
+		event.preventDefault();
 		if (isLogged) {
-			
 			disconnectUser();
-			
 		} else {
 			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {

@@ -195,7 +195,7 @@ function customOnBeforeUnload() {
 	if (window.location.pathname !== '/tournament/') {
 		return;
 	}
-	if (window.tournamentData.socket) {
+	if (window.tournamentData.socket.readyState === 1) {
 		window.tournamentData.socket.close();
 	}
 }

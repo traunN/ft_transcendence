@@ -49,7 +49,11 @@ def get_user_by_jwt(request):
 		decoded_token = jwt_authentication.get_validated_token(access_token)
 		user_id = decoded_token['user_id']
 		user = User.objects.get(idName=user_id)
-		user_dict = model_to_dict(user)
+		user_dict = model_to_dict(user, fields=[
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
+		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
 		return JsonResponse({'status': 'success', 'user': user_dict})
 	except Exception as e:
@@ -434,7 +438,6 @@ def proxy_view(request):
 
 	access_token = auth_header.split(' ')[1]
 
-	# Include the access token in the 'Authorization' header when making the request to the API
 	headers = {'Authorization': 'Bearer ' + access_token}
 	response = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
 	if response.status_code == 200 and response.text.strip():
