@@ -24,9 +24,9 @@ function initializeTournamentGame() {
 	const player1Score = document.querySelector('.player_1_score');
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
-	var boardSkin = localStorage.getItem('boardSkin') || 'skin1';
-	var ballSkin = localStorage.getItem('ballSkin') || 'skin1';
-	var paddleSkin = localStorage.getItem('paddleSkin') || 'skin1';
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'skin1';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'skin1';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'skin1';
 	var roomNameKey = sessionStorage.getItem('roomNameKey');
 	let user = window.tournamentGameData.user;
 	if (!user) {

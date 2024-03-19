@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', initializeSettings);
 
 function initializeSettings() {
-	var ballSkin = localStorage.getItem('ballSkin') || 'skin1';
-	var paddleSkin = localStorage.getItem('paddleSkin') || 'skin1';
-	var boardSkin = localStorage.getItem('boardSkin') || 'skin1';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'skin1';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'skin1';
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'skin1';
 
 	const elements = {
 		ball: document.querySelector('.ball'),
@@ -21,7 +21,7 @@ function initializeSettings() {
 		selectElement.value = skin;
 		selectElement.addEventListener('change', function () {
 			var newSkin = this.value;
-			localStorage.setItem(storageKey, newSkin);
+			sessionStorage.setItem(storageKey, newSkin);
 			element.className = `${element.className.split(' ')[0]} ${newSkin}`;
 		});
 		if (storageKey === 'boardSkin' && skin === 'skin1') {
