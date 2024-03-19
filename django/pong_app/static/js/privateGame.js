@@ -21,9 +21,9 @@ function initializePrivateGame() {
 	const player1Score = document.querySelector('.player_1_score');
 	const player2Score = document.querySelector('.player_2_score');
 	const message = document.querySelector('.message');
-	var boardSkin = sessionStorage.getItem('boardSkin') || 'defaultSkin';
-	var ballSkin = sessionStorage.getItem('ballSkin') || 'defaultSkin';
-	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'defaultSkin';
+	var boardSkin = sessionStorage.getItem('boardSkin') || 'skin1';
+	var ballSkin = sessionStorage.getItem('ballSkin') || 'skin1';
+	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'skin1';
 	var roomNameKey = sessionStorage.getItem('roomNameKey');
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	if (!user) {
@@ -45,7 +45,7 @@ function initializePrivateGame() {
 		history.back();
 	}
 
-	if (boardSkin === 'defaultSkin') {
+	if (boardSkin === 'skin1') {
 		board.classList.add('blackSkin');
 	}
 	else {

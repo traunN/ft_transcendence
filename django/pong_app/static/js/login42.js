@@ -364,7 +364,6 @@ function initializeLogin() {
 				<button type="button" id="createAccountButton" class="yellow-btn">Create Account</button>
 			</form>
 		`;
-		// prevent default loginForm
 		loginModal.addEventListener('submit', function (event) {
 			event.preventDefault();
 		});
