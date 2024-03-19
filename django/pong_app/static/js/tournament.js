@@ -112,7 +112,6 @@ function initializeTournament() {
 						navigateToCustompath('/tournament_lobby/' + response.tournament_id);
 					}
 					else {
-						console.log('Error joining tournament');
 						console.log(response);
 					}
 				})

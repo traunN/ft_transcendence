@@ -389,7 +389,6 @@ function initializeLogin() {
 					return response.json();
 				})
 				.then(data => {
-					console.log('data:', data);
 					if (data.status === 'success') {
 						try {
 							data.user.id = data.user.idName;

@@ -317,6 +317,8 @@ function initializePongGame() {
 					}
 					else {
 						console.log('Failed to join or create room', data);
+						isGameRunning = false;
+						startGameBtn.style.display = 'block';
 						return;
 					}
 				})

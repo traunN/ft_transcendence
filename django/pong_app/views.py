@@ -650,10 +650,8 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 		room.paddle2_position = '0,0'
 		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
 		room_player.save()
-
 		room.player_count += 1
 		room.save()
-
 		if room.player_count == 2:
 			room.gameState = 'playing_tournament'
 			room.save()
@@ -781,6 +779,8 @@ def join_tournament(request, user_id):
 			if token_user_id != user_id:
 				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			tournament = Tournament.objects.get(id=tournament_id)
+			if TournamentPlayer.objects.filter(user=user, tournament=tournament).exists():
+				return JsonResponse({'status': 'error', 'message': 'User already in tournament'})
 			tournament_player = TournamentPlayer(user=user, tournament=tournament)
 			tournament_player.count = 1
 			tournament.count += 1
@@ -836,6 +836,10 @@ def join_or_create_room(request, user_id):
 		token_user_id = decoded_token['user_id']
 		if token_user_id != user_id:
 			return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+		if RoomPlayer.objects.filter(user=user).exists():
+			return JsonResponse({'status': 'error', 'message': 'User already in a room'})
+		if TournamentPlayer.objects.filter(user=user).exists():
+			return JsonResponse({'status': 'error', 'message': 'User already in a tournament'})
 		rooms = GameRoom.objects.filter(player_count__lt=2)
 		rooms = rooms.exclude(gameState='cancelled')
 		rooms = rooms.exclude(gameState='waiting_tournament')
@@ -851,13 +855,11 @@ def join_or_create_room(request, user_id):
 			room.save()
 		else:
 			room = rooms.first()
-			
 		room.ball_position = '0,0'
 		room.paddle1_position = '0,0'
 		room.paddle2_position = '0,0'
 		room_player, created = RoomPlayer.objects.get_or_create(user=user, room=room)
 		room_player.save()
-
 		room.player_count += 1
 		room.save()
 		if room.player_count == 2:
