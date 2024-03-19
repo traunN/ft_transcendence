@@ -965,7 +965,7 @@ def login_user(request):
 			access_token = str(refresh.access_token)
 			refresh_token = str(refresh)
 			request.session['jwt_token'] = access_token
-			repsonse = JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
+			response = JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
 			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
 			return response
 		else:
