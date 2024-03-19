@@ -192,6 +192,8 @@ window.addEventListener('beforeunload', friendOnBeforeUnload);
 function friendOnBeforeUnload() {
 	window.removeEventListener('beforeunload', friendOnBeforeUnload);
 	if (window.friendData.socket) {
-		window.friendData.socket.close();
+		if (window.friendData.socket.readyState === 1) {
+			window.friendData.socket.close();
+		}
 	}
 }

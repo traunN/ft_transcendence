@@ -10,7 +10,7 @@ window.getJwtFromCookie = function () {
 	})
 		.then(response => {
 			if (!response.ok) {
-				throw new Error('Network response was not ok');
+				return null;
 			}
 			return response.json();
 		})
@@ -18,12 +18,11 @@ window.getJwtFromCookie = function () {
 			if (data && data.jwt) {
 				return data.jwt;
 			} else {
-				throw new Error('JWT token not found in response');
+				return null;
 			}
 		})
 		.catch(error => {
-			console.error('Error:', error);
-			throw error;
+			return null;
 		});
 };
 
@@ -70,7 +69,9 @@ function initializeLogin() {
 	else {
 		getJwtFromCookie().then(jwtToken => {
 			if (!jwtToken) {
-				disconnectUser();
+				if (user) {
+					disconnectUser();
+				}
 			}
 			else {
 				fetch('/get_user_by_jwt/', {
@@ -91,11 +92,13 @@ function initializeLogin() {
 					})
 					.then(data => {
 						if (data.user) {
-							sessionStorage.setItem('user', JSON.stringify(data.user));
+							user = data.user;
+							user.id = data.user.idName;
+							user.idName = data.user.idName;
+							sessionStorage.setItem('user', JSON.stringify(user));
 							loginLogout.innerHTML = 'Logout';
 							normalLogin.style.display = 'none';
 							userName.innerHTML = data.user.login;
-							console.log('data:', data.user);
 							userImage.src = data.user.image;
 							userImage.style.display = 'block';
 							isLogged = true;
@@ -106,12 +109,11 @@ function initializeLogin() {
 					});
 			}
 		}).catch(error => {
-			console.error('Error:', error);
 		}
 		);
 	}
 
-	function setUserOnline(userId) {
+	function setUserOnline(userId, retries = 3) {
 		getJwtFromCookie().then(jwtToken => {
 			fetch('/set_user_online/' + userId + '/', {
 				method: 'GET',
@@ -121,22 +123,32 @@ function initializeLogin() {
 					'Authorization': `Bearer ${jwtToken}`
 				}
 			})
-				.then(response => {
-					if (!response.ok) {
-						return response.text().then(text => {
-							throw new Error('Server error: ' + text);
-						});
-					}
-					return response.json();
-				})
-				.then(data => {
-				})
-				.catch(error => console.error('Error:', error));
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(text => {
+						throw new Error('Server error: ' + text);
+					});
+				}
+				return response.json();
+			})
+			.then(data => {
+				// Handle the data
+			})
+			.catch(error => {
+				if (retries > 0) {
+					console.error('Error:', error);
+					console.log('Retrying...');
+					setUserOnline(userId, retries - 1);
+				} else {
+					console.error('Failed after retries:', error);
+				}
+			});
 		}).catch(error => {
+			console.error('Error getting JWT:', error);
 		});
 	}
 
-	function setUserOffline(userId) {
+	function setUserOffline(userId, retries = 3) {
 		getJwtFromCookie().then(jwtToken => {
 			fetch('/set_user_offline/' + userId + '/', {
 				method: 'GET',
@@ -156,8 +168,17 @@ function initializeLogin() {
 				})
 				.then(data => {
 				})
-				.catch(error => console.error('Error:', error));
+				.catch(error => {
+					if (retries > 0) {
+						console.error('Error:', error);
+						console.log('Retrying...');
+						setUserOnline(userId, retries - 1);
+					} else {
+						console.error('Failed after retries:', error);
+					}
+				});
 		}).catch(error => {
+			console.error('Error getting JWT:', error);
 		});
 	}
 
@@ -176,7 +197,7 @@ function initializeLogin() {
 		removeJwtCookie();
 		navigateToCustompath('/homePage/');
 	}
-	
+
 	function removeJwtCookie() {
 		fetch('/remove_jwt_token/', {
 			method: 'GET',
