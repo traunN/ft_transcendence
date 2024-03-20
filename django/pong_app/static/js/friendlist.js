@@ -14,7 +14,6 @@ window.friendData = {
 
 function initializeFriends() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
-	console.log(user)
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
 	var friendListContent = document.getElementById('friendListContent');
