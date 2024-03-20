@@ -493,7 +493,6 @@ function customOnBeforeUnload() {
 										console.log('Error changing tournament status');
 										console.log(response);
 									}
-									a
 								})
 							window.tournamentGameData.lobbySocket.send(JSON.stringify({
 								'type': 'first_match_finished',
