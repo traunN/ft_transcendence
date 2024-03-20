@@ -79,8 +79,6 @@ function initializeTournament() {
 		});
 	});
 
-
-
 	function joinTournament(tournamentId) {
 		if (!user) {
 			alert('Please login');

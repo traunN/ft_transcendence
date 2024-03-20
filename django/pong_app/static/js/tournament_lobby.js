@@ -4,12 +4,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	initializeTournamentLobby();
 });
 
-
 window.tournamentLobbyData = {
 	lobbySocket: null,
 	pageSocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	shouldLeaveLobby: true
+	shouldLeaveLobby: true,
+	firstMatchWinnerId: null
 };
 function isOpen(socket) {
 	return socket && socket.readyState === 1;
@@ -25,7 +25,6 @@ function initializeTournamentLobby() {
 	if (!user) {
 		return;
 	}
-	let gameStarted = true;
 	let reloadLeaveLobby = true;
 	var roomName1;
 	var roomName2;
@@ -33,11 +32,9 @@ function initializeTournamentLobby() {
 	var room2Id1;
 	var room2Id2;
 	var firstMatchWinnerId;
-	let is_in_room1 = false;
+	let is_in_room1 = true;
 
 	if (tournamentLobbyKey) {
-		console.log('tournamentLobbyKey', tournamentLobbyKey);
-		console.log('tournamentId', tournamentId);
 		if (tournamentLobbyKey !== tournamentId) {
 			sessionStorage.setItem('tournamentLobbyKey', '');
 			reloadLeaveLobby = false;
@@ -51,19 +48,23 @@ function initializeTournamentLobby() {
 	}
 
 	window.tournamentLobbyData.pageSocket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	if (window.tournamentLobbyData.lobbySocket) {
+		window.tournamentLobbyData.lobbySocket.close();
+	}
 	window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
 
 	aliasInput.focus();
+
 	fetch('/get_tournament_status/' + tournamentId + '/')
 		.then(response => response.text())
 		.then(data => {
 			var response = JSON.parse(data);
 			if (response.status === 'success') {
+				console.log('tournament status:', response.tournament_status);
 				if (response.tournament_status === 'second_match_finished') {
-					reloadLeaveLobby = false;
 					sessionStorage.setItem('roomNameKey', user.id);
+					window.tournamentLobbyData.shouldLeaveLobby = false;
 					setTimeout(function () {
-						window.tournamentLobbyData.shouldLeaveLobby = false;
 						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.id + '/');
 					}, 3000);
 				}
@@ -120,15 +121,19 @@ function initializeTournamentLobby() {
 
 							}
 							else {
-								console.log('Error getting tournament status');
 								console.log(response);
 							}
 						})
 						.catch(error => console.error(error));
 				}
+				else if (response.tournament_status === 'first_match_finished')
+				{
+					if (is_in_room1){
+						window.tournamentLobbyData.firstMatchWinnerId = user.id;
+					}
+				}
 			}
 			else {
-				console.log('Error getting tournament status');
 				console.log(response);
 			}
 		})
@@ -142,23 +147,23 @@ function initializeTournamentLobby() {
 				'type': 'tournament_lobby_updated',
 				'tournament_id': tournamentId,
 			}));
+			window.tournamentLobbyData.pageSocket.send(JSON.stringify({
+				'type': 'tournament_updated',
+			}));
 			loadingMessage.style.display = 'none';
 		}, 600);
 	};
 
 	window.tournamentLobbyData.lobbySocket.onclose = function (e) {
-		console.log('lobbysocket closed');
 	};
 
 	window.tournamentLobbyData.lobbySocket.onmessage = function (event) {
 		var data = JSON.parse(event.data);
 		if (data.type === 'tournament_lobby_updated') {
-			console.log('tournament_lobby_updated');
 			updatePlayersList();
 		}
 		else if (data.type === 'tournament_lobby_game_started') {
 			statusText.innerHTML = 'Round 1';
-			gameStarted = true;
 			if (isOpen(window.tournamentLobbyData.pageSocket)) {
 				window.tournamentLobbyData.pageSocket.send(JSON.stringify({
 					'type': 'tournament_updated',
@@ -187,11 +192,8 @@ function initializeTournamentLobby() {
 		}
 		else if (data.type === 'first_match_finished') {
 			statusText.innerHTML = 'Round 2';
-			console.log('first match finished');
 			room2Id1 = roomName2split.split('&')[0];
 			room2Id2 = roomName2split.split('&')[1];
-			console.log(room2Id1);
-			console.log(room2Id2);
 			setTimeout(function () {
 				window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 					'type': 'next_players',
@@ -203,7 +205,7 @@ function initializeTournamentLobby() {
 			var winnerId = data.winner_id;
 			if (user.id == winnerId) {
 				is_in_room1 = true;
-				firstMatchWinnerId = winnerId;
+				window.tournamentLobbyData.firstMatchWinnerId = winnerId;
 			}
 			else {
 				is_in_room1 = false;
@@ -219,16 +221,14 @@ function initializeTournamentLobby() {
 		else if (data.type === 'second_match_finished') {
 			statusText.innerHTML = 'Final Round';
 			var winnerId = data.winner_id;
-			console.log('second match finished');
-			if (firstMatchWinnerId && winnerId) {
+			if (window.tournamentLobbyData.firstMatchWinnerId && winnerId) {
 				window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 					'type': 'next_players',
 					'tournament_id': tournamentId,
-					'player1': firstMatchWinnerId,
+					'player1': window.tournamentLobbyData.firstMatchWinnerId,
 					'player2': winnerId,
 				}));
 			}
-			reloadLeaveLobby = false;
 			window.tournamentLobbyData.shouldLeaveLobby = false;
 			setTimeout(function () {
 				sessionStorage.setItem('roomNameKey', winnerId);
@@ -236,15 +236,12 @@ function initializeTournamentLobby() {
 			}, 3000);
 		}
 		else if (data.type === 'cancel_lobby') {
-			console.log('cancel_lobby');
 			reloadLeaveLobby = false;
 			leaveLobby();
 		}
 		else if (data.type === 'next_players') {
 			var player1 = data.player1;
 			var player2 = data.player2;
-			console.log('player 1: ' + player1);
-			console.log('player 2: ' + player2);
 			var player1Element = document.getElementById(player1);
 			var player2Element = document.getElementById(player2);
 			player1Element.style.backgroundColor = '#c23333';
@@ -458,10 +455,8 @@ function leaveLobby() {
 		})
 			.then(response => response.text())
 			.then(data => {
-				console.log(data);
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					console.log('window.tournamentLobbyData.pageSocket', window.tournamentLobbyData.pageSocket);
 					if (isOpen(window.tournamentLobbyData.pageSocket)) {
 						window.tournamentLobbyData.pageSocket.send(JSON.stringify({
 							'type': 'tournament_updated',
@@ -476,7 +471,6 @@ function leaveLobby() {
 											'type': 'tournament_lobby_updated',
 											'tournament_id': tournamentId,
 										}));
-										window.tournamentLobbyData.lobbySocket.close();
 									}
 									if (response.tournament_status === 'started' || response.tournament_status === 'first_match_finished' || response.tournament_status === 'second_match_finished' || response.tournament_status === 'final_match_finished') {
 										window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
@@ -494,6 +488,8 @@ function leaveLobby() {
 											})
 										})
 									}
+									window.tournamentLobbyData.lobbySocket.close();
+
 								}
 							})
 							.catch(error => console.error(error));
@@ -501,7 +497,6 @@ function leaveLobby() {
 					}
 				}
 				else {
-					console.log('Error leaving tournament');
 					console.log(response);
 				}
 			})
@@ -513,7 +508,6 @@ function leaveLobby() {
 }
 
 function customOnBeforeUnload() {
-	console.log('customOnBeforeUnload');
 	if (window.tournamentLobbyData.shouldLeaveLobby) {
 		leaveLobby();
 	}
