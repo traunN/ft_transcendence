@@ -102,6 +102,7 @@ function initializeTournamentGame() {
 					window.tournamentGameData.isWinner = false;
 					window.tournamentGameData.gameLeave = true;
 					window.tournamentGameData.isGameRunning = false;
+					window.tournamentGameData.isLeavingTournament = true;
 					navigateToCustompath('/tournament/');
 				}
 			}
@@ -111,6 +112,7 @@ function initializeTournamentGame() {
 			window.tournamentGameData.isWinner = false;
 			window.tournamentGameData.gameLeave = true;
 			window.tournamentGameData.isGameRunning = false;
+			window.tournamentGameData.isLeavingTournament = true;
 			navigateToCustompath('/tournament/');
 		}
 	};

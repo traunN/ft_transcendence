@@ -72,9 +72,9 @@ function initializeProfile() {
 			userLoses.textContent = 'Loses: ' + data.user.loses;
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
-			// userImage.addEventListener('load', function () {
-			// 	document.getElementById('profileCard').style.display = 'block';
-			// });
+			userImage.addEventListener('load', function () {
+				document.getElementById('card-container').classList.add('visible');
+			});
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
 			if (data.user.is_2fa_enabled) {
@@ -163,6 +163,7 @@ function initializeProfile() {
 		imageInput.type = 'file';
 		imageInput.id = 'imageInput';
 		userImageProfile.parentNode.insertBefore(imageInput, userImageProfile.nextSibling);
+		document.getElementById('editProfileButton').style.display = 'none';
 	});
 
 	document.getElementById('saveProfileButton').addEventListener('click', function () {

@@ -55,9 +55,14 @@
 			font-family: 'BurbankBigCondensed-Black', sans-serif !important;
 		}
 
-		/* #profileCard {
+		.card-container {
 			display: none;
-		} */
+		}
+
+		.card-container.visible {
+			display: flex;
+		}
+
 	</style>
 </head>
 
@@ -73,7 +78,7 @@
 							<h1 class="card-title">Please login to view your profile</h1>
 						</div>
 					</div>
-					<div class="card-container">
+					<div class="card-container" id="card-container">
 						<div class="card custom-bg no-hover flex-card-profile" id="profileCard">
 							<img class="card-img-top-profile" src="" alt="User Image" id="userImageProfile">
 							<div class="card-body-profile">
