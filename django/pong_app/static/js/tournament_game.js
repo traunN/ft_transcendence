@@ -5,11 +5,11 @@ window.tournamentGameData = {
 	socket: null,
 	lobbySocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
-	reloadLeave: true,
 	gameLeave: false,
 	isWinner: false,
 	gameRoomStarted: false,
-	isGameRunning: false
+	isGameRunning: false,
+	isLeavingTournament: false
 };
 
 function initializeTournamentGame() {
@@ -34,13 +34,11 @@ function initializeTournamentGame() {
 	if (roomNameKey) {
 		if (roomNameKey !== roomName) {
 			sessionStorage.setItem('roomNameKey', '');
-			window.tournamentGameData.reloadLeave = false;
 			history.back();
 		}
 	}
 	else {
 		sessionStorage.setItem('roomNameKey', '');
-		window.tournamentGameData.reloadLeave = false;
 		history.back();
 	}
 
@@ -76,7 +74,14 @@ function initializeTournamentGame() {
 	let targetPaddle1Y = paddle1Y;
 	let targetPaddle2Y = paddle2Y;
 
-	window.tournamentGameData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+	if (window.tournamentGameData.lobbySocket)
+	{
+		console.log('lobby socket exists alreadylol');
+	}
+	else
+	{
+		window.tournamentGameData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+	}
 
 	window.tournamentGameData.lobbySocket.onerror = function (e) {
 		console.log('tournament game lobby socket error');
@@ -348,6 +353,7 @@ function initializeTournamentGame() {
 				else {
 					window.tournamentGameData.isWinner = false;
 					message.textContent = winner + ' won!';
+					window.tournamentGameData.isLeavingTournament = true;
 					setTimeout(function () {
 						navigateToCustompath('/tournament/');
 					}, 3000);
@@ -452,7 +458,6 @@ function leaveLobby() {
 	var userId = window.tournamentGameData.user.id;
 	const formData = new FormData();
 	formData.append('tournament_id', tournamentId);
-	window.tournamentGameData.reloadLeave = false;
 	window.tournamentGameData.isGameRunning = false;
 
 	if (!window.tournamentGameData.isWinner) {
@@ -474,7 +479,6 @@ function leaveLobby() {
 						if (window.tournamentGameData.gameRoomStarted) {
 							window.tournamentGameData.socket.close();
 						}
-						window.tournamentGameData.lobbySocket.close();
 					}
 					else {
 						console.log('Error leaving tournament');
@@ -493,28 +497,34 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
-	var userId = window.tournamentGameData.user.id;
-	var reloadLeave = window.tournamentGameData.reloadLeave;
-	var gameLeave = window.tournamentGameData.gameLeave;
-	var isWinner = window.tournamentGameData.isWinner;
-	var gameRoomStarted = window.tournamentGameData.gameRoomStarted;
-	var tournamentId = document.getElementById('tournamentId').value;
-	var roomName = document.getElementById('roomName').value;
-	if (reloadLeave && !gameLeave) {
-		window.tournamentGameData.lobbySocket.send(JSON.stringify({
-			'type': 'canceled_room',
-			'user_id': userId,
-			'room_name': roomName,
-			'tournament_id': tournamentId,
-		}));
-		leaveLobby();
+	console.log("is leaving tournament: " + window.tournamentGameData.isLeavingTournament);
+	if (window.location.pathname.includes('/tournament_game/') && !window.tournamentGameData.isLeavingTournament) {
+		console.log('simple refresh');
 	}
-	else if (reloadLeave && gameLeave && !isWinner) {
-		leaveLobby();
-	}
-	else if (reloadLeave && gameLeave && isWinner) {
-		if (gameRoomStarted) {
-			window.tournamentGameData.socket.close();
+	else
+	{
+		var userId = window.tournamentGameData.user.id;
+		var gameLeave = window.tournamentGameData.gameLeave;
+		var isWinner = window.tournamentGameData.isWinner;
+		var gameRoomStarted = window.tournamentGameData.gameRoomStarted;
+		var tournamentId = document.getElementById('tournamentId').value;
+		var roomName = document.getElementById('roomName').value;
+		if (!gameLeave) {
+			window.tournamentGameData.lobbySocket.send(JSON.stringify({
+				'type': 'canceled_room',
+				'user_id': userId,
+				'room_name': roomName,
+				'tournament_id': tournamentId,
+			}));
+			leaveLobby();
+		}
+		else if (gameLeave && !isWinner) {
+			leaveLobby();
+		}
+		else if (gameLeave && isWinner) {
+			if (gameRoomStarted) {
+				window.tournamentGameData.socket.close();
+			}
 		}
 	}
 }

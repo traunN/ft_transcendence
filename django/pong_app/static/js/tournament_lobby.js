@@ -49,9 +49,10 @@ function initializeTournamentLobby() {
 
 	window.tournamentLobbyData.pageSocket = new WebSocket('wss://localhost:8443/ws/tournament/');
 	if (window.tournamentLobbyData.lobbySocket) {
-		window.tournamentLobbyData.lobbySocket.close();
+		console.log('lobby socket exists');
 	}
-	window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+	else
+		window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
 
 	aliasInput.focus();
 
@@ -236,8 +237,8 @@ function initializeTournamentLobby() {
 			}, 3000);
 		}
 		else if (data.type === 'cancel_lobby') {
-			reloadLeaveLobby = false;
-			leaveLobby();
+			window.tournamentLobbyData.shouldLeaveLobby = true;
+			navigateToCustompath('/tournament/');
 		}
 		else if (data.type === 'next_players') {
 			var player1 = data.player1;
