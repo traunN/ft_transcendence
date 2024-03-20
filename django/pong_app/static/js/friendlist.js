@@ -1,8 +1,10 @@
-document.addEventListener('DOMContentLoaded', function () {
-	document.removeEventListener('DOMContentLoaded', initializeFriends);
-	document.addEventListener('DOMContentLoaded', initializeFriends);
-	initializeFriends();
-});
+//document.addEventListener('DOMContentLoaded', function () {
+//	document.removeEventListener('DOMContentLoaded', initializeFriends);
+//	document.addEventListener('DOMContentLoaded', initializeFriends);
+//	initializeFriends();
+//});
+
+document.addEventListener('DOMContentLoaded', initializeFriends);
 
 window.friendData = {
 	socket: null,
@@ -11,7 +13,8 @@ window.friendData = {
 };
 
 function initializeFriends() {
-	var user = window.friendData.user;
+	var user = JSON.parse(sessionStorage.getItem('user'));
+	console.log(user)
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
 	var friendListContent = document.getElementById('friendListContent');
@@ -26,10 +29,7 @@ function initializeFriends() {
 		}
 		return;
 	}
-	if (!user) {
-		console.log('Failed to get user from session storage');
-		return;
-	}
+
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
 			if (!response.ok) {
@@ -53,10 +53,7 @@ function initializeFriends() {
 	}
 
 	function updateFriendList() {
-		var table = document.getElementById('friendListNames');
-		while (table.rows.length > 0) {
-			table.deleteRow(0);
-		}
+		document.getElementById('friendListNames').innerHTML = '';
 		fetch('/get_friends/' + user.idName + '/')
 			.then(response => response.json())
 			.then(data => {
@@ -64,15 +61,24 @@ function initializeFriends() {
 				if (window.friendData.friends.length === 0) {
 					return;
 				}
-				var table = document.getElementById('friendListNames');
-				for (var i = 0; i < window.friendData.friends.length; i++) {
+
+				let table = document.getElementById('friendListNames');
+				table.innerHTML = '';
+
+				for (let i = 0; i < window.friendData.friends.length; i++) {
 					(function(index) {
-						var friend_login = window.friendData.friends[index].login;
+						let friend_login = window.friendData.friends[index].login;
+
 						fetch('/is_user_online/' + window.friendData.friends[index].idName + '/')
 							.then(response => response.json())
 							.then(data => {
-								var row = table.insertRow(-1);
-								var friend = row.insertCell(0);
+
+								let test = Array.from(table.rows).find(row => row.cells[0].textContent === friend_login);
+								if (test)
+									return;
+
+								let row = table.insertRow(-1);
+								let friend = row.insertCell(0);
 								friend.innerHTML = friend_login;
 								if (data.isOnline) {
 									friend.style.color = 'green';
@@ -116,7 +122,7 @@ function initializeFriends() {
 							});
 					})(i);
 				}
-				
+
 			});
 	}
 	updateFriendList();
