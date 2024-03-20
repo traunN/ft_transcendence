@@ -969,7 +969,7 @@ def login_user(request):
 			refresh_token = str(refresh)
 			request.session['jwt_token'] = access_token
 			response = JsonResponse({'status': 'success', 'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
-			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid password'})
@@ -1005,7 +1005,7 @@ def save_user_profile_42(request):
 			refresh_token = str(refresh)
 			request.session['jwt_token'] = access_token
 			response = JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
-			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 		except User.DoesNotExist:
 			user = User.objects.create(
@@ -1048,7 +1048,7 @@ def save_user_profile_42(request):
 			}
 			request.session['jwt_token'] = access_token
 			response = JsonResponse(response_data)
-			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -1068,7 +1068,7 @@ def save_user_profile_manual(request):
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
 			request.session['jwt_token'] = access_token
-			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 		except User.DoesNotExist:
 			hashed_password = make_password(data['password'])
@@ -1105,7 +1105,7 @@ def save_user_profile_manual(request):
 			}
 			request.session['jwt_token'] = access_token
 			response = JsonResponse(response_data)
-			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Lax')
+			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)

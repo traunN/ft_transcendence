@@ -2,7 +2,6 @@
 document.addEventListener('DOMContentLoaded', initializeTournamentGame);
 
 window.tournamentGameData = {
-	shouldCloseSocket: false,
 	socket: null,
 	lobbySocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
@@ -284,10 +283,8 @@ function initializeTournamentGame() {
 						console.log('Failed to create socket');
 						return;
 					}
-					console.log('socket :', window.tournamentGameData.socket);
 					if (data.start_game) {
 						window.room_name = data.room_name;
-
 						window.tournamentGameData.socket.onopen = async function (event) {
 							window.tournamentGameData.socket.send(JSON.stringify({ 'message': 'start_game' }));
 							window.tournamentGameData.socket.onmessage = function (event) {
@@ -334,8 +331,8 @@ function initializeTournamentGame() {
 			.catch(error => console.error(error));
 	}
 
-
 }
+
 function leaveLobby() {
 	var tournamentId = document.getElementById('tournamentId').value;
 	var userId = window.tournamentGameData.user.id;
@@ -345,38 +342,37 @@ function leaveLobby() {
 	window.tournamentGameData.isGameRunning = false;
 
 	if (!window.tournamentGameData.isWinner) {
-		console.log('LOST');
-	}
-	getJwtFromCookie().then(jwtToken => {
-		fetch('/leave_tournament/' + userId + '/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-				'Authorization': `Bearer ${jwtToken}`
-			},
-			body: JSON.stringify(Object.fromEntries(formData))
-		})
-			.then(response => response.text())
-			.then(data => {
-				console.log(data);
-				var response = JSON.parse(data);
-				if (response.status === 'success') {
-					if (window.tournamentGameData.gameRoomStarted) {
-						window.tournamentGameData.socket.close();
-					}
-					window.tournamentGameData.lobbySocket.close();
-				}
-				else {
-					console.log('Error leaving tournament');
-					console.log(response);
-				}
+		getJwtFromCookie().then(jwtToken => {
+			fetch('/leave_tournament/' + userId + '/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'Authorization': `Bearer ${jwtToken}`
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			.catch(error => console.error(error));
+				.then(response => response.text())
+				.then(data => {
+					console.log(data);
+					var response = JSON.parse(data);
+					if (response.status === 'success') {
+						if (window.tournamentGameData.gameRoomStarted) {
+							window.tournamentGameData.socket.close();
+						}
+						window.tournamentGameData.lobbySocket.close();
+					}
+					else {
+						console.log('Error leaving tournament');
+						console.log(response);
+					}
+				})
+				.catch(error => console.error(error));
+		}
+		).catch(error => {
+			console.log('Error getting jwt token');
+		});
 	}
-	).catch(error => {
-		console.log('Error getting jwt token');
-	});
 }
 
 window.addEventListener('beforeunload', customOnBeforeUnload);

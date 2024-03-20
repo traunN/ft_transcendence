@@ -63,6 +63,7 @@ function initializeTournamentLobby() {
 					reloadLeaveLobby = false;
 					sessionStorage.setItem('roomNameKey', user.id);
 					setTimeout(function () {
+						window.tournamentLobbyData.shouldLeaveLobby = false;
 						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.id + '/');
 					}, 3000);
 				}
@@ -177,8 +178,8 @@ function initializeTournamentLobby() {
 				is_in_room1 = false;
 			}
 			if (is_in_room1) {
-				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName1);
+				window.tournamentLobbyData.shouldLeaveLobby = false;
 				setTimeout(function () {
 					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName1 + '/');
 				}, 3000);
@@ -208,8 +209,8 @@ function initializeTournamentLobby() {
 				is_in_room1 = false;
 			}
 			if (!is_in_room1) {
-				reloadLeaveLobby = false;
 				sessionStorage.setItem('roomNameKey', roomName2);
+				window.tournamentLobbyData.shouldLeaveLobby = false;
 				setTimeout(function () {
 					navigateToCustompath('/tournament_game/' + tournamentId + '/' + roomName2 + '/');
 				}, 5000);
@@ -228,6 +229,7 @@ function initializeTournamentLobby() {
 				}));
 			}
 			reloadLeaveLobby = false;
+			window.tournamentLobbyData.shouldLeaveLobby = false;
 			setTimeout(function () {
 				sessionStorage.setItem('roomNameKey', winnerId);
 				navigateToCustompath('/tournament_game/' + tournamentId + '/' + winnerId + '/');
@@ -512,5 +514,11 @@ function leaveLobby() {
 
 function customOnBeforeUnload() {
 	console.log('customOnBeforeUnload');
-	leaveLobby();
+	if (window.tournamentLobbyData.shouldLeaveLobby) {
+		leaveLobby();
+	}
+	else {
+		window.tournamentLobbyData.lobbySocket.close();
+		window.tournamentLobbyData.pageSocket.close();
+	}
 }
