@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', initializeFriends);
+document.addEventListener('DOMContentLoaded', initializeFriends, true);
 
 window.friendData = {
 	socket: null,
@@ -6,25 +6,25 @@ window.friendData = {
 	friends: []
 };
 
-function reset(){
+function CheckIfUser(){
 	if (sessionStorage.getItem('user'))
 	{
 		if (JSON.parse(sessionStorage.getItem('user'))){
-			initializeFriends();
-			friendListContent.style.display = '';
-			addFriendButton.style.display = '';
+			initializeFriends(false);
+			friendListContent.style.display = 'block';
+			addFriendButton.style.display = 'block';
 		}
 	}
 }
 
-function initializeFriends() {
+function initializeFriends(isHidden) {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
-
+	//var isHidden = true;
 
 	if (!user) {
 		if (addFriendButton) {
@@ -33,10 +33,10 @@ function initializeFriends() {
 		if (friendListContent) {
 			friendListContent.style.display = 'none';
 		}
-		toggleButton.addEventListener('click', reset);
+		toggleButton.addEventListener('click', CheckIfUser);
 		return;
 	}
-	toggleButton.removeEventListener('click', reset);
+	toggleButton.removeEventListener('click', CheckIfUser);
 	updateFriendList();
 
 	fetch('/get_user/' + user.idName + '/')
@@ -179,7 +179,6 @@ function initializeFriends() {
 		}
 	};
 	friendListContent.style.display = 'none';
-	var isHidden = true;
 
 	toggleButton.addEventListener('click', function () {
 		isHidden = !isHidden;

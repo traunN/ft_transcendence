@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					.then(() => {
 						initializeLogin();
 						initializeSetActive();
-						initializeFriends();
+						initializeFriends(true);
 						if (path.includes('profile')) {
 							initializeProfile();
 						} else if (path.includes('pongGame')) {
