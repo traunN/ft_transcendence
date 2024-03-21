@@ -1,9 +1,3 @@
-//document.addEventListener('DOMContentLoaded', function () {
-//	document.removeEventListener('DOMContentLoaded', initializeFriends);
-//	document.addEventListener('DOMContentLoaded', initializeFriends);
-//	initializeFriends();
-//});
-
 document.addEventListener('DOMContentLoaded', initializeFriends);
 
 window.friendData = {
@@ -12,6 +6,17 @@ window.friendData = {
 	friends: []
 };
 
+function reset(){
+	if (sessionStorage.getItem('user'))
+	{
+		if (JSON.parse(sessionStorage.getItem('user'))){
+			initializeFriends();
+			friendListContent.style.display = '';
+			addFriendButton.style.display = '';
+		}
+	}
+}
+
 function initializeFriends() {
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	var friendList = document.getElementById('friendList');
@@ -19,6 +24,8 @@ function initializeFriends() {
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
+
+
 	if (!user) {
 		if (addFriendButton) {
 			addFriendButton.style.display = 'none';
@@ -26,8 +33,11 @@ function initializeFriends() {
 		if (friendListContent) {
 			friendListContent.style.display = 'none';
 		}
+		toggleButton.addEventListener('click', reset);
 		return;
 	}
+	toggleButton.removeEventListener('click', reset);
+	updateFriendList();
 
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
@@ -182,7 +192,7 @@ function initializeFriends() {
 		if (friendName) {
 			window.friendData.socket.send(JSON.stringify({
 				'type': 'friend_request',
-				'from_user': window.friendData.user.idName,
+				'from_user': user.idName,
 				'to_user': friendName
 			}));
 			addFriendInput.value = '';
