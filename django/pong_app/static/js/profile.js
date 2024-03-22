@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', initializeProfile);
 
-//  YO WE CAN EDIT SOMEONE ELSE PROFILE ??????
-
 function initializeProfile() {
 	var username = document.getElementById('usernameProfile');
 	var userImage = document.getElementById('userImageProfile');
@@ -77,11 +75,11 @@ function initializeProfile() {
 			});
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
-			if (data.user.is_2fa_enabled) {
+			if (data.user.is_2fa_enabled && userId == user.idName) {
 				document.getElementById('remove2FA').style.display = 'block';
 				document.getElementById('setup2FAButton').style.display = 'none';
 			}
-			else {
+			else if (!data.user.is_2fa_enabled && userId == user.idName){
 				document.getElementById('remove2FA').style.display = 'none';
 				document.getElementById('setup2FAButton').style.display = 'block';
 			}
