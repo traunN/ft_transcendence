@@ -205,7 +205,10 @@ function initializeTournamentGame() {
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
-				update_ball_position(updated_ball_position);
+				if (window.tournamentGameData.isGameRunning)
+				{
+					update_ball_position(updated_ball_position);
+				}
 				console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
@@ -365,7 +368,9 @@ function initializeTournamentGame() {
 				const gameState = messageData.message;
 			}
 		};
-		update_paddles();
+		if (window.tournamentGameData.isGameRunning) {
+			update_paddles();
+		}
 		window.tournamentGameData.socket.onclose = function (event) {
 			window.tournamentGameData.isGameRunning = false;
 		};
@@ -505,6 +510,7 @@ function customOnBeforeUnload() {
 	}
 	else
 	{
+		window.gameData.isGameRunning = false;
 		var userId = window.tournamentGameData.user.id;
 		var gameLeave = window.tournamentGameData.gameLeave;
 		var isWinner = window.tournamentGameData.isWinner;

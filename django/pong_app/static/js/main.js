@@ -6,21 +6,7 @@ window.gameData = {
 	socket: null
 };
 
-const keys = {
-	ArrowUp: false,
-	ArrowDown: false,
-	KeyW: false,
-	KeyS: false,
-	Enter: false
-};
 
-function handleKeyEvent(event) {
-	if (event.type === 'keydown') {
-		keys[event.code] = true;
-	} else if (event.type === 'keyup') {
-		keys[event.code] = false;
-	}
-}
 
 function initializePongGame() {
 	let gameSocket = window.gameData.socket;
@@ -95,6 +81,21 @@ function initializePongGame() {
 		gameSocket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
 
+	const keys = {
+		ArrowUp: false,
+		ArrowDown: false,
+		KeyW: false,
+		KeyS: false,
+		Enter: false
+	};
+	
+	function handleKeyEvent(event) {
+		if (event.type === 'keydown') {
+			keys[event.code] = true;
+		} else if (event.type === 'keyup') {
+			keys[event.code] = false;
+		}
+	}
 
 	document.getElementById("startGameBtn").addEventListener("click", startGame);
 
@@ -341,15 +342,12 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
-	window.removeEventListener('keydown', handleKeyEvent);
-	window.removeEventListener('keyup', handleKeyEvent);
 	if (window.location.pathname !== '/pongGame/') {
 		return;
 	}
 	window.gameData.isGameRunning = false;
 	if (sessionStorage.getItem('shouldCloseSocket') === 'true') {
 		if (window.gameData.socket) {
-			console.log('Closing socket');
 			window.gameData.socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
 			window.gameData.socket.close();
 		}

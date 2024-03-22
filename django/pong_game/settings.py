@@ -18,8 +18,6 @@ from pathlib import Path
 
 SECRET_KEY = os.environ.get("SECRET_KEY", 'my_default_secret_key')
 
-# SECRET_KEY = 'django-insecure-g-$(e79yo&zy!65wxdwy4yf$)*s33eu-g*u#4h5&z_@o-^7b$$'
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
