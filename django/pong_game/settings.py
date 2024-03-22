@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -57,7 +57,7 @@ INSTALLED_APPS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_app', 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ASGI_APPLICATION = 'pong_game.asgi.application'
 
@@ -216,13 +216,15 @@ USE_TZ = True
 
 CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = False 
+CSRF_COOKIE_HTTPONLY = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+#STATICFILES_DIRS = [BASE_DIR / 'static']
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

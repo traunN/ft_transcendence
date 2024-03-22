@@ -13,7 +13,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ./${DJANGO_FOLDER}/pong_app/static
+      device: ./${DJANGO_FOLDER}/staticfiles
   templates_volume:
     driver: local
     name: templates_volume
@@ -21,13 +21,13 @@ volumes:
       type: none
       o: bind
       device: ./${DJANGO_FOLDER}/pong_app/templates
-  images_volume:
+  media_volume:
     driver: local
-    name: images_volume
+    name: media_volume
     driver_opts:
       type: none
       o: bind
-      device: ./${DJANGO_FOLDER}/pong_app/media/images
+      device: ./${DJANGO_FOLDER}/media
 
 services:
   django:
@@ -43,9 +43,7 @@ services:
       - transcendence
     restart: on-failure
     volumes:
-      - static_volume:/usr/src/app/pong_app/static
       - templates_volume:/usr/src/app/pong_app/templates
-      - images_volume:/usr/src/app/pong_app/media/images
     stop_signal: SIGINT
 
   nginx:
@@ -61,7 +59,8 @@ services:
       - transcendence
     restart: on-failure
     volumes:
-      - images_volume:/usr/src/app/pong_app/media/images
+      - media_volume:/var/lib/nginx/media
+      - static_volume:/var/lib/nginx/static
 
   postgres:
     image: postgres:latest
