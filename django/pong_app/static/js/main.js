@@ -1,13 +1,28 @@
-
 document.addEventListener('DOMContentLoaded', initializePongGame);
 
 window.gameData = {
 	shouldCloseSocket: false,
+	isGameRunning: false,
 	socket: null
 };
 
+const keys = {
+	ArrowUp: false,
+	ArrowDown: false,
+	KeyW: false,
+	KeyS: false,
+	Enter: false
+};
+
+function handleKeyEvent(event) {
+	if (event.type === 'keydown') {
+		keys[event.code] = true;
+	} else if (event.type === 'keyup') {
+		keys[event.code] = false;
+	}
+}
+
 function initializePongGame() {
-	let isGameRunning = false;
 	let gameSocket = window.gameData.socket;
 	let userId;
 	const board = document.querySelector('.board');
@@ -40,13 +55,7 @@ function initializePongGame() {
 	if (user.id) {
 		userId = user.id;
 	}
-	const keys = {
-		ArrowUp: false,
-		ArrowDown: false,
-		KeyW: false,
-		KeyS: false,
-		Enter: false
-	};
+
 
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;
@@ -92,13 +101,7 @@ function initializePongGame() {
 	document.addEventListener('keydown', handleKeyEvent);
 	document.addEventListener('keyup', handleKeyEvent);
 
-	function handleKeyEvent(event) {
-		if (event.type === 'keydown') {
-			keys[event.code] = true;
-		} else if (event.type === 'keyup') {
-			keys[event.code] = false;
-		}
-	}
+	
 
 	function update_paddles() {
 		if (keys.ArrowUp) {
@@ -129,13 +132,12 @@ function initializePongGame() {
 			}
 			gameSocket.send(JSON.stringify({ 'message': 'paddle_update', 'paddle': 'paddle1', 'position': JSON.stringify({ 'x': 10, 'y': targetPaddle1Y }) }));
 		}
-
 		paddle1Y += (targetPaddle1Y - paddle1Y) * interpolationFactor;
 		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
 		paddle1.style.top = `${paddle1Y}px`;
 		paddle2.style.top = `${paddle2Y}px`;
-
-		requestAnimationFrame(update_paddles);
+		if (window.gameData.isGameRunning)
+			requestAnimationFrame(update_paddles);
 	}
 
 
@@ -148,7 +150,7 @@ function initializePongGame() {
 			}
 			else if (messageData.message === 'ball_update') {
 				const updated_ball_position = messageData.ball_position;
-				if (isGameRunning)
+				if (window.gameData.isGameRunning)
 					update_ball_position(updated_ball_position);
 				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
@@ -169,7 +171,7 @@ function initializePongGame() {
 				player2Score.textContent = `${player2ScoreValue}`;
 			}
 			else if (messageData.message === 'game_over') {
-				isGameRunning = false;
+				window.gameData.isGameRunning = false;
 				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
 				setTimeout(function () {
 					var XHR = new XMLHttpRequest();
@@ -198,7 +200,7 @@ function initializePongGame() {
 				}
 			}
 			else if (messageData.message === 'cancel_game_room') {
-				isGameRunning = false;
+				window.gameData.isGameRunning = false;
 				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
 				message.textContent = 'Player left the game';
 				setTimeout(function () {
@@ -222,11 +224,15 @@ function initializePongGame() {
 				const gameState = messageData.message;
 			}
 		};
-
-		update_paddles();
-		gameSocket.onclose = function (event) {
-			isGameRunning = false;
-		};
+		if (window.gameData.isGameRunning)
+		{
+			update_paddles();
+		}
+		else
+		{
+			return;
+		}
+		
 	}
 
 	function displayNames(player1NameValue, player2NameValue) {
@@ -240,12 +246,12 @@ function initializePongGame() {
 
 
 	function startGame() {
-		if (isGameRunning) {
+		if (window.gameData.isGameRunning) {
 			return;
 		}
 		message.textContent = '';
 		startGameBtn.style.display = 'none';
-		isGameRunning = true;
+		window.gameData.isGameRunning = true;
 		if (!user.id) {
 			return;
 		}
@@ -317,7 +323,7 @@ function initializePongGame() {
 					}
 					else {
 						console.log('Failed to join or create room', data);
-						isGameRunning = false;
+						window.gameData.isGameRunning = false;
 						startGameBtn.style.display = 'block';
 						return;
 					}
@@ -335,14 +341,19 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
+	window.removeEventListener('keydown', handleKeyEvent);
+	window.removeEventListener('keyup', handleKeyEvent);
 	if (window.location.pathname !== '/pongGame/') {
 		return;
 	}
+	window.gameData.isGameRunning = false;
 	if (sessionStorage.getItem('shouldCloseSocket') === 'true') {
 		if (window.gameData.socket) {
+			console.log('Closing socket');
 			window.gameData.socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
 			window.gameData.socket.close();
 		}
 		sessionStorage.setItem('shouldCloseSocket', 'false');
 	}
 }
+
