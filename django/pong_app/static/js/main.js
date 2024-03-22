@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', initializePongGame);
 window.gameData = {
 	shouldCloseSocket: false,
 	isGameRunning: false,
-	socket: null
+	socket: null,
+	user1: null,
+	user2: null
 };
-
-
 
 function initializePongGame() {
 	let gameSocket = window.gameData.socket;
@@ -153,7 +153,6 @@ function initializePongGame() {
 				const updated_ball_position = messageData.ball_position;
 				if (window.gameData.isGameRunning)
 					update_ball_position(updated_ball_position);
-				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
@@ -203,7 +202,12 @@ function initializePongGame() {
 			else if (messageData.message === 'cancel_game_room') {
 				window.gameData.isGameRunning = false;
 				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
-				message.textContent = 'Player left the game';
+				if (window.gameData.user1 === user.id) {
+					message.textContent = `${window.gameData.user2} left the game`;
+				}
+				else {
+					message.textContent = `${window.gameData.user1} left the game`;
+				}
 				setTimeout(function () {
 					var XHR = new XMLHttpRequest();
 					XHR.open('GET', '/pongGame/', true);
@@ -289,9 +293,9 @@ function initializePongGame() {
 									const messageData = JSON.parse(event.data);
 									if (messageData.message === 'start_game') {
 										message.textContent = '';
-										const user1 = messageData.user1;
-										const user2 = messageData.user2;
-										displayNames(user1, user2);
+										window.gameData.user1 = messageData.user1;
+										window.gameData.user2 = messageData.user2;
+										displayNames(window.gameData.user1, window.gameData.user2);
 										const initialState = messageData.initial_state;
 										gameLoop(initialState);
 									} else {
@@ -309,9 +313,9 @@ function initializePongGame() {
 									const messageData = JSON.parse(event.data);
 									if (messageData.message === 'start_game') {
 										message.textContent = '';
-										const user1 = messageData.user1;
-										const user2 = messageData.user2;
-										displayNames(user1, user2);
+										window.gameData.user1 = messageData.user1;
+										window.gameData.user2 = messageData.user2;
+										displayNames(window.gameData.user1, window.gameData.user2);
 										const initialState = messageData.initial_state;
 										gameLoop(initialState);
 									} else {

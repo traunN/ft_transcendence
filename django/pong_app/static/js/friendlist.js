@@ -24,7 +24,6 @@ function initializeFriends(isHidden) {
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
 	var addFriendButton = document.getElementById('addFriendButton');
-	//var isHidden = true;
 
 	if (!user) {
 		if (addFriendButton) {

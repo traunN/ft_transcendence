@@ -4,31 +4,15 @@ document.addEventListener('DOMContentLoaded', initializePrivateGame);
 window.privateGameData = {
 	shouldCloseSocket: false,
 	isGameRunning: false,
-	socket: null
+	socket: null,
+	user1: null,
+	user2: null
 };
 
-const keys = {
-	ArrowUp: false,
-	ArrowDown: false,
-	KeyW: false,
-	KeyS: false,
-	Enter: false
-};
-
-function handleKeyEvent(event) {
-	if (event.type === 'keydown') {
-		keys[event.code] = true;
-	} else if (event.type === 'keyup') {
-		keys[event.code] = false;
-	}
-}
 
 function initializePrivateGame() {
 	let userId;
 	let gameSocket = window.privateGameData.socket;
-	let isWinner = false;
-	let gameRoomStarted = false;
-	let justReload = false;
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
 	const ball = document.querySelector('.ball');
@@ -70,6 +54,7 @@ function initializePrivateGame() {
 	ball.classList.add(ballSkin);
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
+	board.classList.add(boardSkin);
 	if (user.id) {
 		userId = user.id;
 	}
@@ -111,6 +96,23 @@ function initializePrivateGame() {
 		paddle2.style.top = `${y}px`;
 		gameSocket.send(JSON.stringify({ 'message': 'paddle_update_lol', 'paddle': 'paddle2', 'position': JSON.stringify({ 'x': 790, 'y': targetPaddle2Y }) }));
 	}
+
+	const keys = {
+		ArrowUp: false,
+		ArrowDown: false,
+		KeyW: false,
+		KeyS: false,
+		Enter: false
+	};
+
+	function handleKeyEvent(event) {
+		if (event.type === 'keydown') {
+			keys[event.code] = true;
+		} else if (event.type === 'keyup') {
+			keys[event.code] = false;
+		}
+	}
+
 
 	document.addEventListener('keydown', handleKeyEvent);
 	document.addEventListener('keyup', handleKeyEvent);
@@ -171,7 +173,6 @@ function initializePrivateGame() {
 				const updated_ball_position = messageData.ball_position;
 				if (window.privateGameData.isGameRunning)
 					update_ball_position(updated_ball_position);
-				// console.log('reduce lag'); //have to change this not normal javascript things
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
@@ -201,9 +202,13 @@ function initializePrivateGame() {
 			}
 			else if (messageData.message === 'cancel_game_room') {
 				window.privateGameData.isGameRunning = false;
-				message.textContent = 'Player left the game';
+				if (window.privateGameData.user1 === user.id) {
+					message.textContent = `${window.privateGameData.user2} left the game`;
+				}
+				else {
+					message.textContent = `${window.privateGameData.user1} left the game`;
+				}
 				sessionStorage.setItem('roomNameKey', '');
-				justReload = true;
 			}
 			else {
 				const gameState = messageData.message;
@@ -264,7 +269,6 @@ function initializePrivateGame() {
 							console.log('Failed to create socket');
 							return;
 						}
-						gameRoomStarted = true;
 						if (data.start_game) {
 							window.room_name = data.room_name;
 							gameSocket.onopen = async function (event) {
@@ -275,9 +279,9 @@ function initializePrivateGame() {
 									if (messageData.message === 'start_game') {
 										window.privateGameData.isGameRunning = true;
 										message.textContent = '';
-										const user1 = messageData.user1;
-										const user2 = messageData.user2;
-										displayNames(user1, user2);
+										window.privateGameData.user1 = messageData.user1;
+										window.privateGameData.user2 = messageData.user2;
+										displayNames(window.privateGameData.user1, window.privateGameData.user2);
 										const initialState = messageData.initial_state;
 										gameLoop(initialState);
 									} else {
@@ -295,9 +299,9 @@ function initializePrivateGame() {
 									const messageData = JSON.parse(event.data);
 									if (messageData.message === 'start_game') {
 										message.textContent = '';
-										const user1 = messageData.user1;
-										const user2 = messageData.user2;
-										displayNames(user1, user2);
+										window.privateGameData.user1 = messageData.user1;
+										window.privateGameData.user2 = messageData.user2;
+										displayNames(window.privateGameData.user1, window.privateGameData.user2);
 										const initialState = messageData.initial_state;
 										gameLoop(initialState);
 									} else {
@@ -325,19 +329,15 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
-	window.removeEventListener('keydown', handleKeyEvent);
-	window.removeEventListener('keyup', handleKeyEvent);
 	if (!window.location.href.includes('privateGame')) {
 		console.log('not on privateGame');
 		return;
 	}
-	window.gameData.isGameRunning = false;
+	window.privateGameData.isGameRunning = false;
 	if (sessionStorage.getItem('shouldCloseSocket') === 'true') {
-		console.log('socket is :', window.privateGameData.socket)
 		if (window.privateGameData.socket) {
 			window.privateGameData.socket.send(JSON.stringify({ 'message': 'cancel_game_room' }));
 			window.privateGameData.socket.close();
-			console.log('Closing the socket');
 		}
 		sessionStorage.setItem('shouldCloseSocket', 'false');
 	}
