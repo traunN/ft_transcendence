@@ -510,7 +510,7 @@ function customOnBeforeUnload() {
 	}
 	else
 	{
-		window.gameData.isGameRunning = false;
+		window.tournamentGameData.isGameRunning = false;
 		var userId = window.tournamentGameData.user.id;
 		var gameLeave = window.tournamentGameData.gameLeave;
 		var isWinner = window.tournamentGameData.isWinner;

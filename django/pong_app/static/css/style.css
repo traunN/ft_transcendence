@@ -569,6 +569,11 @@ div.card.custom-bg {
 	background-color: #323739;
 }
 
+tr:hover td {
+	background-color: #050506 !important;
+}
+
+
 #tournament-list th,
 #tournament-list td {
 	padding: 15px;
@@ -751,13 +756,13 @@ div.card.custom-bg {
 }
 
 .friendlist-btn {
+	display: flex;
 	background-color: #f7ff19;
 	padding: 5px 20px;
 	border: none;
 	display: block;
 	height: 100%;
 	width: 100%;
-	border-radius: 0.5rem;
 	margin-bottom: 10px;
 	cursor: pointer;
 	transition: all 0.3s ease;
@@ -767,6 +772,7 @@ div.card.custom-bg {
 	background-color: #f9ff57;
 	color: #000;
 }
+
 
 .friend-list {
 	position: fixed;
@@ -782,14 +788,33 @@ div.card.custom-bg {
 	margin-bottom: 10px;
 }
 
+.friend-box {
+	flex: 1; /* Adjusted to take full width */
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%; /* Ensure it takes full width */
+	padding: 10px;
+	background-color: #09090a;
+	margin: 5px 0;
+	border-radius: 5px;
+}
+
 .friend-list-content {
-	display: none;
+	display: flex;
 	overflow: auto;
 	max-height: 200px;
 	margin-bottom: 10px;
+	flex-direction: column;
 }
 
+#toggleButton:focus {
+	outline: none;
+}
+
+
 .friend-list-item {
+	flex-grow: 1;
 	margin-bottom: 5px;
 }
 
@@ -958,4 +983,19 @@ div.card.custom-bg {
 	max-width: 400px;
 	text-align: center;
 	display: none;
+}
+
+.friend-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.delete-friend-btn {
+	background-color: #ff1919;
+	border: none;
+	border-radius: 0.3rem;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-left: 10px;
 }

@@ -6,10 +6,9 @@ window.friendData = {
 	friends: []
 };
 
-function CheckIfUser(){
-	if (sessionStorage.getItem('user'))
-	{
-		if (JSON.parse(sessionStorage.getItem('user'))){
+function CheckIfUser() {
+	if (sessionStorage.getItem('user')) {
+		if (JSON.parse(sessionStorage.getItem('user'))) {
 			initializeFriends(false);
 			friendListContent.style.display = 'block';
 			addFriendButton.style.display = 'block';
@@ -74,7 +73,7 @@ function initializeFriends(isHidden) {
 				table.innerHTML = '';
 
 				for (let i = 0; i < window.friendData.friends.length; i++) {
-					(function(index) {
+					(function (index) {
 						let friend_login = window.friendData.friends[index].login;
 
 						fetch('/is_user_online/' + window.friendData.friends[index].idName + '/')
@@ -86,18 +85,26 @@ function initializeFriends(isHidden) {
 									return;
 
 								let row = table.insertRow(-1);
-								let friend = row.insertCell(0);
+								let friendCell = row.insertCell(0);
+								let friendBox = document.createElement('div');
+								friendBox.classList.add('friend-box'); 
+								let friend = document.createElement('span');
 								friend.innerHTML = friend_login;
 								if (data.isOnline) {
 									friend.style.color = 'green';
 								} else {
 									friend.style.color = 'red';
 								}
+
 								var deleteButton = document.createElement('button');
 								deleteButton.innerHTML = 'x';
 								deleteButton.className = 'delete-friend-btn';
-								var cell = row.insertCell(1);
-								cell.appendChild(deleteButton);
+
+								friendBox.appendChild(friend);
+								friendBox.appendChild(deleteButton);
+
+								friendCell.appendChild(friendBox);
+
 								deleteButton.addEventListener('click', function () {
 									getJwtFromCookie().then(jwtToken => {
 										fetch('/delete_friend/', {
@@ -133,6 +140,7 @@ function initializeFriends(isHidden) {
 
 			});
 	}
+
 	updateFriendList();
 
 	window.friendData.socket.onmessage = function (event) {
