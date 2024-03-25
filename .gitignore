@@ -1,1 +1,5 @@
-django/staticfiles/*
+django/staticfiles/admin
+django/staticfiles/css
+django/staticfiles/images
+django/staticfiles/js
+django/staticfiles/fonts
