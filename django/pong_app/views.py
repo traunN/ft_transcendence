@@ -538,6 +538,7 @@ def record_game(request):
 
 @api_view(['POST'])
 def update_user(request):
+	logger = logging.getLogger(__name__)
 	if request.method == 'POST':
 		try:
 			user_id = request.POST['id']
@@ -560,7 +561,11 @@ def update_user(request):
 			user.lastName = request.POST['lastName']
 			user.campus = request.POST['campus']
 			if 'image' in request.FILES:
+				logger.error('Image extension: %s', request.FILES['image'].name.split('.')[-1])
+				if request.FILES['image'].name.split('.')[-1] not in ['jpg', 'jpeg', 'png']:
+					return JsonResponse({'status': 'error', 'message': 'Invalid image format'})
 				image = request.FILES['image']
+
 				image_name = image.name
 				image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
 				with open(image_path, 'wb+') as destination:
@@ -1109,20 +1114,6 @@ def save_user_profile_manual(request):
 			return response
 	else:
 		return JsonResponse({'error': 'Invalid request'}, status=400)
-
-def save_image_from_url(image_url, user):
-	logger = logging.getLogger(__name__)
-	response = requests.get(image_url)
-	if response.status_code == 200:
-		logger.error('Image downloaded from URL: ' + image_url)
-		image_name = image_url.split('/')[-1] # get the image name from the URL
-		image_path = os.path.join(django_settings.MEDIA_ROOT, image_name)
-		with open(image_path, 'wb') as image_file:
-			image_file.write(response.content)
-		return image_path
-	else:
-		logger.error('Failed to download image from URL: ' + image_url)
-		return None
 
 def get_user(request, user_id):
 	try:

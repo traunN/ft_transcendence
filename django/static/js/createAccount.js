@@ -20,12 +20,10 @@ function initializeCreateAccount() {
 	}
 
 	if (isUserLoggedIn()) {
-		console.log('User infos: ' + JSON.stringify(user));
 		loginLogout.innerHTML = 'Logout';
 		isLogged = true;
 	}
 	else {
-		console.log('User is not logged in');
 		isLogged = false;
 	}
 
@@ -35,7 +33,6 @@ function initializeCreateAccount() {
 	}
 
 	createAccountForm.addEventListener('submit', function (event) {
-		console.log('createAccountForm submitted');
 		event.preventDefault();
 		var accountName = document.getElementById('accountName').value;
 		if (!isAlphaNumeric(accountName)) {
