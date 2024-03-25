@@ -44,6 +44,8 @@ services:
     restart: on-failure
     volumes:
       - templates_volume:/usr/src/app/pong_app/templates
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/media
     stop_signal: SIGINT
 
   nginx:
@@ -59,8 +61,8 @@ services:
       - transcendence
     restart: on-failure
     volumes:
-      - media_volume:/var/lib/nginx/media
       - static_volume:/var/lib/nginx/static
+      - media_volume:/var/lib/nginx/media
 
   postgres:
     image: postgres:latest

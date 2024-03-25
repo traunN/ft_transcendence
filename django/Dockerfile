@@ -14,6 +14,7 @@ RUN		chown -R www-data:www-data ./media/ && \
 		chmod -R 755 ./media/
 
 RUN		python manage.py makemigrations --noinput
+RUN		python manage.py collectstatic --noinput
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && python create_superuser.py && python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && python manage.py runserver 0.0.0.0:8000"]
 
