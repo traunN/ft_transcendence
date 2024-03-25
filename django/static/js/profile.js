@@ -70,9 +70,11 @@ function initializeProfile() {
 			userLoses.textContent = 'Loses: ' + data.user.loses;
 			userTournamentWins.textContent = 'Tournament wins: ' + data.user.tournamentWins;
 			userImage.src = data.user.image;
+			userImageTopBar.src = data.user.image;
 			userImage.addEventListener('load', function () {
 				document.getElementById('card-container').classList.add('visible');
 			});
+			sessionStorage.setItem('user', JSON.stringify(data.user));
 			userAccountName.style.display = 'block';
 			userAccountName.textContent = 'Account name: ' + data.user.idName;
 			if (data.user.is_2fa_enabled && userId == user.idName) {
@@ -174,7 +176,7 @@ function initializeProfile() {
 
 		var formData = new FormData();
 
-		formData.append('id', user.id);
+		formData.append('id', user.idName);
 		formData.append('login', newUsername);
 		formData.append('email', newEmail);
 		formData.append('firstName', newFirstName);
