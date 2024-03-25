@@ -668,7 +668,6 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	if (window.location.pathname !== '/chat/') {
-		console.log('not on chat');
 		return;
 	}
 	if (window.chatData.socket) {

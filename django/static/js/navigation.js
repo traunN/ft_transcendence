@@ -31,22 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			.then(response => response.text())
 			.then(data => {
 				friendOnBeforeUnload();
-				if (currentPath.includes('chat')) {
-					customOnBeforeUnload();
-				}
-				if (currentPath.includes('pongGame')) {
-					customOnBeforeUnload();
-				}
-				if (currentPath.includes('privateGame')) {
-					customOnBeforeUnload();
-				}
-				if (currentPath === '/tournament/') {
-					customOnBeforeUnload();
-				}
-				if (currentPath.includes('/tournament_lobby/')) {
-					customOnBeforeUnload();
-				}
-				if (currentPath.includes('/tournament_game/')) {
+				if (typeof customOnBeforeUnload === 'function') {
 					customOnBeforeUnload();
 				}
 				if (isPopState === 0)
