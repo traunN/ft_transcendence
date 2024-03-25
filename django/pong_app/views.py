@@ -565,9 +565,11 @@ def update_user(request):
 				if request.FILES['image'].name.split('.')[-1] not in ['jpg', 'jpeg', 'png']:
 					return JsonResponse({'status': 'error', 'message': 'Invalid image format'})
 				image = request.FILES['image']
-
 				image_name = image.name
 				image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
+				# check for size of image
+				if image.size > 1000000:
+					return JsonResponse({'status': 'error', 'message': 'Image size too large'})
 				with open(image_path, 'wb+') as destination:
 					for chunk in image.chunks():
 						destination.write(chunk)
