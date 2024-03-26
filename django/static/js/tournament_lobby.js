@@ -447,7 +447,7 @@ function leaveLobby() {
 	const formData = new FormData();
 	formData.append('tournament_id', tournamentId);
 	getJwtFromCookie().then(jwtToken => {
-		fetch('/leave_tournament/' + user.id + '/', {
+		fetch('/leave_tournament/' + user.idName + '/', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
