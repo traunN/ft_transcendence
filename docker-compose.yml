@@ -28,6 +28,14 @@ volumes:
       type: none
       o: bind
       device: ./${DJANGO_FOLDER}/media
+  debuf_volume:
+    driver: local
+    name: debuf_volume
+    driver_opts:
+      type: none
+      o: bind
+      device: ./${DJANGO_FOLDER}/static
+
 
 services:
   django:
@@ -47,6 +55,7 @@ services:
       - templates_volume:/usr/src/app/pong_app/templates
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/media
+      - debuf_volume:/usr/src/app/static
     stop_signal: SIGINT
 
   nginx:
