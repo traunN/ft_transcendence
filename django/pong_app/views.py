@@ -744,16 +744,19 @@ def leave_tournament(request, user_id):
 			user.alias = ''
 			user.save()
 			tournament = Tournament.objects.get(id=tournament_id)
+			count = 1
 			tournament_player = TournamentPlayer.objects.get(user=user, tournament=tournament)
 			tournament_player.count -= 1
 			tournament.count -= 1
+			tournament.status = 'available'
 			tournament_player.save()
 			tournament.save()
 			if tournament_player.count == 0:
 				tournament_player.delete()
 			if tournament.count == 0:
+				count = 0
 				tournament.delete()
-			return JsonResponse({'status': 'success', 'message': 'Left tournament successfully'})
+			return JsonResponse({'status': 'success', 'player_count': count, 'message': 'Left tournament successfully'})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
 	else:
@@ -761,7 +764,9 @@ def leave_tournament(request, user_id):
 
 def available_tournaments(request):
 	try:
-		tournaments = Tournament.objects.filter(status='available').annotate(player_count=Count('players'))
+		tournaments = Tournament.objects.filter(Q(status='available') | Q(status='full'))
+		for tournament in tournaments:
+			tournament.count = TournamentPlayer.objects.filter(tournament=tournament).count()
 		if not tournaments.exists():
 			return JsonResponse({'tournaments': []})
 		tournaments = tournaments.values()
@@ -793,6 +798,9 @@ def join_tournament(request, user_id):
 			tournament.count += 1
 			tournament_player.save()
 			tournament.save()
+			if tournament.count == 4:
+				tournament.status = 'full'
+				tournament.save()
 			return JsonResponse({'status': 'success', 'message': 'Joined tournament successfully', 'tournament_id': tournament.id})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
@@ -1013,21 +1021,11 @@ def save_user_profile_42(request):
 			return response
 		except User.DoesNotExist:
 			user = User.objects.create(
-				login=data['login'],
-				isFrom42=True,
-				password= '',
-				email=data['email'],
-				firstName='',
-				lastName='',
-				campus='',
-				level=0,
-				wallet=0,
-				correctionPoint=0,
-				location='',
-				idName=data['idName'],
+				login=data['login'], isFrom42=True, password= '', email=data['email'], firstName='', lastName='', 
+				campus='', level=0, wallet=0, correctionPoint=0, location='', idName=data['idName']
 			)
 			image_url = data['image']
-			image_name = image_url.split('/')[-1] # get the image name from the URL
+			image_name = image_url.split('/')[-1]
 			image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
 			with open(image_path, 'wb+') as destination:
 				destination.write(urllib.request.urlopen(image_url).read())
@@ -1077,20 +1075,8 @@ def save_user_profile_manual(request):
 		except User.DoesNotExist:
 			hashed_password = make_password(data['password'])
 			user = User.objects.create(
-				login=data['login'],
-				isFrom42=False,
-				password= hashed_password,
-				email=data['email'],
-				firstName='',
-				lastName='',
-				campus='',
-				level=0,
-				wallet=0,
-				correctionPoint=0,
-				location='',
-				idName=data['accountName'],
-				# setup image as default
-				image='default.jpg'
+				login=data['login'], isFrom42=False, password= hashed_password, email=data['email'], firstName='', 
+				lastName='', campus='', level=0, wallet=0, correctionPoint=0, location='', idName=data['accountName'], image='default.jpg'
 			)
 			user_dict = model_to_dict(user, fields=[
 				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 

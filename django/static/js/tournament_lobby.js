@@ -9,7 +9,8 @@ window.tournamentLobbyData = {
 	pageSocket: null,
 	user: JSON.parse(sessionStorage.getItem('user')),
 	shouldLeaveLobby: true,
-	firstMatchWinnerId: null
+	firstMatchWinnerId: null,
+	didF5: false
 };
 function isOpen(socket) {
 	return socket && socket.readyState === 1;
@@ -25,25 +26,21 @@ function initializeTournamentLobby() {
 	if (!user) {
 		return;
 	}
-	let reloadLeaveLobby = true;
 	var roomName1;
 	var roomName2;
 	var roomName2split;
 	var room2Id1;
 	var room2Id2;
-	var firstMatchWinnerId;
 	let is_in_room1 = true;
 
 	if (tournamentLobbyKey) {
 		if (tournamentLobbyKey !== tournamentId) {
 			sessionStorage.setItem('tournamentLobbyKey', '');
-			reloadLeaveLobby = false;
 			history.back();
 		}
 	}
 	else {
 		sessionStorage.setItem('tournamentLobbyKey', '');
-		reloadLeaveLobby = false;
 		history.back();
 	}
 
@@ -55,13 +52,17 @@ function initializeTournamentLobby() {
 		window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
 
 	aliasInput.focus();
-
+	if (window.tournamentLobbyData.didF5) {
+		return;
+	}
+	if (tournamentId === '') {
+		return;
+	}
 	fetch('/get_tournament_status/' + tournamentId + '/')
 		.then(response => response.text())
 		.then(data => {
 			var response = JSON.parse(data);
 			if (response.status === 'success') {
-				console.log('tournament status:', response.tournament_status);
 				if (response.tournament_status === 'second_match_finished') {
 					sessionStorage.setItem('roomNameKey', user.id);
 					window.tournamentLobbyData.shouldLeaveLobby = false;
@@ -436,14 +437,15 @@ function initializeTournamentLobby() {
 function leaveLobby() {
 	var user = window.tournamentLobbyData.user;
 	var tournamentId = document.getElementById('tournamentId').value;
+	if (tournamentId === '') {
+		return;
+	}
 	window.tournamentLobbyData.shouldLeaveLobby = false;
 	if (!user) {
 		return;
 	}
 	const formData = new FormData();
 	formData.append('tournament_id', tournamentId);
-	reloadLeaveLobby = false;
-
 	getJwtFromCookie().then(jwtToken => {
 		fetch('/leave_tournament/' + user.id + '/', {
 			method: 'POST',
@@ -462,6 +464,11 @@ function leaveLobby() {
 						window.tournamentLobbyData.pageSocket.send(JSON.stringify({
 							'type': 'tournament_updated',
 						}));
+						if (response.player_count === 0) {
+							window.tournamentLobbyData.shouldLeaveLobby = false;
+							window.tournamentLobbyData.didF5 = true;
+							return;
+						}
 						fetch('/get_tournament_status/' + tournamentId + '/')
 							.then(response => response.text())
 							.then(data => {
@@ -490,6 +497,7 @@ function leaveLobby() {
 										})
 									}
 									window.tournamentLobbyData.lobbySocket.close();
+									navigateToCustompath('/tournament/');
 
 								}
 							})
@@ -508,9 +516,13 @@ function leaveLobby() {
 	});
 }
 
+
 window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
+	if (window.tournamentLobbyData.didF5) {
+		return;
+	}
 	if (window.tournamentLobbyData.shouldLeaveLobby) {
 		leaveLobby();
 	}

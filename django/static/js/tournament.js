@@ -56,7 +56,6 @@ function initializeTournament() {
 			})
 				.then(response => response.text())
 				.then(data => {
-					console.log(data);
 					var response = JSON.parse(data);
 					if (response.status === 'success') {
 						if (isOpen(window.tournamentData.socket)) {
@@ -190,9 +189,6 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
-	if (window.location.pathname !== '/tournament/') {
-		return;
-	}
 	if (window.tournamentData.socket.readyState === 1) {
 		window.tournamentData.socket.close();
 	}
