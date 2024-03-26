@@ -18,7 +18,6 @@ function CheckIfUser() {
 
 function initializeFriends(isHidden) {
 	var user = JSON.parse(sessionStorage.getItem('user'));
-	var friendList = document.getElementById('friendList');
 	var toggleButton = document.getElementById('toggleButton');
 	var friendListContent = document.getElementById('friendListContent');
 	var addFriendInput = document.getElementById('addFriendInput');
@@ -53,10 +52,12 @@ function initializeFriends(isHidden) {
 				return;
 			}
 		});
-	window.friendData.socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
 	if (!window.friendData.socket) {
-		console.log('Failed to create socket');
-		return;
+		window.friendData.socket = new WebSocket('wss://localhost:8443/ws/friendList/' + user.idName + '/');
+		if (!window.friendData.socket) {
+			console.log('Failed to create socket');
+			return;
+		}
 	}
 
 	function updateFriendList() {

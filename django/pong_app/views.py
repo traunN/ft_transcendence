@@ -538,7 +538,6 @@ def record_game(request):
 
 @api_view(['POST'])
 def update_user(request):
-	logger = logging.getLogger(__name__)
 	if request.method == 'POST':
 		try:
 			user_id = request.POST['id']
@@ -561,13 +560,11 @@ def update_user(request):
 			user.lastName = request.POST['lastName']
 			user.campus = request.POST['campus']
 			if 'image' in request.FILES:
-				logger.error('Image extension: %s', request.FILES['image'].name.split('.')[-1])
 				if request.FILES['image'].name.split('.')[-1] not in ['jpg', 'jpeg', 'png']:
 					return JsonResponse({'status': 'error', 'message': 'Invalid image format'})
 				image = request.FILES['image']
 				image_name = image.name
 				image_path = os.path.join(django_settings.MEDIA_ROOT, 'images', image_name)
-				# check for size of image
 				if image.size > 1000000:
 					return JsonResponse({'status': 'error', 'message': 'Image size too large'})
 				with open(image_path, 'wb+') as destination:

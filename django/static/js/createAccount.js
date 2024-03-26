@@ -13,6 +13,11 @@ function initializeCreateAccount() {
 		var regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 		return regex.test(password);
 	}
+	
+	function isAlphaNumeric(input) {
+		var regex = /^[a-z0-9]+$/i;
+		return regex.test(input);
+	}
 
 	function isUserLoggedIn() {
 		var user = JSON.parse(sessionStorage.getItem('user'));
@@ -27,10 +32,6 @@ function initializeCreateAccount() {
 		isLogged = false;
 	}
 
-	function isAlphaNumeric(input) {
-		var regex = /^[a-z0-9]+$/i;
-		return regex.test(input);
-	}
 
 	createAccountForm.addEventListener('submit', function (event) {
 		event.preventDefault();

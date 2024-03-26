@@ -508,6 +508,8 @@ function leaveLobby() {
 	});
 }
 
+window.addEventListener('beforeunload', customOnBeforeUnload);
+
 function customOnBeforeUnload() {
 	if (window.tournamentLobbyData.shouldLeaveLobby) {
 		leaveLobby();
