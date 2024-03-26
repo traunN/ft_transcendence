@@ -489,9 +489,9 @@ function initializeLogin() {
 									loginLogout.innerHTML = 'Logout';
 									userName.innerHTML = data.login;
 									normalLogin.style.display = 'none';
-									data.id = data.idName;
-									if (data.id === undefined) {
-										data.id = data.user.idName;
+									data.user.id = data.user.idName;
+									if (data.user.id === undefined) {
+										data.user.id = data.user.idName;
 									}
 									sessionStorage.setItem('user', data.user);
 									accessToken = getJwtFromCookie();
@@ -550,7 +550,7 @@ function initializeLogin() {
 			}).catch((error) => {
 				console.error('Error:', error);
 			});
-		navigateToCustompath('/homePage/');
+		window.history.pushState({}, document.title, '/homePage/');
 		isLogged = true;
 	}
 

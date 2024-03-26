@@ -257,10 +257,10 @@ function initializePongGame() {
 		message.textContent = '';
 		startGameBtn.style.display = 'none';
 		window.gameData.isGameRunning = true;
-		if (!user.id) {
+		if (!user.idName) {
 			return;
 		}
-		let userId = user.id;
+		let userId = user.idName;
 		getJwtFromCookie().then(jwtToken => {
 			fetch(`/join_or_create_room/${userId}/`, {
 				method: 'GET',
