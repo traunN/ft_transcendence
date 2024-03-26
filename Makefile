@@ -17,10 +17,10 @@ stop:
 	docker compose -f docker-compose.yml down
 
 rmvolume:
-	docker volume rm static_volume templates_volume transcendence_postgres_data
+	docker volume rm $(shell docker volume ls -q)
 
 rmi:
-	docker rmi $(shell docker images -q)
+	docker rmi $(shell docker images -qa)
 
 rmall:
 	docker stop $(shell docker ps -a -q)
