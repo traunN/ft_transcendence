@@ -154,10 +154,10 @@ function initializeProfile() {
 
 	document.getElementById('editProfileButton').addEventListener('click', function () {
 		username.innerHTML = `<input type="text" id="usernameInput" value="${username.textContent}">`;
-		userEmail.innerHTML = `<input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
-		userFirstName.innerHTML = `<input type="text" id="firstNameInput" value="${userFirstName.textContent.slice(12)}">`;
-		userLastName.innerHTML = `<input type="text" id="lastNameInput" value="${userLastName.textContent.slice(11)}">`;
-		usercampusProfile.innerHTML = `<input type="text" id="campusInput" value="${usercampusProfile.textContent.slice(8)}">`;
+		userEmail.innerHTML = `Email: <input type="text" id="emailInput" value="${userEmail.textContent.slice(7)}">`;
+		userFirstName.innerHTML = `First Name: <input type="text" id="firstNameInput" value="${userFirstName.textContent.slice(12)}">`;
+		userLastName.innerHTML = `Last Name: <input type="text" id="lastNameInput" value="${userLastName.textContent.slice(11)}">`;
+		usercampusProfile.innerHTML = `Campus: <input type="text" id="campusInput" value="${usercampusProfile.textContent.slice(8)}">`;
 		var imageInput = document.createElement('input');
 		imageInput.type = 'file';
 		imageInput.id = 'imageInput';
@@ -173,8 +173,10 @@ function initializeProfile() {
 		var newCampus = document.getElementById('campusInput').value;
 		var newImage = document.getElementById('imageInput').files[0];
 
+		if (newUsername === '') {
+			newUsername = user.login;
+		}
 		var formData = new FormData();
-
 		formData.append('id', user.idName);
 		formData.append('login', newUsername);
 		formData.append('email', newEmail);
