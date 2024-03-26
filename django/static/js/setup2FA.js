@@ -6,8 +6,6 @@ function initializeSetup2FA() {
 		console.log('Failed to get user from session storage');
 		return;
 	}
-
-	var setup2FAContainer = document.getElementById('setup2FAContainer');
 	var confirm2FAButton = document.getElementById('confirm2FAButton');
 	var twoFactorCode = document.getElementById('2faCode');
 	twoFactorCode.focus();

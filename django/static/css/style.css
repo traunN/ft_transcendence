@@ -789,11 +789,11 @@ tr:hover td {
 }
 
 .friend-box {
-	flex: 1; /* Adjusted to take full width */
+	flex: 1;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	width: 100%; /* Ensure it takes full width */
+	width: 100%;
 	padding: 10px;
 	background-color: #09090a;
 	margin: 5px 0;

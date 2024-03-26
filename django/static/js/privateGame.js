@@ -9,7 +9,6 @@ window.privateGameData = {
 	user2: null
 };
 
-
 function initializePrivateGame() {
 	let userId;
 	let gameSocket = window.privateGameData.socket;

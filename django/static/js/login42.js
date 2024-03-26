@@ -34,7 +34,6 @@ function initializeLogin() {
 	var userImage = document.getElementById('userImage');
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
-	var users = JSON.parse(sessionStorage.getItem('users')) || [];
 	userImage.style.opacity = '0';
 	userImage.onload = function () {
 		userImage.style.opacity = '1';
@@ -50,8 +49,7 @@ function initializeLogin() {
 		fetch('/get_user/' + user.idName + '/')
 			.then(response => {
 				if (!response.ok) {
-					sessionStorage.removeItem('user');
-					navigateToCustompath('/homePage/');
+					disconnectUser();
 				}
 				return response.json();
 			})
@@ -61,8 +59,7 @@ function initializeLogin() {
 						disconnectUser();
 					}
 				} else {
-					sessionStorage.removeItem('user');
-					navigateToCustompath('/homePage/');
+					disconnectUser();
 				}
 			});
 	}
@@ -221,7 +218,6 @@ function initializeLogin() {
 	}
 
 	function isUserLoggedIn() {
-		var user = JSON.parse(sessionStorage.getItem('user'));
 		return user !== null;
 	}
 
@@ -292,35 +288,18 @@ function initializeLogin() {
 	}
 
 	if (isUserLoggedIn()) {
-		var user = JSON.parse(sessionStorage.getItem('user'));
+		loginLogout.innerHTML = 'Logout';
+		normalLogin.style.display = 'none';
 		userImage.src = user.image;
 		userName.innerHTML = user.login;
 		userImage.style.display = 'block';
 		isLogged = true;
 	} else {
-		isLogged = false;
-	}
-	if (user) {
-		for (var i = 0; i < users.length; i++) {
-			if (users[i].login === user.login) {
-				userName.innerHTML = user.login;
-				break;
-			}
-		}
-	}
-	if (user) {
-		loginLogout.innerHTML = 'Logout';
-		isLogged = true;
-		normalLogin.style.display = 'none';
-		userName.innerHTML = user.login;
-		userImage.style.display = 'block';
-	}
-	else {
 		normalLogin.style.display = 'block';
-		isLogged = false;
-		userName.innerHTML = '';
 		userImage.src = '';
+		userName.innerHTML = '';
 		userImage.style.display = 'none';
+		isLogged = false;
 	}
 
 	document.getElementById('normalLogin').addEventListener('click', function (event) {
@@ -385,23 +364,21 @@ function initializeLogin() {
 							user.id = data.user.idName;
 							user.idName = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(user));
-							if (data.user.is_2fa_enabled) {
-								show2FAConfirmationPopup();
-							}
-							loginLogout.innerHTML = 'Logout';
-							normalLogin.style.display = 'none';
-							userName.innerHTML = data.user.login;
-							userImage.src = data.user.image;
-							setUserOnline(data.user.id);
-							userImage.style.display = 'block';
 							loginModal.remove();
-							isLogged = true;
-							// remove password and login info from url
 							navigateToCustompath('/homePage/');
 						}
 						catch (error) {
 							console.log('Error:', error);
 						}
+					}
+					else{
+						password = document.getElementById('password');
+						password.style.outline = 'none';
+						password.style.border = '1px solid red';
+						password.style.borderRadius = '5px';
+						password.value = '';
+						password.placeholder = 'Invalid password';
+						password.focus();
 					}
 				})
 				.catch(error => {
