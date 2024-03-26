@@ -120,26 +120,26 @@ function initializeLogin() {
 					'Authorization': `Bearer ${jwtToken}`
 				}
 			})
-			.then(response => {
-				if (!response.ok) {
-					return response.text().then(text => {
-						throw new Error('Server error: ' + text);
-					});
-				}
-				return response.json();
-			})
-			.then(data => {
-				// Handle the data
-			})
-			.catch(error => {
-				if (retries > 0) {
-					console.error('Error:', error);
-					console.log('Retrying...');
-					setUserOnline(userId, retries - 1);
-				} else {
-					console.error('Failed after retries:', error);
-				}
-			});
+				.then(response => {
+					if (!response.ok) {
+						return response.text().then(text => {
+							throw new Error('Server error: ' + text);
+						});
+					}
+					return response.json();
+				})
+				.then(data => {
+					// Handle the data
+				})
+				.catch(error => {
+					if (retries > 0) {
+						console.error('Error:', error);
+						console.log('Retrying...');
+						setUserOnline(userId, retries - 1);
+					} else {
+						console.error('Failed after retries:', error);
+					}
+				});
 		}).catch(error => {
 			console.error('Error getting JWT:', error);
 		});
@@ -361,17 +361,27 @@ function initializeLogin() {
 							data.user.id = data.user.idName;
 							sessionStorage.setItem('user', JSON.stringify(data.user));
 							user = JSON.parse(sessionStorage.getItem('user'));
-							user.id = data.user.idName;
-							user.idName = data.user.idName;
-							sessionStorage.setItem('user', JSON.stringify(user));
-							loginModal.remove();
-							navigateToCustompath('/homePage/');
+							if (data.user.is_2fa_enabled) {
+								user.id = data.user.idName;
+								user.idName = data.user.idName;
+								sessionStorage.setItem('user', JSON.stringify(user));
+								loginModal.remove();
+								show2FAConfirmationPopup();
+							}
+							else
+							{
+								user.id = data.user.idName;
+								user.idName = data.user.idName;
+								sessionStorage.setItem('user', JSON.stringify(user));
+								loginModal.remove();
+								navigateToCustompath('/homePage/');
+							}
 						}
 						catch (error) {
 							console.log('Error:', error);
 						}
 					}
-					else{
+					else {
 						password = document.getElementById('password');
 						password.style.outline = 'none';
 						password.style.border = '1px solid red';
@@ -405,7 +415,6 @@ function initializeLogin() {
 		if (isLogged) {
 			disconnectUser();
 		} else {
-			var user = JSON.parse(sessionStorage.getItem('user'));
 			if (user) {
 				isLogged = true;
 			} else {
@@ -429,138 +438,119 @@ function initializeLogin() {
 
 	var code = new URLSearchParams(window.location.search).get('code');
 	if (code) {
-		var clientId;
-		var clientSecret;
-		var redirectUri = 'https://localhost:8443/homePage/';
-		async function getClientData() {
-			try {
-				const responseSecret = await fetch('/get_client_secret/');
-				const dataSecret = await responseSecret.json();
-				clientSecret = dataSecret.client_secret;
-
-				const responseId = await fetch('/get_client_id/');
-				const dataId = await responseId.json();
-				clientId = dataId.client_id;
-
-				fetch('/exchange_token/?code=' + code)
-					.then((response) => {
-						if (response.ok) {
-							return response.json();
-						} else {
-							throw new Error('Network response was not ok');
-						}
-					}).then((data) => {
-						var accessToken = data.access_token;
-						var userUrl = 'https://localhost:8443/proxy/';
-						var userXhr = new XMLHttpRequest();
-						userXhr.open('GET', userUrl, true);
-						userXhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-						userXhr.onreadystatechange = function () {
-							if (this.readyState === 4 && this.status === 200) {
-								var user = JSON.parse(this.responseText);
-								setUserOnline(user.id);
-
-								var data = {
-									login: user.login,
-									email: user.email,
-									firstName: user.first_name,
-									lastName: user.last_name,
-									campus: user.campus[0].name,
-									level: user.cursus_users[1].level,
-									wallet: user.wallet,
-									correctionPoint: user.correction_point,
-									location: user.location,
-									idName: user.id,
-									image: user.image.link
-								};
-								fetch('/save_user_profile_42/', {
-									method: 'POST',
-									body: JSON.stringify(data),
-									headers: {
-										'Content-Type': 'application/json',
-										'X-CSRFToken': csrfToken,
-									}
-								})
-									.then(response => {
-										if (!response.ok) {
-											return response.text().then(text => {
-												throw new Error('Server error: ' + text);
-											});
-										}
-										return response.json();
-									})
-									.then(data => {
-										if (data) {
-											loginLogout.innerHTML = 'Logout';
-											userName.innerHTML = data.login;
-											normalLogin.style.display = 'none';
-											data.id = data.idName;
-											if (data.id === undefined) {
-												data.id = data.user.idName;
-											}
-											sessionStorage.setItem('user', data.user);
-											accessToken = getJwtFromCookie();
-											fetch('/get_user/' + data.id + '/')
-												.then(response => {
-													if (!response.ok) {
-														return response.text().then(text => {
-															throw new Error('Server error: ' + text);
-														});
-													}
-													return response.json();
-												})
-												.then(data => {
-													if (data) {
-														data.user.id = data.user.idName;
-														userImage.src = data.user.image;
-														user.image = data.user.image;
-														userName.innerHTML = data.user.login;
-														userImage.style.display = 'block';
-														sessionStorage.setItem('user', JSON.stringify(data.user));
-														if (data.user.is_2fa_enabled) {
-															show2FAConfirmationPopup();
-														}
-													}
-												})
-												.catch(error => console.error('Error:', error));
-											isLogged = true;
-										}
-									})
-									.catch((error) => {
-										console.error('Error:', error);
-									});
-								var userXhr = new XMLHttpRequest();
-								userXhr.open('GET', '/get_user/' + data.idName + '/', true);
-								userXhr.onload = function () {
-									if (userXhr.status === 200) {
-										var user = JSON.parse(userXhr.responseText);
-										userName.innerHTML = user.login;
-										userImage.src = user.image;
-										userImage.style.display = 'block';
-										user.id = user.idName;
-										sessionStorage.setItem('user', JSON.stringify(user));
-									}
-								};
-							}
+		fetch('/exchange_token/?code=' + code)
+			.then((response) => {
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw new Error('Network response was not ok');
+				}
+			}).then((data) => {
+				var accessToken = data.access_token;
+				var userUrl = 'https://localhost:8443/proxy/';
+				var userXhr = new XMLHttpRequest();
+				userXhr.open('GET', userUrl, true);
+				userXhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+				userXhr.onreadystatechange = function () {
+					if (this.readyState === 4 && this.status === 200) {
+						var user = JSON.parse(this.responseText);
+						setUserOnline(user.id);
+						var data = {
+							login: user.login,
+							email: user.email,
+							firstName: user.first_name,
+							lastName: user.last_name,
+							campus: user.campus[0].name,
+							level: user.cursus_users[1].level,
+							wallet: user.wallet,
+							correctionPoint: user.correction_point,
+							location: user.location,
+							idName: user.id,
+							image: user.image.link
 						};
-						userXhr.onerror = function () {
-							console.log('Error');
-							if (user) {
+						fetch('/save_user_profile_42/', {
+							method: 'POST',
+							body: JSON.stringify(data),
+							headers: {
+								'Content-Type': 'application/json',
+								'X-CSRFToken': csrfToken,
+							}
+						})
+							.then(response => {
+								if (!response.ok) {
+									return response.text().then(text => {
+										throw new Error('Server error: ' + text);
+									});
+								}
+								return response.json();
+							})
+							.then(data => {
+								if (data) {
+									loginLogout.innerHTML = 'Logout';
+									userName.innerHTML = data.login;
+									normalLogin.style.display = 'none';
+									data.id = data.idName;
+									if (data.id === undefined) {
+										data.id = data.user.idName;
+									}
+									sessionStorage.setItem('user', data.user);
+									accessToken = getJwtFromCookie();
+									fetch('/get_user/' + data.id + '/')
+										.then(response => {
+											if (!response.ok) {
+												return response.text().then(text => {
+													throw new Error('Server error: ' + text);
+												});
+											}
+											return response.json();
+										})
+										.then(data => {
+											if (data) {
+												data.user.id = data.user.idName;
+												userImage.src = data.user.image;
+												user.image = data.user.image;
+												userName.innerHTML = data.user.login;
+												userImage.style.display = 'block';
+												sessionStorage.setItem('user', JSON.stringify(data.user));
+												if (data.user.is_2fa_enabled) {
+													show2FAConfirmationPopup();
+												}
+											}
+										})
+										.catch(error => console.error('Error:', error));
+									isLogged = true;
+								}
+							})
+							.catch((error) => {
+								console.error('Error:', error);
+							});
+						var userXhr = new XMLHttpRequest();
+						userXhr.open('GET', '/get_user/' + data.idName + '/', true);
+						userXhr.onload = function () {
+							if (userXhr.status === 200) {
+								var user = JSON.parse(userXhr.responseText);
 								userName.innerHTML = user.login;
 								userImage.src = user.image;
 								userImage.style.display = 'block';
+								user.id = user.idName;
+								sessionStorage.setItem('user', JSON.stringify(user));
 							}
 						};
-						userXhr.send();
-					}).catch((error) => {
-						console.error('Error:', error);
-					});
-			} catch (error) {
+					}
+				};
+				userXhr.onerror = function () {
+					console.log('Error');
+					if (user) {
+						userName.innerHTML = user.login;
+						userImage.src = user.image;
+						userImage.style.display = 'block';
+					}
+				};
+				userXhr.send();
+			}).catch((error) => {
 				console.error('Error:', error);
-			}
-		}
-		getClientData();
-		window.history.pushState({}, null, '/homePage/');
+			});
+		navigateToCustompath('/homePage/');
 		isLogged = true;
 	}
 

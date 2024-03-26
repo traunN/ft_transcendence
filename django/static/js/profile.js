@@ -143,7 +143,6 @@ function initializeProfile() {
 				.catch(error => {
 					console.error('Error:', error);
 				});
-
 		})
 		.catch(error => {
 			console.error('Error:', error);
@@ -220,6 +219,7 @@ function initializeProfile() {
 				});
 		}
 		).catch(error => {
+			console.error('Error:', error);
 		});
 	});
 
@@ -235,7 +235,6 @@ function initializeProfile() {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log(data);
 					if (data.status === 'success')
 						navigateToCustompath('/profile/' + user.idName);
 				})
@@ -244,6 +243,7 @@ function initializeProfile() {
 				});
 		}
 		).catch(error => {
+			console.error('Error:', error);
 		});
 	});
 
