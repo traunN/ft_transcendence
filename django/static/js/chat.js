@@ -24,7 +24,6 @@ function initializeChat() {
 	chatForm.removeEventListener("submit", handleSubmit, false);
 	chatForm.addEventListener("submit", handleSubmit, false);
 	var user = window.chatData.user;
-	
 	if (!user) {
 		document.querySelector('.please-login').style.display = 'block';
 		var chatContainer = document.querySelector('.chat-container');

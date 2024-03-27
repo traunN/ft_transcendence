@@ -65,8 +65,8 @@ def get_user_by_jwt(request):
 		user_id = decoded_token['user_id']
 		user = User.objects.get(idName=user_id)
 		user_dict = model_to_dict(user, fields=[
-			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -98,7 +98,7 @@ def confirm_2fa(request, user_id):
 			user_entered_code = data.get('code', '')
 			totp_secret = user.otp_secret
 			expected_code = pyotp.TOTP(totp_secret).now()
-			
+
 			if user_entered_code == expected_code:
 				user.is_2fa_enabled = True
 				user.is_2fa_logged = True
@@ -243,7 +243,7 @@ def check_blocked(request, user_id):
 		try:
 			data = json.loads(request.body.decode('utf-8'))
 			user = User.objects.get(idName=user_id)
-			if validate_jwt(request, user_id) == False:
+			if validate_jwt(request, data['from_user']) == False:
 				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			from_user = User.objects.get(idName=data['from_user'])
 			to_user = User.objects.get(idName=data['to_user'])
@@ -575,7 +575,7 @@ def create_tournament_game(request, tournament_id, room_name, user_id):
 			room.gameState = 'playing_tournament'
 			room.save()
 			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
-		else: 
+		else:
 			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
@@ -763,7 +763,7 @@ def join_or_create_room(request, user_id):
 			room.gameState = 'playing'
 			room.save()
 			return JsonResponse({'status': 'success', 'start_game': True, 'room_name': room.name})
-		else: 
+		else:
 			return JsonResponse({'status': 'success', 'start_game': False, 'room_name': room.name})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
@@ -847,8 +847,8 @@ def login_user(request):
 			return JsonResponse({'status': 'error', 'message': 'User is from 42'})
 		if check_password(password, user.password):
 			user_dict = model_to_dict(user, fields=[
-			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -883,8 +883,8 @@ def save_user_profile_42(request):
 		try:
 			user = User.objects.get(idName=user_id)
 			user_dict = model_to_dict(user, fields=[
-				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = str(user.image)
@@ -898,7 +898,7 @@ def save_user_profile_42(request):
 			return response
 		except User.DoesNotExist:
 			user = User.objects.create(
-				login=data['login'], isFrom42=True, password= '', email=data['email'], firstName='', lastName='', 
+				login=data['login'], isFrom42=True, password= '', email=data['email'], firstName='', lastName='',
 				campus='', level=0, wallet=0, correctionPoint=0, location='', idName=data['idName']
 			)
 			image_url = data['image']
@@ -909,8 +909,8 @@ def save_user_profile_42(request):
 			user.image = image_name
 			user.save()
 			user_dict = model_to_dict(user, fields=[
-				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -952,12 +952,12 @@ def save_user_profile_manual(request):
 		except User.DoesNotExist:
 			hashed_password = make_password(data['password'])
 			user = User.objects.create(
-				login=data['login'], isFrom42=False, password= hashed_password, email=data['email'], firstName='', 
+				login=data['login'], isFrom42=False, password= hashed_password, email=data['email'], firstName='',
 				lastName='', campus='', level=0, wallet=0, correctionPoint=0, location='', idName=data['accountName'], image='default.jpg'
 			)
 			user_dict = model_to_dict(user, fields=[
-				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -981,8 +981,8 @@ def get_user(request, user_id):
 	try:
 		user = User.objects.get(idName=user_id)
 		user_dict = model_to_dict(user, fields=[
-			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -996,8 +996,8 @@ def get_user_by_login(request, login):
 	try:
 		user = User.objects.get(login=login)
 		user_dict = model_to_dict(user, fields=[
-			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
@@ -1010,8 +1010,8 @@ def get_all_users(request):
 	users_dict = []
 	for user in users:
 		user_dict = model_to_dict(user, fields=[
-			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName', 
-			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName', 
+			'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 		])
 		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
