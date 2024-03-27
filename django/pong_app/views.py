@@ -78,7 +78,9 @@ def remove_jwt_token(request):
 	jwt_token = request.session.get('jwt_token')
 	if jwt_token:
 		del request.session['jwt_token']
-		return JsonResponse({'status': 'success', 'message': 'JWT token removed successfully'})
+		response = JsonResponse({'status': 'success', 'message': 'JWT token removed successfully'})
+		response.delete_cookie('jwt_token')
+		return response
 	else:
 		return JsonResponse({'error': 'No JWT token found in session'}, status=404)
 
