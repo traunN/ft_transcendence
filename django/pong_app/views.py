@@ -87,7 +87,10 @@ def remove_jwt_token(request):
 def get_jwt_token(request):
 	jwt_token = request.session.get('jwt_token')
 	if jwt_token:
-		return JsonResponse({'jwt': jwt_token})
+		response = JsonResponse({'status': 'success', 'jwt': jwt_token})
+		if request.COOKIES.get('jwt_token') != jwt_token:
+			response.set_cookie('jwt_token', jwt_token)
+		return response
 	else:
 		return JsonResponse({'jwt': None})
 

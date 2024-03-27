@@ -20,6 +20,26 @@
 			position: relative;
 			top: 80px;
 		}
+
+		#showControlsBtn {
+			position: relative;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 180px;
+			height: 40px;
+			font-size: 16px;
+			white-space: nowrap;
+		}
+		.controls {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.controls h2 {
+			margin-top: 20px;
+		}
 	</style>
 </head>
 
@@ -43,6 +63,15 @@
 						<h1 class="player_1_name">Player 1</h1>
 						<h1 class="player_2_name">Player 2</h1>
 					</div>
+					<button id="showControlsBtn" class="straight-btn">Show Controls</button>
+				</div>
+				<div class="controls" style="display: none;">
+					<h2>Player 1</h2>
+					<h3>Move Up: W</h3>
+					<h3>Move Down: S</h3>
+					<h2>Player 2</h2>
+					<h3>Move Up: Arrow Up</h3>
+					<h3>Move Down: Arrow Down</h3>
 				</div>
 			</div>
 		</div>

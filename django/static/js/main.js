@@ -10,7 +10,6 @@ window.gameData = {
 
 function initializePongGame() {
 	let gameSocket = window.gameData.socket;
-	let userId;
 	const board = document.querySelector('.board');
 	const paddle1 = document.querySelector('.paddle_1');
 	const paddle2 = document.querySelector('.paddle_2');
@@ -21,6 +20,18 @@ function initializePongGame() {
 	var boardSkin = sessionStorage.getItem('boardSkin') || 'skin1';
 	var ballSkin = sessionStorage.getItem('ballSkin') || 'skin1';
 	var paddleSkin = sessionStorage.getItem('paddleSkin') || 'skin1';
+
+
+	const showControlsBtn = document.getElementById('showControlsBtn');
+	showControlsBtn.addEventListener('click', function () {
+		const controls = document.querySelector('.controls');
+		if (controls.style.display === 'none') {
+			controls.style.display = 'block';
+		} else {
+			controls.style.display = 'none';
+		}
+	});
+
 	if (boardSkin === 'skin1') {
 		board.classList.add('blackSkin');
 	} else {
@@ -38,10 +49,6 @@ function initializePongGame() {
 	else {
 		startGameBtn.textContent = 'Start Game';
 	}
-	if (user.id) {
-		userId = user.id;
-	}
-
 
 	let player1ScoreValue = 0;
 	let player2ScoreValue = 0;

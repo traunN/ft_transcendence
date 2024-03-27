@@ -89,6 +89,15 @@
 				transform: translateY(0px);
 			}
 		}
+
+		.card-body {
+			text-align: center;
+		}
+
+		.red-btn {
+			position: absolute;
+			right: 0;
+		}
 	</style>
 </head>
 
@@ -98,7 +107,7 @@
 	<div class="scrollable">
 		<div class="container-fluid">
 			<div class="row">
-				<div class="col-md-8">
+				<div class="col-md-6">
 					<form id="skinSettingsForm">
 						<label for="ballSkin"></label>
 						<div class="flex-container">
@@ -137,6 +146,20 @@
 							</div>
 						</div>
 					</form>
+					<div class="card custom-bg" id="pleaseLoginCard" style="display: none;">
+						<div class="card-body">
+							<h1 class="card-title">Please login to view settings</h1>
+						</div>
+					</div>
+				</div>
+				<div id="accessibilitySettings">
+					<h2>Accessibility Settings</h2>
+					<label for="textSizeSelect">Text Size:</label>
+					<select id="textSizeSelect" name="textSizeSelect">
+						<option value="small">Small</option>
+						<option value="medium">Medium</option>
+						<option value="large">Large</option>
+					</select>
 				</div>
 			</div>
 		</div>
