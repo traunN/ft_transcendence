@@ -495,7 +495,7 @@ function initializeLogin() {
 									}
 									sessionStorage.setItem('user', data.user);
 									accessToken = getJwtFromCookie();
-									fetch('/get_user/' + data.id + '/')
+									fetch('/get_user/' + data.user.id + '/')
 										.then(response => {
 											if (!response.ok) {
 												return response.text().then(text => {
