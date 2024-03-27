@@ -341,8 +341,7 @@ function initializeTournamentLobby() {
 
 	aliasInput.addEventListener('change', function (event) {
 		var alias = aliasInput.value;
-		var tournamentId = document.getElementById('tournamentId').value;
-		var userId = user.id;
+		var userId = user.idName;
 
 		const formData = new FormData();
 		formData.append('alias', alias);
@@ -390,7 +389,7 @@ function initializeTournamentLobby() {
 		const formData = new FormData();
 		formData.append('alias', alias);
 		formData.append('tournament_id', tournamentId);
-		formData.append('user_id', user.id);
+		formData.append('user_id', user.idName);
 		getJwtFromCookie().then(jwtToken => {
 			fetch('/set_player_ready/', {
 				method: 'POST',

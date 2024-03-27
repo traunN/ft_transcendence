@@ -75,27 +75,32 @@ def get_user_by_jwt(request):
 		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def remove_jwt_token(request):
-	jwt_token = request.session.get('jwt_token')
-	if jwt_token:
-		del request.session['jwt_token']
-		response = JsonResponse({'status': 'success', 'message': 'JWT token removed successfully'})
-		response.delete_cookie('jwt_token')
-		return response
-	else:
-		return JsonResponse({'error': 'No JWT token found in session'}, status=404)
+	try:
+		jwt_token = request.session.get('jwt_token')
+		if jwt_token:
+			del request.session['jwt_token']
+			response = JsonResponse({'status': 'success', 'message': 'JWT token removed successfully'})
+			response.delete_cookie('jwt_token')
+			return response
+		else:
+			return JsonResponse({'error': 'No JWT token found in session'}, status=404)
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def get_jwt_token(request):
-	jwt_token = request.session.get('jwt_token')
-	if jwt_token:
-		response = JsonResponse({'status': 'success', 'jwt': jwt_token})
-		if request.COOKIES.get('jwt_token') != jwt_token:
-			response.set_cookie('jwt_token', jwt_token)
-		return response
-	else:
-		return JsonResponse({'jwt': None})
+	try:
+		jwt_token = request.session.get('jwt_token')
+		if jwt_token:
+			response = JsonResponse({'status': 'success', 'jwt': jwt_token})
+			if request.COOKIES.get('jwt_token') != jwt_token:
+				response.set_cookie('jwt_token', jwt_token)
+			return response
+		else:
+			return JsonResponse({'jwt': None})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def confirm_2fa(request, user_id):
-	logger = logging.getLogger(__name__)
 	if request.method == 'POST':
 		try:
 			data = json.loads(request.body.decode('utf-8'))
@@ -117,26 +122,35 @@ def confirm_2fa(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def user_two_factor_auth_data_create(user):
-	secret_key = pyotp.random_base32()
-	totp = pyotp.TOTP(secret_key)
-	user.otp_secret = secret_key
-	user.save()
-	uri = totp.provisioning_uri(name=user.login, issuer_name='Pong Game')
-	return uri
+	try:
+		secret_key = pyotp.random_base32()
+		totp = pyotp.TOTP(secret_key)
+		user.otp_secret = secret_key
+		user.save()
+		uri = totp.provisioning_uri(name=user.login, issuer_name='Pong Game')
+		return uri
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def setup_2fa(request, user_id):
-	user = User.objects.get(idName=user_id)
-	uri = user_two_factor_auth_data_create(user)
-	encoded_uri = parse.quote(uri)
-	qr_code_url = f'https://api.qrserver.com/v1/create-qr-code/?data={encoded_uri}&size=200x200'
-	return render(request, 'setup_2fa.html', {'qr_code_url': qr_code_url})
+	try:
+		user = User.objects.get(idName=user_id)
+		uri = user_two_factor_auth_data_create(user)
+		encoded_uri = parse.quote(uri)
+		qr_code_url = f'https://api.qrserver.com/v1/create-qr-code/?data={encoded_uri}&size=200x200'
+		return render(request, 'setup_2fa.html', {'qr_code_url': qr_code_url})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 def remove_2fa(request, user_id):
-	user = User.objects.get(idName=user_id)
-	user.otp_secret = None
-	user.is_2fa_enabled = False
-	user.save()
-	return JsonResponse({'status': 'success', 'message': '2FA removed successfully'})
+	try:
+		user = User.objects.get(idName=user_id)
+		user.otp_secret = None
+		user.is_2fa_enabled = False
+		user.save()
+		return JsonResponse({'status': 'success', 'message': '2FA removed successfully'})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 @api_view(['POST'])
 def whisper(request, user_id):
@@ -442,23 +456,26 @@ def get_user_game_history(request, user_id):
 		return JsonResponse({'error': 'User not found'}, status=404)
 
 def record_game(request):
-	player1_id = request.POST['player1Id']
-	player2_id = request.POST['player2Id']
-	player1_login = request.POST['player1Login']
-	player2_login = request.POST['player2Login']
-	winner_id = request.POST['winnerId']
-	score1 = request.POST['score1']
-	score2 = request.POST['score2']
-	GameHistory.objects.create(
-		player1_id=player1_id,
-		player2_id=player2_id,
-		player1_login=player1_login,
-		player2_login=player2_login,
-		winner_id=winner_id,
-		score1=score1,
-		score2=score2,
-	)
-	return JsonResponse({"status": "success"})
+	try:
+		player1_id = request.POST['player1Id']
+		player2_id = request.POST['player2Id']
+		player1_login = request.POST['player1Login']
+		player2_login = request.POST['player2Login']
+		winner_id = request.POST['winnerId']
+		score1 = request.POST['score1']
+		score2 = request.POST['score2']
+		GameHistory.objects.create(
+			player1_id=player1_id,
+			player2_id=player2_id,
+			player1_login=player1_login,
+			player2_login=player2_login,
+			winner_id=winner_id,
+			score1=score1,
+			score2=score2,
+		)
+		return JsonResponse({"status": "success"})
+	except Exception as e:
+		return JsonResponse({"status": "error", "message": str(e)})
 
 @api_view(['POST'])
 def update_user(request):
@@ -621,19 +638,22 @@ def change_tournament_user_alias(request, user_id):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def get_players_in_tournament(request, tournament_id):
-	tournament = Tournament.objects.get(id=tournament_id)
-	players = TournamentPlayer.objects.filter(tournament=tournament)
-	player_data = []
-	for player in players:
-		player_data.append({
-			'id': player.user.id,
-			'login': player.user.login,
-			'idName': player.user.idName,
-			'alias': player.user.alias,
-			'is_ready': player.is_ready
-		})
-	player_data.sort(key=lambda x: x['id'])
-	return JsonResponse({'players': player_data})
+	try:
+		tournament = Tournament.objects.get(id=tournament_id)
+		players = TournamentPlayer.objects.filter(tournament=tournament)
+		player_data = []
+		for player in players:
+			player_data.append({
+				'id': player.user.id,
+				'login': player.user.login,
+				'idName': player.user.idName,
+				'alias': player.user.alias,
+				'is_ready': player.is_ready
+			})
+		player_data.sort(key=lambda x: x['id'])
+		return JsonResponse({'players': player_data})
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 @api_view(['POST'])
 def leave_tournament(request, user_id):
@@ -687,8 +707,10 @@ def join_tournament(request, user_id):
 			if validate_jwt(request, user_id) == False:
 				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
 			tournament = Tournament.objects.get(id=tournament_id)
-			if TournamentPlayer.objects.filter(user=user, tournament=tournament).exists():
-				return JsonResponse({'status': 'error', 'message': 'User already in tournament'})
+			if RoomPlayer.objects.filter(user=user).exists():
+				return JsonResponse({'status': 'error', 'message': 'User already in a room'})
+			if TournamentPlayer.objects.filter(user=user).exists():
+				return JsonResponse({'status': 'error', 'message': 'User already in a tournament'})
 			tournament_player = TournamentPlayer(user=user, tournament=tournament)
 			tournament_player.count = 1
 			tournament.count += 1
@@ -712,6 +734,10 @@ def create_tournament(request):
 			user = User.objects.get(idName=data['user_id'])
 			if validate_jwt(request, data['user_id']) == False:
 				return JsonResponse({'status': 'error', 'message': 'User not authorized to update this user'})
+			if RoomPlayer.objects.filter(user=user).exists():
+				return JsonResponse({'status': 'error', 'message': 'User already in a room'})
+			if TournamentPlayer.objects.filter(user=user).exists():
+				return JsonResponse({'status': 'error', 'message': 'User already in a tournament'})
 			tournament = Tournament(name=tournament_name, creator=user)
 			tournament.status = 'available'
 			tournament.count = 1
@@ -919,7 +945,6 @@ def save_user_profile_42(request):
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
 			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
-			user_json = json.dumps(user_dict)
 			user.id = user.idName
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
@@ -948,10 +973,19 @@ def save_user_profile_manual(request):
 		user_id = data['accountName']
 		try:
 			user = User.objects.get(idName=user_id)
+			user_dict = model_to_dict(user, fields=[
+				'login', 'isFrom42', 'password', 'email', 'firstName', 'lastName',
+				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
+				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
+			])
+			user_dict['image'] = str(user.image)
+			user.id = user.idName
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
+			refresh_token = str(refresh)
 			request.session['jwt_token'] = access_token
+			response = JsonResponse({'user': user_dict, 'access_token': access_token, 'refresh_token': refresh_token})
 			response.set_cookie('jwt_token', access_token, httponly=True, secure=True, samesite='Strict')
 			return response
 		except User.DoesNotExist:
