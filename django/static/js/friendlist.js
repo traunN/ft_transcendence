@@ -35,7 +35,6 @@ function initializeFriends(isHidden) {
 	}
 	toggleButton.removeEventListener('click', CheckIfUser);
 	updateFriendList();
-
 	fetch('/get_user/' + user.idName + '/')
 		.then(response => {
 			if (!response.ok) {
