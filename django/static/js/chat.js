@@ -656,6 +656,7 @@ function displayMessage(username, message, nb) {
 		messageTextElement.style.fontWeight = "bold";
 	} else {
 	}
+	messageElement.style.animation = "slideInFromLeft 0.3s ease-in-out";
 
 	chatMessages.appendChild(messageElement);
 	chatMessages.scrollTop = chatMessages.scrollHeight;
