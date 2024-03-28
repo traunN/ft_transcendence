@@ -540,9 +540,6 @@ function leaveLobby() {
 window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
-	if (window.tournamentLobbyData.didF5) {
-		return;
-	}
 	if (window.tournamentLobbyData.shouldLeaveLobby) {
 		leaveLobby();
 	}

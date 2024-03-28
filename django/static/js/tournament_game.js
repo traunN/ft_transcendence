@@ -9,12 +9,12 @@ window.tournamentGameData = {
 	isWinner: false,
 	gameRoomStarted: false,
 	isGameRunning: false,
-	isLeavingTournament: false
+	tournamentid: document.getElementById('tournamentId').value,
 };
 
 function initializeTournamentGame() {
 	let userId;
-	var tournamentId = document.getElementById('tournamentId').value;
+	var tournamentId = window.tournamentGameData.tournamentid;
 	var roomName = document.getElementById('roomName').value;
 	const board = document.querySelector('.board');
 	const ball = document.querySelector('.ball');
@@ -90,30 +90,10 @@ function initializeTournamentGame() {
 
 	window.tournamentGameData.lobbySocket.onmessage = function (e) {
 		var data = JSON.parse(e.data);
-		if (data.type === 'canceled_room') {
-			console.log('canceled_room');
-			if (data.room_name === roomName) {
-				if (data.user_id !== userId) {
-					window.tournamentGameData.isWinner = true;
-					window.tournamentGameData.gameLeave = true;
-					window.tournamentGameData.isGameRunning = false;
-					navigateToCustompath('/tournament_lobby/' + tournamentId);
-				}
-				else {
-					window.tournamentGameData.isWinner = false;
-					window.tournamentGameData.gameLeave = true;
-					window.tournamentGameData.isGameRunning = false;
-					window.tournamentGameData.isLeavingTournament = true;
-					navigateToCustompath('/tournament/');
-				}
-			}
-		}
-		else if (data.type === 'cancel_lobby') {
-			console.log('cancel_lobby');
+		if (data.type === 'cancel_lobby') {
 			window.tournamentGameData.isWinner = false;
 			window.tournamentGameData.gameLeave = true;
 			window.tournamentGameData.isGameRunning = false;
-			window.tournamentGameData.isLeavingTournament = true;
 			navigateToCustompath('/tournament/');
 		}
 	};
@@ -358,7 +338,6 @@ function initializeTournamentGame() {
 				else {
 					window.tournamentGameData.isWinner = false;
 					message.textContent = winner + ' won!';
-					window.tournamentGameData.isLeavingTournament = true;
 					setTimeout(function () {
 						navigateToCustompath('/tournament/');
 					}, 3000);
@@ -464,12 +443,13 @@ function initializeTournamentGame() {
 }
 
 function leaveLobby() {
-	var tournamentId = document.getElementById('tournamentId').value;
+	var tournamentId = window.tournamentGameData.tournamentid;
 	var userId = window.tournamentGameData.user.idName;
 	const formData = new FormData();
 	formData.append('tournament_id', tournamentId);
 	window.tournamentGameData.isGameRunning = false;
 
+	console.log('userid: ', userId);
 	if (!window.tournamentGameData.isWinner) {
 		getJwtFromCookie().then(jwtToken => {
 			fetch('/leave_tournament/' + userId + '/', {
@@ -483,15 +463,15 @@ function leaveLobby() {
 			})
 				.then(response => response.text())
 				.then(data => {
-					console.log(data);
 					var response = JSON.parse(data);
 					if (response.status === 'success') {
 						if (window.tournamentGameData.gameRoomStarted) {
 							window.tournamentGameData.socket.close();
 						}
+						window.tournamentGameData.lobbySocket.close();
+						navigateToCustompath('/tournament/');
 					}
 					else {
-						console.log('Error leaving tournament');
 						console.log(response);
 					}
 				})
@@ -507,35 +487,24 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
-	console.log("is leaving tournament: " + window.tournamentGameData.isLeavingTournament);
-	if (!window.tournamentGameData.isLeavingTournament) {
-		console.log('simple refresh');
+	window.tournamentGameData.isGameRunning = false;
+	var gameLeave = window.tournamentGameData.gameLeave;
+	var isWinner = window.tournamentGameData.isWinner;
+	var gameRoomStarted = window.tournamentGameData.gameRoomStarted;
+	var tournamentId = window.tournamentGameData.tournamentid;
+	if (!gameLeave) {
+		tournamentGameData.lobbySocket.send(JSON.stringify({
+			'type': 'cancel_lobby',
+			'tournament_id': tournamentId,
+		}));
+		leaveLobby();
 	}
-	else
-	{
-		window.tournamentGameData.isGameRunning = false;
-		var userId = window.tournamentGameData.user.idName;
-		var gameLeave = window.tournamentGameData.gameLeave;
-		var isWinner = window.tournamentGameData.isWinner;
-		var gameRoomStarted = window.tournamentGameData.gameRoomStarted;
-		var tournamentId = document.getElementById('tournamentId').value;
-		var roomName = document.getElementById('roomName').value;
-		if (!gameLeave) {
-			window.tournamentGameData.lobbySocket.send(JSON.stringify({
-				'type': 'canceled_room',
-				'user_id': userId,
-				'room_name': roomName,
-				'tournament_id': tournamentId,
-			}));
-			leaveLobby();
-		}
-		else if (gameLeave && !isWinner) {
-			leaveLobby();
-		}
-		else if (gameLeave && isWinner) {
-			if (gameRoomStarted) {
-				window.tournamentGameData.socket.close();
-			}
+	else if (gameLeave && !isWinner) {
+		leaveLobby();
+	}
+	else if (gameLeave && isWinner) {
+		if (gameRoomStarted) {
+			window.tournamentGameData.socket.close();
 		}
 	}
 }
