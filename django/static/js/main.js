@@ -9,7 +9,6 @@ window.gameData = {
 };
 
 function initializePongGame() {
-	console.log('hoster ip : ', document.getElementById('hoster_ip').value);
 	let gameSocket = window.gameData.socket;
 	const board = document.querySelector('.board');
 	const paddle1 = document.querySelector('.paddle_1');

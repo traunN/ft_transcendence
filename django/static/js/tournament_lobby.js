@@ -166,14 +166,16 @@ function initializeTournamentLobby() {
 			.then(data => {
 				var response = JSON.parse(data);
 				if (response.status === 'success') {
-					console.log(response.tournament_status);
 					statusText = document.getElementById('statusText');
-					if (response.tournament_status === 'first_match_finished') {
-						statusText.innerHTML = 'Round 2 is starting. Please wait...';
+					if (response.tournament_status === 'started') {
+						statusText.innerHTML = 'Status: Started';
+					}
+					else if (response.tournament_status === 'first_match_finished') {
+						statusText.innerHTML = 'Status: First match finished';
 					} else if (response.tournament_status === 'second_match_finished') {
-						statusText.innerHTML = 'Final Round is starting. Please wait...';
+						statusText.innerHTML = 'Status: Second match finished';
 					} else if (response.tournament_status === 'final_match_finished') {
-						statusText.innerHTML = 'Tournament has ended. Congratulations to the winner!';
+						statusText.innerHTML = 'Status: Final match finished';
 					}
 				}
 			})
@@ -240,6 +242,8 @@ function initializeTournamentLobby() {
 		else if (data.type === 'second_match_finished') {
 			statusText.innerHTML = 'Final Round';
 			var winnerId = data.winner_id;
+			console.log('winnerId: ' + winnerId);
+			console.log('firstMatchWinnerId: ' + window.tournamentLobbyData.firstMatchWinnerId);
 			if (window.tournamentLobbyData.firstMatchWinnerId && winnerId) {
 				window.tournamentLobbyData.lobbySocket.send(JSON.stringify({
 					'type': 'next_players',

@@ -192,8 +192,8 @@ function initializeTournamentGame() {
 		paddle2Y += (targetPaddle2Y - paddle2Y) * interpolationFactor;
 		paddle1.style.top = `${paddle1Y}px`;
 		paddle2.style.top = `${paddle2Y}px`;
-
-		requestAnimationFrame(update_paddles);
+		if (window.tournamentGameData.isGameRunning)
+			requestAnimationFrame(update_paddles);
 	}
 
 
@@ -210,12 +210,11 @@ function initializeTournamentGame() {
 				{
 					update_ball_position(updated_ball_position);
 				}
-				console.log('reduce lag'); //have to change this not normal javascript things
+				console.log('reduce lag');
 			}
 			else if (messageData.message === 'paddle1_update') {
 				const updated_paddle_position = messageData.paddle1_position;
-				if (window.tournamentGameData.isGameRunning)
-					update_paddle1_position(updated_paddle_position);
+				update_paddle1_position(updated_paddle_position);
 			}
 			else if (messageData.message === 'paddle2_update') {
 				const updated_paddle_position = messageData.paddle2_position;
@@ -372,9 +371,10 @@ function initializeTournamentGame() {
 		if (window.tournamentGameData.isGameRunning) {
 			update_paddles();
 		}
-		window.tournamentGameData.socket.onclose = function (event) {
-			window.tournamentGameData.isGameRunning = false;
-		};
+		else
+		{
+			return;
+		}
 	}
 
 	function displayNames(player1NameValue, player2NameValue) {
@@ -412,6 +412,7 @@ function initializeTournamentGame() {
 						console.log('Failed to create socket');
 						return;
 					}
+					console.log(' socket: ', window.tournamentGameData.socket);
 					if (data.start_game) {
 						window.room_name = data.room_name;
 						window.tournamentGameData.socket.onopen = async function (event) {
@@ -507,7 +508,7 @@ window.addEventListener('beforeunload', customOnBeforeUnload);
 function customOnBeforeUnload() {
 	window.removeEventListener('beforeunload', customOnBeforeUnload);
 	console.log("is leaving tournament: " + window.tournamentGameData.isLeavingTournament);
-	if (window.location.pathname.includes('/tournament_game/') && !window.tournamentGameData.isLeavingTournament) {
+	if (!window.tournamentGameData.isLeavingTournament) {
 		console.log('simple refresh');
 	}
 	else
