@@ -54,8 +54,8 @@ function initializePrivateGame() {
 	paddle1.classList.add(paddleSkin);
 	paddle2.classList.add(paddleSkin);
 	board.classList.add(boardSkin);
-	if (user.id) {
-		userId = user.id;
+	if (user.idName) {
+		userId = user.idName;
 	}
 
 	let player1ScoreValue = 0;
@@ -201,7 +201,7 @@ function initializePrivateGame() {
 			}
 			else if (messageData.message === 'cancel_game_room') {
 				window.privateGameData.isGameRunning = false;
-				if (window.privateGameData.user1 === user.id) {
+				if (window.privateGameData.user1 === user.idName) {
 					message.textContent = `${window.privateGameData.user2} left the game`;
 				}
 				else {
@@ -239,11 +239,11 @@ function initializePrivateGame() {
 		message.textContent = '';
 		readyGamebtn.style.display = 'none';
 		window.privateGameData.isGameRunning = true;
-		if (!user.id) {
+		if (!user.idName) {
 			console.log('Please login');
 			return;
 		}
-		let userId = user.id;
+		let userId = user.idName;
 		getJwtFromCookie().then(jwtToken => {
 			fetch(`/join_or_create_room/${userId}/`, {
 				method: 'GET',
@@ -262,7 +262,8 @@ function initializePrivateGame() {
 				.then(data => {
 					if (data.status === 'success') {
 						console.log('Successfully joined or created room');
-						gameSocket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
+						var ip = window.location.hostname;
+						gameSocket = new WebSocket('wss://' + ip + ':8443/ws/game/' + data.room_name + '/' + user.idName + '/');
 						window.privateGameData.socket = gameSocket;
 						if (!gameSocket) {
 							console.log('Failed to create socket');

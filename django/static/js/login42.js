@@ -32,6 +32,7 @@ function initializeLogin() {
 	var normalLogin = document.getElementById('normalLogin');
 	var userName = document.getElementById('userName');
 	var userImage = document.getElementById('userImage');
+	var ip = window.location.hostname;
 
 	var user = JSON.parse(sessionStorage.getItem('user'));
 	userImage.style.opacity = '0';
@@ -427,7 +428,7 @@ function initializeLogin() {
 					})
 					.then(data => {
 						var clientId = data.client_id;
-						var redirectUri = 'https://localhost:8443/homePage/';
+						var redirectUri = 'https://' + ip + ':8443/homePage/';
 						var url = 'https://api.intra.42.fr/oauth/authorize?client_id=' + clientId + '&redirect_uri=' + redirectUri + '&response_type=code';
 						window.location.href = url;
 					})
@@ -446,8 +447,9 @@ function initializeLogin() {
 					throw new Error('Network response was not ok');
 				}
 			}).then((data) => {
+				console.log(data);
 				var accessToken = data.access_token;
-				var userUrl = 'https://localhost:8443/proxy/';
+				var userUrl = 'https://' + ip + ':8443/proxy/';
 				var userXhr = new XMLHttpRequest();
 				userXhr.open('GET', userUrl, true);
 				userXhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);

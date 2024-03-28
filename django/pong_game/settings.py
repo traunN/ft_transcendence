@@ -36,7 +36,9 @@ ALLOWED_HOSTS = ['*']
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = ['localhost:8443']
+HOSTER_IP = os.getenv('HOSTER_IP')
+
+CSRF_TRUSTED_ORIGINS = ['localhost:8443', HOSTER_IP]
 
 INSTALLED_APPS = [
 	'django.contrib.admin',
@@ -126,6 +128,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
     "https://localhost:8443",
+    f"https://{HOSTER_IP}",
 ]
 
 ROOT_URLCONF = 'pong_game.urls'

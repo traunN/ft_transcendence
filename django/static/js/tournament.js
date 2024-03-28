@@ -17,7 +17,8 @@ function initializeTournament() {
 	}
 	const form = document.getElementById('create-tournament-form');
 	var user = window.tournamentData.user;
-	window.tournamentData.socket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	var ip = window.location.hostname;
+	window.tournamentData.socket = new WebSocket('wss://' + ip + ':8443/ws/tournament/');
 	window.tournamentData.socket.onopen = function () {
 		refreshTournamentList();
 	}
@@ -86,7 +87,7 @@ function initializeTournament() {
 		const formData = new FormData();
 		formData.append('tournament_id', tournamentId);
 		getJwtFromCookie().then(jwtToken => {
-			fetch('/join_tournament/' + user.id + '/', {
+			fetch('/join_tournament/' + user.idName + '/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

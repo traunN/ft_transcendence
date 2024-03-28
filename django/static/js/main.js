@@ -9,6 +9,7 @@ window.gameData = {
 };
 
 function initializePongGame() {
+	console.log('hoster ip : ', document.getElementById('hoster_ip').value);
 	let gameSocket = window.gameData.socket;
 	const board = document.querySelector('.board');
 	const paddle1 = document.querySelector('.paddle_1');
@@ -209,7 +210,7 @@ function initializePongGame() {
 			else if (messageData.message === 'cancel_game_room') {
 				window.gameData.isGameRunning = false;
 				gameSocket.send(JSON.stringify({ 'message': 'stop_game' }));
-				if (window.gameData.user1 === user.id) {
+				if (window.gameData.user1 === user.idName) {
 					message.textContent = `${window.gameData.user2} left the game`;
 				}
 				else {
@@ -285,11 +286,12 @@ function initializePongGame() {
 				})
 				.then(data => {
 					if (data.status === 'success') {
-						gameSocket = new WebSocket('wss://localhost:8443/ws/game/' + data.room_name + '/' + user.id + '/');
+						gameSocket = new WebSocket('wss://' + document.getElementById('hoster_ip').value + '/ws/game/' + data.room_name + '/' + user.idName+ '/');
 						if (!gameSocket) {
 							console.log('Failed to create socket');
 							return;
 						}
+						console.log('socket : ', gameSocket);
 						window.gameData.socket = gameSocket;
 						if (data.start_game) {
 							window.room_name = data.room_name;

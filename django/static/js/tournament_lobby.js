@@ -43,13 +43,13 @@ function initializeTournamentLobby() {
 		sessionStorage.setItem('tournamentLobbyKey', '');
 		history.back();
 	}
-
-	window.tournamentLobbyData.pageSocket = new WebSocket('wss://localhost:8443/ws/tournament/');
+	var ip = window.location.hostname;
+	window.tournamentLobbyData.pageSocket = new WebSocket('wss://' + ip + ':8443/ws/tournament/');
 	if (window.tournamentLobbyData.lobbySocket) {
 		console.log('lobby socket exists');
 	}
 	else
-		window.tournamentLobbyData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+		window.tournamentLobbyData.lobbySocket = new WebSocket('wss://' + ip + ':8443/ws/tournament_lobby/' + tournamentId + '/');
 
 	aliasInput.focus();
 	if (window.tournamentLobbyData.didF5) {
@@ -64,17 +64,17 @@ function initializeTournamentLobby() {
 			var response = JSON.parse(data);
 			if (response.status === 'success') {
 				if (response.tournament_status === 'second_match_finished') {
-					sessionStorage.setItem('roomNameKey', user.id);
+					sessionStorage.setItem('roomNameKey', user.idName);
 					window.tournamentLobbyData.shouldLeaveLobby = false;
 					setTimeout(function () {
-						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.id + '/');
+						navigateToCustompath('/tournament_game/' + tournamentId + '/' + user.idName + '/');
 					}, 3000);
 				}
 				else if (response.tournament_status === 'final_match_finished') {
 					reloadLeaveLobby = false;
 					const formData = new FormData();
 					formData.append('tournament_id', tournamentId);
-					fetch('/user_win_tournament/' + user.id + '/', {
+					fetch('/user_win_tournament/' + user.idName + '/', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ function initializeTournamentLobby() {
 								document.getElementById('statusText').innerHTML = 'Congratulations! You won the tournament!';
 								setTimeout(function () {
 									getJwtFromCookie().then(jwtToken => {
-										fetch('/leave_tournament/' + user.id + '/', {
+										fetch('/leave_tournament/' + user.idName + '/', {
 											method: 'POST',
 											headers: {
 												'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ function initializeTournamentLobby() {
 				else if (response.tournament_status === 'first_match_finished')
 				{
 					if (is_in_room1){
-						window.tournamentLobbyData.firstMatchWinnerId = user.id;
+						window.tournamentLobbyData.firstMatchWinnerId = user.idName;
 					}
 				}
 			}
@@ -161,6 +161,23 @@ function initializeTournamentLobby() {
 
 	window.tournamentLobbyData.lobbySocket.onmessage = function (event) {
 		var data = JSON.parse(event.data);
+		fetch('/get_tournament_status/' + tournamentId + '/')
+			.then(response => response.text())
+			.then(data => {
+				var response = JSON.parse(data);
+				if (response.status === 'success') {
+					console.log(response.tournament_status);
+					statusText = document.getElementById('statusText');
+					if (response.tournament_status === 'first_match_finished') {
+						statusText.innerHTML = 'Round 2 is starting. Please wait...';
+					} else if (response.tournament_status === 'second_match_finished') {
+						statusText.innerHTML = 'Final Round is starting. Please wait...';
+					} else if (response.tournament_status === 'final_match_finished') {
+						statusText.innerHTML = 'Tournament has ended. Congratulations to the winner!';
+					}
+				}
+			})
+			.catch(error => console.error(error));
 		if (data.type === 'tournament_lobby_updated') {
 			updatePlayersList();
 		}
@@ -176,7 +193,7 @@ function initializeTournamentLobby() {
 			roomName2split = roomName2;
 
 
-			if (user.id == roomName1.split('&')[0] || user.id == roomName1.split('&')[1]) {
+			if (user.idName == roomName1.split('&')[0] || user.idName == roomName1.split('&')[1]) {
 				roomName1 = roomName1.replace('&', '');
 				is_in_room1 = true;
 			}
@@ -205,7 +222,7 @@ function initializeTournamentLobby() {
 				}));
 			}, 1000);
 			var winnerId = data.winner_id;
-			if (user.id == winnerId) {
+			if (user.idName == winnerId) {
 				is_in_room1 = true;
 				window.tournamentLobbyData.firstMatchWinnerId = winnerId;
 			}

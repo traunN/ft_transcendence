@@ -69,7 +69,8 @@ def get_user_by_jwt(request):
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 		])
-		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+		hoster_ip = os.getenv('HOSTER_IP')
+		user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 		return JsonResponse({'status': 'success', 'user': user_dict})
 	except Exception as e:
 		return JsonResponse({'status': 'error', 'message': str(e)})
@@ -389,21 +390,27 @@ def accept_friend_request(request):
 		return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def proxy_view(request):
-	auth_header = request.headers.get('Authorization')
-	if not auth_header or not auth_header.startswith('Bearer '):
-		return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
-	access_token = auth_header.split(' ')[1]
-	headers = {'Authorization': 'Bearer ' + access_token}
-	response = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
-	if response.status_code == 200 and response.text.strip():
-		try:
-			data = response.json()
-			return JsonResponse(data, safe=False)
-		except json.JSONDecodeError:
-			return HttpResponse("Invalid JSON response", status=500)
-	else:
-		print("Empty response or server error")
-		return HttpResponse("Empty response or server error", status=500)
+	try:
+		logger = logging.getLogger(__name__)
+		auth_header = request.headers.get('Authorization')
+		if not auth_header or not auth_header.startswith('Bearer '):
+			return JsonResponse({'status': 'error', 'message': 'Missing or invalid Authorization header'})
+		access_token = auth_header.split(' ')[1]
+		logger.error(access_token)
+		headers = {'Authorization': 'Bearer ' + access_token}
+		response = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
+		logger.error(response.text)
+		if response.status_code == 200 and response.text.strip():
+			try:
+				data = response.json()
+				return JsonResponse(data, safe=False)
+			except json.JSONDecodeError:
+				return HttpResponse("Invalid JSON response", status=500)
+		else:
+			print("Empty response or server error")
+			return HttpResponse("Empty response or server error", status=500)
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)})
 
 @api_view(['GET'])
 def set_user_online(request, user_id):
@@ -514,8 +521,10 @@ def update_user(request):
 
 def exchange_token(request):
 	try:
+		logger = logging.getLogger(__name__)
+		hoster_ip = os.getenv('HOSTER_IP')
 		code = request.GET.get('code')
-		redirect_uri = 'https://localhost:8443/homePage/'
+		redirect_uri = 'https://' + hoster_ip + '/homePage/'
 		client_secret = os.environ.get('CLIENT_SECRET')
 		post_data = {
 			'grant_type': 'authorization_code',
@@ -671,7 +680,6 @@ def leave_tournament(request, user_id):
 			tournament_player = TournamentPlayer.objects.get(user=user, tournament=tournament)
 			tournament_player.count -= 1
 			tournament.count -= 1
-			tournament.status = 'available'
 			tournament_player.save()
 			tournament.save()
 			if tournament_player.count == 0:
@@ -679,7 +687,7 @@ def leave_tournament(request, user_id):
 			if tournament.count == 0:
 				count = 0
 				tournament.delete()
-			return JsonResponse({'status': 'success', 'player_count': tournament.count, 'message': 'Left tournament successfully'})
+			return JsonResponse({'status': 'success', 'player_count': count, 'message': 'Left tournament successfully'})
 		except Exception as e:
 			return JsonResponse({'status': 'error', 'message': str(e)})
 	else:
@@ -809,7 +817,8 @@ def privateGame(request, room_name):
 	return render(request, 'privateGame.html', {'room_name': room_name})
 
 def pongGame(request):
-	return render(request, 'pongGame.html')
+	hoster_ip = os.getenv('HOSTER_IP')
+	return render(request, 'pongGame.html', {'hoster_ip': hoster_ip})
 
 def leaderboard(request):
 	return render(request, 'leaderboard.html')
@@ -882,7 +891,8 @@ def login_user(request):
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
-			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+			hoster_ip = os.getenv('HOSTER_IP')
+			user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
@@ -944,7 +954,8 @@ def save_user_profile_42(request):
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
-			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+			hoster_ip = os.getenv('HOSTER_IP')
+			user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 			user.id = user.idName
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
@@ -999,7 +1010,8 @@ def save_user_profile_manual(request):
 				'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 				'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 			])
-			user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+			hoster_ip = os.getenv('HOSTER_IP')
+			user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 			refresh = RefreshToken.for_user(user)
 			refresh['user_id'] = str(user.idName)
 			access_token = str(refresh.access_token)
@@ -1024,7 +1036,8 @@ def get_user(request, user_id):
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline', 'is_2fa_enabled', 'otp_secret', 'is_2fa_logged'
 		])
-		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+		hoster_ip = os.getenv('HOSTER_IP')
+		user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -1039,7 +1052,8 @@ def get_user_by_login(request, login):
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 		])
-		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+		hoster_ip = os.getenv('HOSTER_IP')
+		user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 		return JsonResponse({'user': user_dict}, safe=False)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'User not found'}, status=404)
@@ -1053,6 +1067,7 @@ def get_all_users(request):
 			'campus', 'level', 'wallet', 'correctionPoint', 'location', 'idName',
 			'image', 'wins', 'loses', 'elo', 'alias', 'tournamentWins', 'isOnline'
 		])
-		user_dict['image'] = 'https://localhost:8443/media/images/' + str(user.image)
+		hoster_ip = os.getenv('HOSTER_IP')
+		user_dict['image'] = 'https://' + hoster_ip + '/media/images/' + str(user.image)
 		users_dict.append(user_dict)
 	return JsonResponse({'users': users_dict}, safe=False)

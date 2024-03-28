@@ -52,8 +52,8 @@ function initializeTournamentGame() {
 	paddle2.classList.add(paddleSkin);
 	board.classList.add(boardSkin);
 
-	if (user.id) {
-		userId = user.id;
+	if (user.idName) {
+		userId = user.idName;
 	}
 
 	const keys = {
@@ -73,6 +73,7 @@ function initializeTournamentGame() {
 	let interpolationFactor = 0.1;
 	let targetPaddle1Y = paddle1Y;
 	let targetPaddle2Y = paddle2Y;
+	var ip = window.location.hostname;
 
 	if (window.tournamentGameData.lobbySocket)
 	{
@@ -80,7 +81,7 @@ function initializeTournamentGame() {
 	}
 	else
 	{
-		window.tournamentGameData.lobbySocket = new WebSocket('wss://localhost:8443/ws/tournament_lobby/' + tournamentId + '/');
+		window.tournamentGameData.lobbySocket = new WebSocket('wss://' + ip + ':8443/ws/tournament_lobby/' + tournamentId + '/');
 	}
 
 	window.tournamentGameData.lobbySocket.onerror = function (e) {
@@ -394,7 +395,7 @@ function initializeTournamentGame() {
 		message.textContent = '';
 		readyGamebtn.style.display = 'none';
 		window.tournamentGameData.isGameRunning = true;
-		let userId = user.id;
+		let userId = user.idName;
 		fetch('/create_tournament_game/' + tournamentId + '/' + roomName + '/' + userId + '/')
 			.then(response => {
 				if (!response.ok) {
@@ -405,7 +406,8 @@ function initializeTournamentGame() {
 			.then(data => {
 				if (data.status === 'success') {
 					console.log('tournament game room created');
-					window.tournamentGameData.socket = new WebSocket('wss://localhost:8443/ws/tournament_game/' + roomName + '/');
+					var ip = window.location.hostname;
+					window.tournamentGameData.socket = new WebSocket('wss://' + ip + ':8443/ws/tournament_game/' + roomName + '/');
 					if (!window.tournamentGameData.socket) {
 						console.log('Failed to create socket');
 						return;
@@ -462,7 +464,7 @@ function initializeTournamentGame() {
 
 function leaveLobby() {
 	var tournamentId = document.getElementById('tournamentId').value;
-	var userId = window.tournamentGameData.user.id;
+	var userId = window.tournamentGameData.user.idName;
 	const formData = new FormData();
 	formData.append('tournament_id', tournamentId);
 	window.tournamentGameData.isGameRunning = false;
@@ -511,7 +513,7 @@ function customOnBeforeUnload() {
 	else
 	{
 		window.tournamentGameData.isGameRunning = false;
-		var userId = window.tournamentGameData.user.id;
+		var userId = window.tournamentGameData.user.idName;
 		var gameLeave = window.tournamentGameData.gameLeave;
 		var isWinner = window.tournamentGameData.isWinner;
 		var gameRoomStarted = window.tournamentGameData.gameRoomStarted;

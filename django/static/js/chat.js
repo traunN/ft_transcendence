@@ -24,13 +24,14 @@ function initializeChat() {
 	chatForm.removeEventListener("submit", handleSubmit, false);
 	chatForm.addEventListener("submit", handleSubmit, false);
 	var user = window.chatData.user;
+	var ip = window.location.hostname;
 	if (!user) {
 		document.querySelector('.please-login').style.display = 'block';
 		var chatContainer = document.querySelector('.chat-container');
 		chatContainer.style.display = 'none';
 		return;
 	}
-	window.chatData.socket = new WebSocket(`wss://localhost:8443/ws/rooms/${user.idName}/`);
+	window.chatData.socket = new WebSocket(`wss://` + ip + `:8443/ws/rooms/${user.idName}/`);
 	if (window.chatData.socket.readyState === WebSocket.OPEN) {
 		window.chatData.socket.send(JSON.stringify({ type: 'join', username: user.login }));
 	};

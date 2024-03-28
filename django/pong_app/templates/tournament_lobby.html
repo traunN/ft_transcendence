@@ -17,12 +17,34 @@
 	<script type="text/javascript" src="{% static 'js/tournament_lobby.js' %}"></script>
 	<style>
 		main {
-			left: -150px;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: center;
+			height: 100vh;
+			gap: 20px;
+			padding-top: 20px;
+			flex-wrap: wrap;
 		}
 
-		#statusText {
+		d-flex {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 20px;
+		}
+
+		.tournament-info, .status-text, .player-count {
+			display: flex;
+			background-color: #111010;
+			justify-content: center;
+			align-items: center;
+			border-radius: 10px;
 			text-align: center;
-			font-size: 2em;
+			margin-right: 10px;
+			flex-shrink: 0;
+			font-size: 1.5em;
+			padding: 30px;
 		}
 
 		.yellow-btn {
@@ -38,29 +60,31 @@
 	<div class="scrollable">
 		<div class="container-fluid">
 			<div class="row">
-				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+				<main role="main" class="col-md-8 col-lg-10 px-4">
 					<div id="statusText"></div>
-					<div
-						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					</div>
-					<div
-						class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-						<h1 class="h2" id="tournamentName">{{ tournament.name }}</h1>
-						<div class="btn-group mr-2">
-							<button id="startTournamentBtn" class="yellow-btn">Start</button>
-							<button id="leaveTournamentBtn" class="yellow-btn">Leave</button>
+					<div class="d-flex">
+						<div class="tournament-info">
+							<h1>{{ tournament.name }}</h1>
 						</div>
-						<h1 class="h2" id="PlayerCount">Players: {{ tournament.players.count }} / 4</h1>
+						<div class="status-text">
+							<p id="statusText">Status: Available</p>
+						</div>
+						<div class="player-count">
+							<p id="PlayerCount">Players: {{ tournament.players.count }} / 4</p>
+						</div>
 					</div>
 					<ul id="playerList" class="player-grid"></ul>
 					<div id="loadingMessage" style="display:none;">Loading...</div>
 					<input type="text" id="aliasInput" placeholder="Enter your alias">
 					<button id="readyButton" class="yellow-btn">Ready</button>
 					<p id="errorMessage"></p>
+					<div class="btn-group mr-2 flex-wrap align-items-center">
+						<button id="startTournamentBtn" class="yellow-btn">Start</button>
+						<button id="leaveTournamentBtn" class="yellow-btn">Leave</button>
+					</div>
+				</main>
 			</div>
-			</main>
 		</div>
-	</div>
 	</div>
 
 </body>
