@@ -35,6 +35,14 @@ volumes:
       type: none
       o: bind
       device: ./${DJANGO_FOLDER}/static
+  pong_app:
+    driver: local
+    name: pong_app
+    driver_opts:
+      type: none
+      o: bind
+      device: ./${DJANGO_FOLDER}/pong_app
+
 
 
 services:
@@ -56,6 +64,7 @@ services:
       - static_volume:/usr/src/app/staticfiles
       - media_volume:/usr/src/app/media
       - debuf_volume:/usr/src/app/static
+      - pong_app:/usr/src/app/pong_app
     stop_signal: SIGINT
 
   nginx:

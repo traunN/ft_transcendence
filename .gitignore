@@ -3,3 +3,4 @@ django/staticfiles/css
 django/staticfiles/images
 django/staticfiles/js
 django/staticfiles/fonts
+__pycache__
